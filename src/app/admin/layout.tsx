@@ -1,3 +1,4 @@
+import { AdminDashboardLayout } from "@/components/layouts/admin-dashboard-layout";
 import { requireRole } from "@/lib/supabase/auth";
 
 type AdminLayoutProps = {
@@ -5,7 +6,9 @@ type AdminLayoutProps = {
 };
 
 export default async function AdminLayout({ children }: AdminLayoutProps) {
-  await requireRole("admin");
+  const profile = await requireRole("admin");
 
-  return children;
+  return (
+    <AdminDashboardLayout profile={profile}>{children}</AdminDashboardLayout>
+  );
 }

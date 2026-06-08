@@ -1,3 +1,4 @@
+import { ClientPortalLayout } from "@/components/layouts/client-portal-layout";
 import { requireRole } from "@/lib/supabase/auth";
 
 type ClientLayoutProps = {
@@ -5,7 +6,7 @@ type ClientLayoutProps = {
 };
 
 export default async function ClientLayout({ children }: ClientLayoutProps) {
-  await requireRole("client");
+  const profile = await requireRole("client");
 
-  return children;
+  return <ClientPortalLayout profile={profile}>{children}</ClientPortalLayout>;
 }
