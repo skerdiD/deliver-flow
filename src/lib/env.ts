@@ -1,10 +1,10 @@
-type RequiredEnvKey =
+type PublicEnvKey =
   | "NEXT_PUBLIC_SUPABASE_URL"
-  | "NEXT_PUBLIC_SUPABASE_ANON_KEY"
-  | "SUPABASE_SERVICE_ROLE_KEY"
-  | "ARCJET_KEY";
+  | "NEXT_PUBLIC_SUPABASE_ANON_KEY";
 
-function getRequiredEnv(key: RequiredEnvKey): string {
+type ServerEnvKey = "SUPABASE_SERVICE_ROLE_KEY" | "ARCJET_KEY";
+
+function getRequiredEnv(key: PublicEnvKey | ServerEnvKey): string {
   const value = process.env[key];
 
   if (!value || value.trim().length === 0) {

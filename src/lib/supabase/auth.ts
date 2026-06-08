@@ -1,7 +1,18 @@
 import "server-only";
 
+import { redirect } from "next/navigation";
+
+import { routes } from "@/config/routes";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Profile, UserRole } from "@/types/database";
+
+export function getDashboardPathForRole(role: UserRole) {
+  if (role === "admin") {
+    return routes.admin.dashboard;
+  }
+
+  return routes.client.dashboard;
+}
 
 export async function getCurrentUser() {
   const supabase = await createSupabaseServerClient();
@@ -13,16 +24,6 @@ export async function getCurrentUser() {
 
   if (error || !user) {
     return null;
-  }
-
-  return user;
-}
-
-export async function requireCurrentUser() {
-  const user = await getCurrentUser();
-
-  if (!user) {
-    throw new Error("You must be signed in to access this resource.");
   }
 
   return user;
@@ -41,7 +42,7 @@ export async function getCurrentProfile(): Promise<Profile | null> {
     .from("profiles")
     .select("*")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
 
   if (error || !data) {
     return null;
@@ -54,52 +55,26 @@ export async function requireCurrentProfile(): Promise<Profile> {
   const profile = await getCurrentProfile();
 
   if (!profile) {
-    throw new Error("Profile not found for the current user.");
+    redirect(routes.auth.login);
   }
 
   return profile;
 }
 
-export async function getCurrentUserRole(): Promise<UserRole | null> {
-  const profile = await getCurrentProfile();
-
-  return profile?.role ?? null;
-}
-
-export async function requireAdminProfile(): Promise<Profile> {
+export async function requireRole(role: UserRole): Promise<Profile> {
   const profile = await requireCurrentProfile();
 
-  if (profile.role !== "admin") {
-    throw new Error("Admin access is required for this action.");
+  if (profile.role !== role) {
+    redirect(getDashboardPathForRole(profile.role));
   }
 
   return profile;
 }
 
-export async function isCurrentUserAdmin() {
-  const role = await getCurrentUserRole();
+export async function redirectIfAuthenticated() {
+  const profile = await getCurrentProfile();
 
-  return role === "admin";
-}
-
-export async function getCurrentClientRecord() {
-  const user = await getCurrentUser();
-
-  if (!user) {
-    return null;
+  if (profile) {
+    redirect(getDashboardPathForRole(profile.role));
   }
-
-  const supabase = await createSupabaseServerClient();
-
-  const { data, error } = await supabase
-    .from("clients")
-    .select("*")
-    .eq("profile_id", user.id)
-    .maybeSingle();
-
-  if (error || !data) {
-    return null;
-  }
-
-  return data;
 }

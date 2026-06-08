@@ -1,14 +1,13 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
-import { siteConfig } from "@/config/site";
-
 export const metadata: Metadata = {
   title: {
-    default: siteConfig.name,
-    template: `%s | ${siteConfig.name}`,
+    default: "DeliverFlow",
+    template: "%s | DeliverFlow",
   },
-  description: siteConfig.description,
+  description:
+    "A client portal and admin dashboard for project delivery, updates, approvals, and files.",
 };
 
 type RootLayoutProps = {

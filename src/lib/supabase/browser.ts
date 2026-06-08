@@ -1,34 +1,15 @@
-import "server-only";
+"use client";
 
-import { cookies } from "next/headers";
-import { createServerClient } from "@supabase/ssr";
+import { createBrowserClient } from "@supabase/ssr";
 
 import { getPublicEnv } from "@/lib/env";
 import type { Database } from "@/types/database";
 
-export async function createSupabaseServerClient() {
+export function createSupabaseBrowserClient() {
   const env = getPublicEnv();
-  const cookieStore = await cookies();
 
-  return createServerClient<Database>(
+  return createBrowserClient<Database>(
     env.supabaseUrl,
     env.supabaseAnonKey,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options);
-            });
-          } catch {
-            // This can happen inside Server Components.
-            // It is safe to ignore when middleware refreshes the session.
-          }
-        },
-      },
-    },
   );
 }
