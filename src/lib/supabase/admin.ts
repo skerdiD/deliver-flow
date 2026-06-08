@@ -2,13 +2,15 @@ import "server-only";
 
 import { createClient } from "@supabase/supabase-js";
 
-import type { Database } from "@/lib/supabase/database.types";
-import { getRequiredEnv } from "@/lib/env";
+import { getServerEnv } from "@/lib/env";
+import type { Database } from "@/types/database";
 
 export function createSupabaseAdminClient() {
+  const env = getServerEnv();
+
   return createClient<Database>(
-    getRequiredEnv("NEXT_PUBLIC_SUPABASE_URL"),
-    getRequiredEnv("SUPABASE_SERVICE_ROLE_KEY"),
+    env.supabaseUrl,
+    env.supabaseServiceRoleKey,
     {
       auth: {
         autoRefreshToken: false,

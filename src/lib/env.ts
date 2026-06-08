@@ -1,15 +1,32 @@
-export function getRequiredEnv(key: string) {
+type RequiredEnvKey =
+  | "NEXT_PUBLIC_SUPABASE_URL"
+  | "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+  | "SUPABASE_SERVICE_ROLE_KEY"
+  | "ARCJET_KEY";
+
+function getRequiredEnv(key: RequiredEnvKey): string {
   const value = process.env[key];
 
-  if (!value) {
-    throw new Error(`Missing required environment variable: ${key}`);
+  if (!value || value.trim().length === 0) {
+    throw new Error(
+      `Missing required environment variable: ${key}. Add it to your .env.local file.`,
+    );
   }
 
   return value;
 }
 
-export const publicEnv = {
-  siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
-  supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-  supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
-};
+export function getPublicEnv() {
+  return {
+    supabaseUrl: getRequiredEnv("NEXT_PUBLIC_SUPABASE_URL"),
+    supabaseAnonKey: getRequiredEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
+  };
+}
+
+export function getServerEnv() {
+  return {
+    ...getPublicEnv(),
+    supabaseServiceRoleKey: getRequiredEnv("SUPABASE_SERVICE_ROLE_KEY"),
+    arcjetKey: getRequiredEnv("ARCJET_KEY"),
+  };
+}
