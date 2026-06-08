@@ -1,0 +1,82 @@
+import { MessageSquare } from "lucide-react";
+
+import { StatusBadge } from "@/components/shared/status-badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type {
+  DashboardFeedback,
+  FeedbackStatus,
+} from "@/features/admin/dashboard/types";
+import { formatShortDate } from "@/lib/format";
+
+type RecentFeedbackPanelProps = {
+  feedback: DashboardFeedback[];
+};
+
+function getFeedbackStatusLabel(status: FeedbackStatus) {
+  const labels: Record<FeedbackStatus, string> = {
+    open: "Open",
+    reviewed: "Reviewed",
+    resolved: "Resolved",
+  };
+
+  return labels[status];
+}
+
+function getFeedbackStatusTone(status: FeedbackStatus) {
+  const tones: Record<FeedbackStatus, "blue" | "green" | "yellow"> = {
+    open: "yellow",
+    reviewed: "blue",
+    resolved: "green",
+  };
+
+  return tones[status];
+}
+
+export function RecentFeedbackPanel({ feedback }: RecentFeedbackPanelProps) {
+  return (
+    <Card className="rounded-2xl border-slate-200 shadow-sm">
+      <CardHeader>
+        <CardTitle>Recent feedback</CardTitle>
+        <p className="text-sm text-slate-500">
+          Client notes that may need a decision or reply.
+        </p>
+      </CardHeader>
+
+      <CardContent className="space-y-4">
+        {feedback.map((item) => (
+          <div
+            key={item.id}
+            className="rounded-2xl border border-slate-200 bg-white p-4"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <div className="grid size-9 place-items-center rounded-xl bg-blue-50 text-blue-600">
+                  <MessageSquare className="size-4" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-slate-950">
+                    {item.client}
+                  </p>
+                  <p className="text-xs text-slate-500">{item.project}</p>
+                </div>
+              </div>
+
+              <StatusBadge
+                label={getFeedbackStatusLabel(item.status)}
+                tone={getFeedbackStatusTone(item.status)}
+              />
+            </div>
+
+            <p className="mt-4 text-sm leading-6 text-slate-700">
+              {item.message}
+            </p>
+
+            <p className="mt-3 text-xs text-slate-500">
+              {formatShortDate(item.createdAt)}
+            </p>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
