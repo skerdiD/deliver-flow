@@ -1,47 +1,53 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { AlertCircle, Loader2 } from "lucide-react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 
 import { routes } from "@/config/routes";
+import {
+  loginSchema,
+  type LoginValues,
+} from "@/features/auth/auth-validation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+import type { UserRole } from "@/types/database";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+  CardFooter,
 } from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
-function getSafeNextPath(value: string | null) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) {
-    return routes.home;
+function getDashboardPath(role: UserRole) {
+  if (role === "admin") {
+    return routes.admin.dashboard;
   }
 
-  return value;
+  return routes.client.dashboard;
 }
 
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const [errorMessage, setErrorMessage] = useState(() => {
+  const [authError, setAuthError] = useState(() => {
     const error = searchParams.get("error");
 
     if (error === "profile_missing") {
-      return "Your account is signed in, but no profile was found. Ask the admin to check your account setup.";
-    }
-
-    if (error === "role_invalid") {
-      return "Your account role could not be verified. Ask the admin to review your access settings.";
+      return "Your account exists, but the profile is not ready yet. Please try again or ask the project owner to check your account.";
     }
 
     return "";
@@ -49,87 +55,137 @@ export function LoginForm() {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  const form = useForm<LoginValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
+  async function onSubmit(values: LoginValues) {
     setIsLoading(true);
-    setErrorMessage("");
+    setAuthError("");
 
     const supabase = createSupabaseBrowserClient();
 
     const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+      email: values.email,
+      password: values.password,
     });
 
     if (error) {
-      setErrorMessage("Email or password is incorrect.");
+      setAuthError("Email or password is incorrect.");
       setIsLoading(false);
       return;
     }
 
-    const nextPath = getSafeNextPath(searchParams.get("next"));
-    router.replace(nextPath);
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      setAuthError("We could not load your account. Please try again.");
+      setIsLoading(false);
+      return;
+    }
+
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (profileError || !profile?.role) {
+      setAuthError(
+        "You signed in, but your profile could not be loaded. Please try again in a moment.",
+      );
+      setIsLoading(false);
+      return;
+    }
+
+    router.replace(getDashboardPath(profile.role));
     router.refresh();
   }
 
   return (
-    <Card className="border-slate-200 shadow-sm">
-      <CardHeader>
-        <CardTitle>Sign in</CardTitle>
-        <CardDescription>
-          Use your account to open your workspace.
-        </CardDescription>
-      </CardHeader>
+    <Card className="rounded-2xl border-slate-200 bg-white shadow-sm">
+      <CardContent className="p-6">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+            {authError ? (
+              <Alert variant="destructive">
+                <AlertCircle className="size-4" />
+                <AlertDescription>{authError}</AlertDescription>
+              </Alert>
+            ) : null}
 
-      <CardContent>
-        <form onSubmit={handleLogin} className="space-y-4">
-          {errorMessage ? (
-            <Alert variant="destructive">
-              <AlertDescription>{errorMessage}</AlertDescription>
-            </Alert>
-          ) : null}
-
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="you@example.com"
-              autoComplete="email"
-              value={email}
-              disabled={isLoading}
-              onChange={(event) => setEmail(event.target.value)}
-              required
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email address</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      placeholder="you@example.com"
+                      autoComplete="email"
+                      disabled={isLoading}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              autoComplete="current-password"
-              value={password}
-              disabled={isLoading}
-              onChange={(event) => setPassword(event.target.value)}
-              required
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder="Enter your password"
+                      autoComplete="current-password"
+                      disabled={isLoading}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? (
-              <>
-                <Loader2 className="size-4 animate-spin" />
-                Signing in...
-              </>
-            ) : (
-              "Sign in"
-            )}
-          </Button>
-        </form>
+            <Button type="submit" className="h-11 w-full" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                "Sign in"
+              )}
+            </Button>
+          </form>
+        </Form>
       </CardContent>
+
+      <CardFooter className="border-t border-slate-200 px-6 py-4">
+        <p className="w-full text-center text-sm text-slate-600">
+          Don’t have an account?{" "}
+          <Link
+            href={routes.auth.signup}
+            className="font-medium text-blue-600 hover:text-blue-700"
+          >
+            Create one
+          </Link>
+        </p>
+      </CardFooter>
     </Card>
   );
 }
