@@ -1,5 +1,6 @@
 import {
   BarChart3,
+  BadgeCheck,
   BriefcaseBusiness,
   CheckSquare,
   CreditCard,
@@ -43,6 +44,16 @@ export const adminNavigation = [
     title: "Payments",
     href: routes.admin.payments,
     icon: CreditCard,
+  },
+  {
+    title: "Files",
+    href: routes.admin.files,
+    icon: Files,
+  },
+  {
+    title: "Approvals",
+    href: routes.admin.approvals,
+    icon: BadgeCheck,
   },
   {
     title: "Settings",

@@ -12,6 +12,8 @@ export const routes = {
     tasks: "/admin/tasks",
     feedback: "/admin/feedback",
     payments: "/admin/payments",
+    files: "/admin/files",
+    approvals: "/admin/approvals",
     settings: "/admin/settings",
   },
 
