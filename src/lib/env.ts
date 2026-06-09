@@ -16,10 +16,25 @@ export function getRequiredEnv(key: PublicEnvKey | ServerEnvKey): string {
   return value;
 }
 
+function getRequiredPublicEnv(key: PublicEnvKey): string {
+  const value =
+    key === "NEXT_PUBLIC_SUPABASE_URL"
+      ? process.env.NEXT_PUBLIC_SUPABASE_URL
+      : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!value || value.trim().length === 0) {
+    throw new Error(
+      `Missing required environment variable: ${key}. Add it to your .env.local file.`,
+    );
+  }
+
+  return value;
+}
+
 export function getPublicEnv() {
   return {
-    supabaseUrl: getRequiredEnv("NEXT_PUBLIC_SUPABASE_URL"),
-    supabaseAnonKey: getRequiredEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
+    supabaseUrl: getRequiredPublicEnv("NEXT_PUBLIC_SUPABASE_URL"),
+    supabaseAnonKey: getRequiredPublicEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
   };
 }
 
