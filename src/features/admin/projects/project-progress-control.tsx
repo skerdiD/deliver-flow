@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 import { updateProjectProgressAction } from "@/features/admin/projects/actions";
 import {
@@ -37,6 +38,8 @@ type ProjectProgressControlProps = {
   status: AdminProjectStatus;
 };
 
+type ProjectProgressInputValues = z.input<typeof progressFormSchema>;
+
 export function ProjectProgressControl({
   projectId,
   progress,
@@ -45,12 +48,16 @@ export function ProjectProgressControl({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const form = useForm<ProgressFormValues>({
+  const form = useForm<
+    ProjectProgressInputValues,
+    unknown,
+    ProgressFormValues
+  >({
     resolver: zodResolver(progressFormSchema),
     defaultValues: {
       progress,
       status,
-    },
+    } as ProjectProgressInputValues,
   });
 
   function onSubmit(values: ProgressFormValues) {
@@ -92,7 +99,18 @@ export function ProjectProgressControl({
                   <FormItem>
                     <FormLabel>Progress</FormLabel>
                     <FormControl>
-                      <Input type="number" min={0} max={100} {...field} />
+                      <Input
+                        type="number"
+                        min={0}
+                        max={100}
+                        name={field.name}
+                        ref={field.ref}
+                        onBlur={field.onBlur}
+                        value={
+                          typeof field.value === "number" ? field.value : ""
+                        }
+                        onChange={(event) => field.onChange(event.target.value)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

@@ -1,5 +1,6 @@
 import { FolderKanban } from "lucide-react";
 
+import { EmptyState } from "@/components/shared/empty-state";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -47,37 +48,45 @@ export function ProjectProgressOverview({
       </CardHeader>
 
       <CardContent className="space-y-5">
-        {projects.map((project) => (
-          <div key={project.id} className="rounded-2xl border border-slate-200 p-4">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex min-w-0 items-start gap-3">
-                <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-600">
-                  <FolderKanban className="size-4" />
+        {projects.length === 0 ? (
+          <EmptyState
+            icon={FolderKanban}
+            title="No active projects yet"
+            description="Project progress will appear here after delivery work starts."
+          />
+        ) : (
+          projects.map((project) => (
+            <div key={project.id} className="rounded-2xl border border-slate-200 p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex min-w-0 items-start gap-3">
+                  <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-600">
+                    <FolderKanban className="size-4" />
+                  </div>
+
+                  <div className="min-w-0">
+                    <p className="font-semibold text-slate-950">{project.name}</p>
+                    <p className="mt-1 text-sm text-slate-500">{project.client}</p>
+                  </div>
                 </div>
 
-                <div className="min-w-0">
-                  <p className="font-semibold text-slate-950">{project.name}</p>
-                  <p className="mt-1 text-sm text-slate-500">{project.client}</p>
+                <StatusBadge
+                  label={getProjectStatusLabel(project.status)}
+                  tone={getProjectStatusTone(project.status)}
+                />
+              </div>
+
+              <div className="mt-5">
+                <div className="mb-2 flex items-center justify-between text-sm">
+                  <span className="text-slate-500">{project.currentMilestone}</span>
+                  <span className="font-semibold text-slate-950">
+                    {project.progress}%
+                  </span>
                 </div>
+                <Progress value={project.progress} />
               </div>
-
-              <StatusBadge
-                label={getProjectStatusLabel(project.status)}
-                tone={getProjectStatusTone(project.status)}
-              />
             </div>
-
-            <div className="mt-5">
-              <div className="mb-2 flex items-center justify-between text-sm">
-                <span className="text-slate-500">{project.currentMilestone}</span>
-                <span className="font-semibold text-slate-950">
-                  {project.progress}%
-                </span>
-              </div>
-              <Progress value={project.progress} />
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </CardContent>
     </Card>
   );

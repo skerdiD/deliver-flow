@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -39,6 +40,8 @@ import {
 } from "@/features/admin/projects/project-validation";
 import type { AdminProjectClient } from "@/features/admin/projects/types";
 
+type ProjectFormInputValues = z.input<typeof projectFormSchema>;
+
 type ProjectFormProps = {
   mode: "create" | "edit";
   clients: AdminProjectClient[];
@@ -55,9 +58,9 @@ export function ProjectForm({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const form = useForm<ProjectFormValues>({
+  const form = useForm<ProjectFormInputValues, unknown, ProjectFormValues>({
     resolver: zodResolver(projectFormSchema),
-    defaultValues: defaultValues ?? {
+    defaultValues: (defaultValues ?? {
       name: "",
       clientId: "",
       description: "",
@@ -69,7 +72,7 @@ export function ProjectForm({
       paymentStatus: "unpaid",
       budgetDollars: 0,
       paidDollars: 0,
-    },
+    }) as ProjectFormInputValues,
   });
 
   function onSubmit(values: ProjectFormValues) {
@@ -219,7 +222,18 @@ export function ProjectForm({
                   <FormItem>
                     <FormLabel>Progress percentage</FormLabel>
                     <FormControl>
-                      <Input type="number" min={0} max={100} {...field} />
+                      <Input
+                        type="number"
+                        min={0}
+                        max={100}
+                        name={field.name}
+                        ref={field.ref}
+                        onBlur={field.onBlur}
+                        value={
+                          typeof field.value === "number" ? field.value : ""
+                        }
+                        onChange={(event) => field.onChange(event.target.value)}
+                      />
                     </FormControl>
                     <FormDescription>Use a value from 0 to 100.</FormDescription>
                     <FormMessage />
@@ -304,7 +318,18 @@ export function ProjectForm({
                   <FormItem>
                     <FormLabel>Budget</FormLabel>
                     <FormControl>
-                      <Input type="number" min={0} placeholder="2200" {...field} />
+                      <Input
+                        type="number"
+                        min={0}
+                        placeholder="2200"
+                        name={field.name}
+                        ref={field.ref}
+                        onBlur={field.onBlur}
+                        value={
+                          typeof field.value === "number" ? field.value : ""
+                        }
+                        onChange={(event) => field.onChange(event.target.value)}
+                      />
                     </FormControl>
                     <FormDescription>Enter dollars, not cents.</FormDescription>
                     <FormMessage />
@@ -319,7 +344,18 @@ export function ProjectForm({
                   <FormItem>
                     <FormLabel>Paid so far</FormLabel>
                     <FormControl>
-                      <Input type="number" min={0} placeholder="900" {...field} />
+                      <Input
+                        type="number"
+                        min={0}
+                        placeholder="900"
+                        name={field.name}
+                        ref={field.ref}
+                        onBlur={field.onBlur}
+                        value={
+                          typeof field.value === "number" ? field.value : ""
+                        }
+                        onChange={(event) => field.onChange(event.target.value)}
+                      />
                     </FormControl>
                     <FormDescription>Enter dollars, not cents.</FormDescription>
                     <FormMessage />

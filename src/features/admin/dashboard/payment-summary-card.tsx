@@ -1,5 +1,6 @@
 import { CreditCard } from "lucide-react";
 
+import { EmptyState } from "@/components/shared/empty-state";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type {
@@ -39,7 +40,7 @@ function getPaymentStatusTone(status: PaymentStatus) {
 
 export function PaymentSummaryCard({ payments }: PaymentSummaryCardProps) {
   const outstandingCents = payments
-    .filter((payment) => payment.status === "unpaid" || payment.status === "partial")
+    .filter((payment) => payment.status !== "paid")
     .reduce((total, payment) => total + payment.amountCents, 0);
 
   return (
@@ -67,33 +68,44 @@ export function PaymentSummaryCard({ payments }: PaymentSummaryCardProps) {
         </div>
 
         <div className="space-y-3">
-          {payments.map((payment) => (
-            <div
-              key={payment.id}
-              className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 p-3"
-            >
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-slate-950">
-                  {payment.project}
-                </p>
-                <p className="mt-1 text-xs text-slate-500">
-                  {payment.client} · due {formatShortDate(payment.dueDate)}
-                </p>
-              </div>
+          {payments.length === 0 ? (
+            <EmptyState
+              icon={CreditCard}
+              title="No payments yet"
+              description="Payment records will show up here once a project schedule is added."
+            />
+          ) : (
+            payments.map((payment) => (
+              <div
+                key={payment.id}
+                className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 p-3"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-slate-950">
+                    {payment.project}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {payment.client}
+                    {payment.dueDate
+                      ? ` / due ${formatShortDate(payment.dueDate)}`
+                      : " / no due date set"}
+                  </p>
+                </div>
 
-              <div className="shrink-0 text-right">
-                <p className="text-sm font-semibold text-slate-950">
-                  {formatCurrencyFromCents(payment.amountCents)}
-                </p>
-                <div className="mt-1">
-                  <StatusBadge
-                    label={getPaymentStatusLabel(payment.status)}
-                    tone={getPaymentStatusTone(payment.status)}
-                  />
+                <div className="shrink-0 text-right">
+                  <p className="text-sm font-semibold text-slate-950">
+                    {formatCurrencyFromCents(payment.amountCents)}
+                  </p>
+                  <div className="mt-1">
+                    <StatusBadge
+                      label={getPaymentStatusLabel(payment.status)}
+                      tone={getPaymentStatusTone(payment.status)}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </CardContent>
     </Card>

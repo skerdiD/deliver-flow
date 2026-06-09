@@ -71,11 +71,13 @@ export async function updateSession(request: NextRequest) {
     return response;
   }
 
-  const { data: profile } = await supabase
+  const profileResult = await supabase
     .from("profiles")
     .select("role")
     .eq("id", user.id)
     .maybeSingle();
+
+  const profile = profileResult.data as { role: UserRole } | null;
 
   if (!profile?.role) {
     if (isProtectedRoute(pathname)) {

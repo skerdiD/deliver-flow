@@ -6,6 +6,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 
+import { EmptyState } from "@/components/shared/empty-state";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type {
   ActivityType,
@@ -53,44 +54,52 @@ export function ActivityTimeline({ activities }: ActivityTimelineProps) {
       </CardHeader>
 
       <CardContent>
-        <div className="space-y-5">
-          {activities.map((activity, index) => {
-            const Icon = getActivityIcon(activity.type);
-            const isLast = index === activities.length - 1;
+        {activities.length === 0 ? (
+          <EmptyState
+            icon={FolderKanban}
+            title="No recent delivery activity"
+            description="Activity from updates, approvals, feedback, and payments will appear here."
+          />
+        ) : (
+          <div className="space-y-5">
+            {activities.map((activity, index) => {
+              const Icon = getActivityIcon(activity.type);
+              const isLast = index === activities.length - 1;
 
-            return (
-              <div key={activity.id} className="relative flex gap-4">
-                {!isLast ? (
-                  <div className="absolute left-5 top-11 h-full w-px bg-slate-200" />
-                ) : null}
+              return (
+                <div key={activity.id} className="relative flex gap-4">
+                  {!isLast ? (
+                    <div className="absolute left-5 top-11 h-full w-px bg-slate-200" />
+                  ) : null}
 
-                <div
-                  className={cn(
-                    "relative z-10 grid size-10 shrink-0 place-items-center rounded-2xl",
-                    getActivityIconClass(activity.type),
-                  )}
-                >
-                  <Icon className="size-4" />
-                </div>
-
-                <div className="min-w-0 pb-1">
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                    <p className="text-sm font-semibold text-slate-950">
-                      {activity.title}
-                    </p>
-                    <span className="text-xs text-slate-500">
-                      {formatShortDate(activity.createdAt)}
-                    </span>
+                  <div
+                    className={cn(
+                      "relative z-10 grid size-10 shrink-0 place-items-center rounded-2xl",
+                      getActivityIconClass(activity.type),
+                    )}
+                  >
+                    <Icon className="size-4" />
                   </div>
 
-                  <p className="mt-1 text-sm leading-6 text-slate-600">
-                    {activity.description}
-                  </p>
+                  <div className="min-w-0 pb-1">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                      <p className="text-sm font-semibold text-slate-950">
+                        {activity.title}
+                      </p>
+                      <span className="text-xs text-slate-500">
+                        {formatShortDate(activity.createdAt)}
+                      </span>
+                    </div>
+
+                    <p className="mt-1 text-sm leading-6 text-slate-600">
+                      {activity.description}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

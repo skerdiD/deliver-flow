@@ -1,6 +1,7 @@
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 
+import { EmptyState } from "@/components/shared/empty-state";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -91,72 +92,81 @@ export function RecentProjectsTable({ projects }: RecentProjectsTableProps) {
       </CardHeader>
 
       <CardContent>
-        <div className="overflow-hidden rounded-xl border border-slate-200">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-slate-50">
-                <TableHead>Project</TableHead>
-                <TableHead>Client</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Progress</TableHead>
-                <TableHead>Payment</TableHead>
-                <TableHead className="text-right">Due</TableHead>
-              </TableRow>
-            </TableHeader>
-
-            <TableBody>
-              {projects.map((project) => (
-                <TableRow key={project.id}>
-                  <TableCell>
-                    <div>
-                      <p className="font-medium text-slate-950">{project.name}</p>
-                      <p className="mt-1 text-xs text-slate-500">
-                        {project.currentMilestone}
-                      </p>
-                    </div>
-                  </TableCell>
-
-                  <TableCell className="text-slate-600">{project.client}</TableCell>
-
-                  <TableCell>
-                    <StatusBadge
-                      label={getProjectStatusLabel(project.status)}
-                      tone={getProjectStatusTone(project.status)}
-                    />
-                  </TableCell>
-
-                  <TableCell>
-                    <div className="min-w-28">
-                      <div className="mb-2 flex items-center justify-between text-xs">
-                        <span className="text-slate-500">Progress</span>
-                        <span className="font-medium text-slate-700">
-                          {project.progress}%
-                        </span>
-                      </div>
-                      <Progress value={project.progress} />
-                    </div>
-                  </TableCell>
-
-                  <TableCell>
-                    <div className="space-y-1">
-                      <StatusBadge
-                        label={getPaymentStatusLabel(project.paymentStatus)}
-                        tone={getPaymentStatusTone(project.paymentStatus)}
-                      />
-                      <p className="text-xs text-slate-500">
-                        {formatCurrencyFromCents(project.paymentAmountCents)}
-                      </p>
-                    </div>
-                  </TableCell>
-
-                  <TableCell className="text-right text-slate-600">
-                    {formatShortDate(project.deadline)}
-                  </TableCell>
+        {projects.length === 0 ? (
+          <EmptyState
+            title="No projects yet"
+            description="Projects will appear here after you create them."
+          />
+        ) : (
+          <div className="overflow-hidden rounded-xl border border-slate-200">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-slate-50">
+                  <TableHead>Project</TableHead>
+                  <TableHead>Client</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Progress</TableHead>
+                  <TableHead>Payment</TableHead>
+                  <TableHead className="text-right">Due</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+
+              <TableBody>
+                {projects.map((project) => (
+                  <TableRow key={project.id}>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium text-slate-950">{project.name}</p>
+                        <p className="mt-1 text-xs text-slate-500">
+                          {project.currentMilestone}
+                        </p>
+                      </div>
+                    </TableCell>
+
+                    <TableCell className="text-slate-600">{project.client}</TableCell>
+
+                    <TableCell>
+                      <StatusBadge
+                        label={getProjectStatusLabel(project.status)}
+                        tone={getProjectStatusTone(project.status)}
+                      />
+                    </TableCell>
+
+                    <TableCell>
+                      <div className="min-w-28">
+                        <div className="mb-2 flex items-center justify-between text-xs">
+                          <span className="text-slate-500">Progress</span>
+                          <span className="font-medium text-slate-700">
+                            {project.progress}%
+                          </span>
+                        </div>
+                        <Progress value={project.progress} />
+                      </div>
+                    </TableCell>
+
+                    <TableCell>
+                      <div className="space-y-1">
+                        <StatusBadge
+                          label={getPaymentStatusLabel(project.paymentStatus)}
+                          tone={getPaymentStatusTone(project.paymentStatus)}
+                        />
+                        <p className="text-xs text-slate-500">
+                          {formatCurrencyFromCents(project.paymentAmountCents)}
+                        </p>
+                      </div>
+                    </TableCell>
+
+                    <TableCell className="text-right text-slate-600">
+                      {project.deadline
+                        ? formatShortDate(project.deadline)
+                        : "Not scheduled"}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

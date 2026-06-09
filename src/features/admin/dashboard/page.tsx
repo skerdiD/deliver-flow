@@ -1,14 +1,11 @@
+import { ArrowUpRight, Plus } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 
+import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
-import {
-  adminDashboardActivity,
-  adminDashboardFeedback,
-  adminDashboardPayments,
-  adminDashboardProjects,
-  adminDashboardQuickActions,
-  getAdminDashboardMetrics,
-} from "@/features/admin/dashboard/admin-dashboard-data";
+import { routes } from "@/config/routes";
+import { getAdminDashboardData } from "@/features/admin/dashboard/admin-dashboard-data";
 import { ActivityTimeline } from "@/features/admin/dashboard/activity-timeline";
 import { AdminDashboardStats } from "@/features/admin/dashboard/admin-dashboard-stats";
 import { DashboardQuickActions } from "@/features/admin/dashboard/dashboard-quick-actions";
@@ -21,44 +18,45 @@ export const metadata: Metadata = {
   title: "Admin Dashboard",
 };
 
-export default function AdminDashboardPage() {
-  const metrics = getAdminDashboardMetrics();
+export default async function AdminDashboardPage() {
+  const dashboard = await getAdminDashboardData();
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <div>
-          <p className="text-sm font-medium text-blue-600">Admin workspace</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
-            Delivery overview
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-            Track what’s done, what’s next, and what needs approval. Keep client
-            work clear without messy back-and-forth messages.
-          </p>
-        </div>
+      <PageHeader
+        eyebrow="Admin workspace"
+        title="Delivery overview"
+        description="Projects that need attention, feedback waiting for review, and payments still open."
+      >
+        <Button asChild variant="outline">
+          <Link href={routes.admin.projects}>
+            Review projects
+            <ArrowUpRight className="ml-2 size-4" />
+          </Link>
+        </Button>
+        <Button asChild className="gap-2">
+          <Link href="/admin/projects/new">
+            <Plus className="size-4" />
+            New project
+          </Link>
+        </Button>
+      </PageHeader>
 
-        <div className="flex gap-2">
-          <Button variant="outline">Send update</Button>
-          <Button>New project</Button>
-        </div>
-      </div>
-
-      <AdminDashboardStats metrics={metrics} />
+      <AdminDashboardStats metrics={dashboard.metrics} />
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(360px,0.9fr)]">
-        <RecentProjectsTable projects={adminDashboardProjects} />
-        <RecentFeedbackPanel feedback={adminDashboardFeedback} />
+        <RecentProjectsTable projects={dashboard.recentProjects} />
+        <RecentFeedbackPanel feedback={dashboard.recentFeedback} />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
-        <ProjectProgressOverview projects={adminDashboardProjects} />
-        <PaymentSummaryCard payments={adminDashboardPayments} />
+        <ProjectProgressOverview projects={dashboard.projectProgress} />
+        <PaymentSummaryCard payments={dashboard.paymentSummary} />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(360px,0.9fr)_minmax(0,1.4fr)]">
-        <ActivityTimeline activities={adminDashboardActivity} />
-        <DashboardQuickActions actions={adminDashboardQuickActions} />
+        <ActivityTimeline activities={dashboard.activity} />
+        <DashboardQuickActions actions={dashboard.quickActions} />
       </div>
     </div>
   );

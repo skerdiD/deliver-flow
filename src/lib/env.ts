@@ -4,7 +4,7 @@ type PublicEnvKey =
 
 type ServerEnvKey = "SUPABASE_SERVICE_ROLE_KEY" | "ARCJET_KEY";
 
-function getRequiredEnv(key: PublicEnvKey | ServerEnvKey): string {
+export function getRequiredEnv(key: PublicEnvKey | ServerEnvKey): string {
   const value = process.env[key];
 
   if (!value || value.trim().length === 0) {

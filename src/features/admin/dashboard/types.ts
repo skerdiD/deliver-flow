@@ -30,7 +30,7 @@ export type DashboardProject = {
   client: string;
   status: ProjectStatus;
   progress: number;
-  deadline: string;
+  deadline: string | null;
   currentMilestone: string;
   paymentStatus: PaymentStatus;
   paymentAmountCents: number;
@@ -59,7 +59,7 @@ export type DashboardPayment = {
   client: string;
   amountCents: number;
   status: PaymentStatus;
-  dueDate: string;
+  dueDate: string | null;
 };
 
 export type DashboardQuickAction = {
@@ -67,4 +67,35 @@ export type DashboardQuickAction = {
   description: string;
   href: string;
   icon: LucideIcon;
+};
+
+export type DashboardApproval = {
+  id: string;
+  project: string;
+  client: string;
+  title: string;
+  status: "pending" | "approved" | "changes_requested";
+  requestedAt: string;
+  respondedAt?: string | null;
+};
+
+export type DashboardProjectUpdate = {
+  id: string;
+  project: string;
+  client: string;
+  title: string;
+  body: string;
+  createdAt: string;
+};
+
+export type AdminDashboardData = {
+  metrics: DashboardMetric[];
+  recentProjects: DashboardProject[];
+  projectProgress: DashboardProject[];
+  recentFeedback: DashboardFeedback[];
+  recentApprovals: DashboardApproval[];
+  recentUpdates: DashboardProjectUpdate[];
+  paymentSummary: DashboardPayment[];
+  activity: DashboardActivity[];
+  quickActions: DashboardQuickAction[];
 };
