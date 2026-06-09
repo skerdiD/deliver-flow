@@ -1,0 +1,52 @@
+import { MessageCircle } from "lucide-react";
+
+import type { ClientPortalUpdate } from "@/features/client/portal/types";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatShortDate } from "@/lib/format";
+
+type ClientUpdatesCardProps = {
+  updates: ClientPortalUpdate[];
+};
+
+export function ClientUpdatesCard({ updates }: ClientUpdatesCardProps) {
+  return (
+    <Card className="rounded-2xl border-slate-200 shadow-sm">
+      <CardHeader>
+        <CardTitle>Update history</CardTitle>
+        <p className="text-sm text-slate-500">
+          Recent progress notes from the freelancer.
+        </p>
+      </CardHeader>
+
+      <CardContent className="space-y-4">
+        {updates.map((update) => (
+          <div
+            key={update.id}
+            className="rounded-2xl border border-slate-200 p-4"
+          >
+            <div className="flex items-start gap-3">
+              <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-600">
+                <MessageCircle className="size-4" />
+              </div>
+
+              <div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <p className="font-semibold text-slate-950">
+                    {update.title}
+                  </p>
+                  <span className="text-xs text-slate-500">
+                    {formatShortDate(update.createdAt)}
+                  </span>
+                </div>
+
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  {update.body}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
