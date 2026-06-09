@@ -27,9 +27,7 @@ export function ClientDashboardProjectCard({
   const completedTasks = project.tasks.filter(
     (task) => task.status === "completed",
   ).length;
-
   const nextTasks = project.tasks.filter((task) => task.status !== "completed");
-
   const latestUpdate = project.updates[0];
 
   return (
@@ -84,19 +82,23 @@ export function ClientDashboardProjectCard({
               <div className="rounded-xl border border-slate-200 p-3">
                 <p className="text-xs font-medium text-slate-500">Deadline</p>
                 <p className="mt-1 text-sm font-semibold text-slate-950">
-                  {formatShortDate(project.deadline)}
+                  {project.deadline
+                    ? formatShortDate(project.deadline)
+                    : "Not scheduled yet"}
                 </p>
               </div>
             </div>
           </div>
 
           <div className="flex min-w-64 flex-col gap-3">
-            <Button asChild>
-              <a href={project.liveDemoUrl} target="_blank" rel="noreferrer">
-                <ExternalLink className="mr-2 size-4" />
-                View Live Demo
-              </a>
-            </Button>
+            {project.liveDemoUrl ? (
+              <Button asChild>
+                <a href={project.liveDemoUrl} target="_blank" rel="noreferrer">
+                  <ExternalLink className="mr-2 size-4" />
+                  View Live Demo
+                </a>
+              </Button>
+            ) : null}
 
             <Button asChild variant="outline">
               <Link href="/client/feedback">
@@ -120,7 +122,9 @@ export function ClientDashboardProjectCard({
               Latest update from freelancer
             </p>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              {latestUpdate.body}
+              {latestUpdate
+                ? latestUpdate.body
+                : "Your latest project updates will appear here."}
             </p>
           </div>
 
@@ -142,11 +146,17 @@ export function ClientDashboardProjectCard({
           <div className="rounded-2xl border border-slate-200 p-4">
             <p className="text-sm font-semibold text-slate-950">Next steps</p>
             <ul className="mt-3 space-y-2">
-              {nextTasks.slice(0, 3).map((task) => (
-                <li key={task.id} className="text-sm text-slate-600">
-                  • {task.title}
+              {nextTasks.length > 0 ? (
+                nextTasks.slice(0, 3).map((task) => (
+                  <li key={task.id} className="text-sm text-slate-600">
+                    - {task.title}
+                  </li>
+                ))
+              ) : (
+                <li className="text-sm text-slate-600">
+                  No open tasks right now.
                 </li>
-              ))}
+              )}
             </ul>
           </div>
 
@@ -158,8 +168,9 @@ export function ClientDashboardProjectCard({
               </p>
             </div>
             <p className="mt-2 text-sm text-slate-600">
-              {project.files.length} files are available, including proposal,
-              invoice, brief, and design files.
+              {project.files.length > 0
+                ? `${project.files.length} files are available for this project.`
+                : "Files will appear here after they are uploaded to the project."}
             </p>
             <Button asChild variant="outline" className="mt-4">
               <Link href="/client/files">Open files</Link>

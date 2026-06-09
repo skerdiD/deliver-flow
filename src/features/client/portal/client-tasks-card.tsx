@@ -28,22 +28,28 @@ export function ClientTasksCard({ tasks }: ClientTasksCardProps) {
           </p>
 
           <div className="space-y-3">
-            {completed.map((task) => (
-              <div
-                key={task.id}
-                className="rounded-2xl border border-slate-200 p-4"
-              >
-                <div className="flex items-start gap-3">
-                  <CheckCircle2 className="mt-0.5 size-5 text-emerald-600" />
-                  <div>
-                    <p className="font-medium text-slate-950">{task.title}</p>
-                    <p className="mt-1 text-sm leading-6 text-slate-600">
-                      {task.description}
-                    </p>
+            {completed.length === 0 ? (
+              <p className="text-sm leading-6 text-slate-600">
+                Completed work will appear here as tasks are finished.
+              </p>
+            ) : (
+              completed.map((task) => (
+                <div
+                  key={task.id}
+                  className="rounded-2xl border border-slate-200 p-4"
+                >
+                  <div className="flex items-start gap-3">
+                    <CheckCircle2 className="mt-0.5 size-5 text-emerald-600" />
+                    <div>
+                      <p className="font-medium text-slate-950">{task.title}</p>
+                      <p className="mt-1 text-sm leading-6 text-slate-600">
+                        {task.description}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
@@ -53,20 +59,26 @@ export function ClientTasksCard({ tasks }: ClientTasksCardProps) {
           </p>
 
           <div className="space-y-3">
-            {pending.map((task) => (
-              <div
-                key={task.id}
-                className="rounded-2xl border border-slate-200 p-4"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="font-medium text-slate-950">{task.title}</p>
-                  <ClientTaskStatusBadge status={task.status} />
+            {pending.length === 0 ? (
+              <p className="text-sm leading-6 text-slate-600">
+                No open tasks right now.
+              </p>
+            ) : (
+              pending.map((task) => (
+                <div
+                  key={task.id}
+                  className="rounded-2xl border border-slate-200 p-4"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="font-medium text-slate-950">{task.title}</p>
+                    <ClientTaskStatusBadge status={task.status} />
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    {task.description}
+                  </p>
                 </div>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                  {task.description}
-                </p>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </CardContent>

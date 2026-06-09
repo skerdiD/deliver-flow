@@ -1,206 +1,572 @@
+import "server-only";
+
+import { and, asc, desc, eq, ne } from "drizzle-orm";
+import { cache } from "react";
+
+import { db } from "@/db";
+import {
+  approvals,
+  clients,
+  feedback,
+  milestones,
+  payments,
+  projectAssignments,
+  projectFiles,
+  projects,
+  projectUpdates,
+  tasks,
+} from "@/db/schema";
 import type {
   ClientApprovalStatus,
-  ClientFeedbackStatus,
+  ClientPaymentStatus,
+  ClientPortalApproval,
   ClientPortalFeedback,
+  ClientPortalFile,
+  ClientPortalPayment,
   ClientPortalProject,
+  ClientPortalTask,
+  ClientPortalUpdate,
 } from "@/features/client/portal/types";
+import { requireRole } from "@/lib/supabase/auth";
+import type { Profile, ProjectStatus } from "@/types/database";
 
-let clientProjectStore: ClientPortalProject = {
-  id: "project_saas_mvp",
-  name: "SaaS Dashboard MVP",
-  clientName: "Sarah Johnson",
-  companyName: "Nova Agency",
-  description:
-    "A SaaS-style dashboard MVP with login, analytics, project tracking, and admin workflows.",
-  status: "in_progress",
-  progress: 68,
-  currentMilestone: "Backend API integration",
-  deadline: "2026-07-15",
-  liveDemoUrl: "https://demo.deliverflow.dev/saas-dashboard-mvp",
-  repositoryUrl: "https://github.com/example/saas-dashboard-mvp",
-  totalAmountCents: 240000,
-  paidAmountCents: 150000,
-  paymentStatus: "partial",
-  milestones: [
-    {
-      id: "milestone_1",
-      title: "Project setup and planning",
-      description: "Repository, app structure, and delivery plan completed.",
-      status: "completed",
-      dueDate: "2026-06-01",
-    },
-    {
-      id: "milestone_2",
-      title: "Frontend dashboard screens",
-      description: "Admin dashboard and project overview screens are ready.",
-      status: "completed",
-      dueDate: "2026-06-10",
-    },
-    {
-      id: "milestone_3",
-      title: "Backend API integration",
-      description:
-        "Connect project data, protected actions, and Supabase logic.",
-      status: "in_progress",
-      dueDate: "2026-07-05",
-    },
-    {
-      id: "milestone_4",
-      title: "Final review and handoff",
-      description: "Final test pass, client review, and delivery notes.",
-      status: "not_started",
-      dueDate: "2026-07-15",
-    },
-  ],
-  tasks: [
-    {
-      id: "task_1",
-      title: "Build dashboard layout",
-      description: "Main admin overview and project cards.",
-      status: "completed",
-    },
-    {
-      id: "task_2",
-      title: "Create client portal view",
-      description: "Progress, files, updates, feedback, and payments.",
-      status: "completed",
-    },
-    {
-      id: "task_3",
-      title: "Connect project data",
-      description: "Prepare the project queries and protected data access.",
-      status: "in_progress",
-    },
-    {
-      id: "task_4",
-      title: "Add approval flow",
-      description:
-        "Approve milestone or request changes from the client portal.",
-      status: "todo",
-    },
-  ],
-  updates: [
-    {
-      id: "update_1",
-      title: "Dashboard screens completed",
-      body: "The main dashboard layout is ready. Current work is focused on connecting project data and approval actions.",
-      createdAt: "2026-06-08T10:00:00.000Z",
-    },
-    {
-      id: "update_2",
-      title: "API work started",
-      body: "Project progress, files, updates, and milestones are being prepared for Supabase integration.",
-      createdAt: "2026-06-06T12:00:00.000Z",
-    },
-    {
-      id: "update_3",
-      title: "Project structure is ready",
-      body: "The base structure is complete. This gives us a clean place to add tasks, milestones, payments, approvals, and files.",
-      createdAt: "2026-06-04T15:30:00.000Z",
-    },
-  ],
-  files: [
-    {
-      id: "file_1",
-      name: "proposal.pdf",
-      type: "pdf",
-      size: "420 KB",
-      category: "Proposal",
-      uploadedAt: "2026-06-01T09:30:00.000Z",
-    },
-    {
-      id: "file_2",
-      name: "homepage-design.png",
-      type: "image",
-      size: "1.8 MB",
-      category: "Design",
-      uploadedAt: "2026-06-05T13:20:00.000Z",
-    },
-    {
-      id: "file_3",
-      name: "project-brief.docx",
-      type: "docx",
-      size: "260 KB",
-      category: "Brief",
-      uploadedAt: "2026-06-02T11:15:00.000Z",
-    },
-    {
-      id: "file_4",
-      name: "invoice.pdf",
-      type: "pdf",
-      size: "180 KB",
-      category: "Invoice",
-      uploadedAt: "2026-06-03T10:00:00.000Z",
-    },
-  ],
-  payments: [
-    {
-      id: "payment_1",
-      label: "Initial deposit",
-      amountCents: 150000,
-      status: "paid",
-      dueDate: "2026-06-01",
-      paidAt: "2026-06-01",
-    },
-    {
-      id: "payment_2",
-      label: "Backend integration milestone",
-      amountCents: 90000,
-      status: "unpaid",
-      dueDate: "2026-07-05",
-    },
-  ],
-  feedback: [
-    {
-      id: "feedback_1",
-      message:
-        "The dashboard looks clean. Please adjust the analytics chart spacing before the next review.",
-      status: "open",
-      createdAt: "2026-06-08T09:30:00.000Z",
-    },
-  ],
-  approval: {
-    id: "approval_1",
-    title: "Frontend development milestone",
-    description:
-      "The dashboard screens are ready for review. Please approve them or request changes.",
-    status: "pending",
-    requestedAt: "2026-06-08T10:15:00.000Z",
-  },
+type ClientPortalAssignment = {
+  clientId: string;
+  clientName: string;
+  companyName: string;
+  projectId: string;
+  projectName: string;
+  projectDescription: string | null;
+  projectStatus: ProjectStatus;
+  progress: number;
+  liveDemoUrl: string | null;
+  repositoryUrl: string | null;
+  deadline: string | null;
 };
 
+export type ClientPortalState = {
+  profile: Profile;
+  project: ClientPortalProject | null;
+};
+
+type ClientPortalAccess = {
+  profile: Profile;
+  assignment: ClientPortalAssignment | null;
+};
+
+const fileCategoryLabels: Record<string, string> = {
+  brief: "Brief",
+  design: "Design",
+  document: "Document",
+  invoice: "Invoice",
+  deliverable: "Deliverable",
+  other: "Other",
+};
+
+function mapProjectStatus(status: ProjectStatus): ClientPortalProject["status"] {
+  if (
+    status === "active" ||
+    status === "in_progress" ||
+    status === "waiting_feedback" ||
+    status === "completed"
+  ) {
+    return status;
+  }
+
+  return "active";
+}
+
+function derivePaymentStatus(
+  projectPayments: Array<{ status: ClientPaymentStatus }>,
+): ClientPaymentStatus {
+  if (projectPayments.length === 0) {
+    return "unpaid";
+  }
+
+  if (projectPayments.some((payment) => payment.status === "overdue")) {
+    return "overdue";
+  }
+
+  if (projectPayments.every((payment) => payment.status === "paid")) {
+    return "paid";
+  }
+
+  if (projectPayments.some((payment) => payment.status === "partial")) {
+    return "partial";
+  }
+
+  if (
+    projectPayments.some((payment) => payment.status === "paid") &&
+    projectPayments.some((payment) => payment.status === "unpaid")
+  ) {
+    return "partial";
+  }
+
+  return "unpaid";
+}
+
+function formatFileSize(sizeInBytes: number | null): string {
+  if (!sizeInBytes || sizeInBytes <= 0) {
+    return "Unknown";
+  }
+
+  if (sizeInBytes < 1024) {
+    return `${sizeInBytes} B`;
+  }
+
+  const sizeInKilobytes = sizeInBytes / 1024;
+
+  if (sizeInKilobytes < 1024) {
+    return `${Math.round(sizeInKilobytes)} KB`;
+  }
+
+  const sizeInMegabytes = sizeInKilobytes / 1024;
+
+  if (sizeInMegabytes < 10) {
+    return `${sizeInMegabytes.toFixed(1)} MB`;
+  }
+
+  return `${Math.round(sizeInMegabytes)} MB`;
+}
+
+function inferPortalFileType(
+  fileName: string,
+  fileType: string | null,
+): ClientPortalFile["type"] {
+  const normalizedName = fileName.toLowerCase();
+  const normalizedType = fileType?.toLowerCase() ?? "";
+
+  if (
+    normalizedType.startsWith("image/") ||
+    /\.(png|jpe?g|gif|webp|svg)$/.test(normalizedName)
+  ) {
+    return "image";
+  }
+
+  if (normalizedType.includes("pdf") || normalizedName.endsWith(".pdf")) {
+    return "pdf";
+  }
+
+  if (
+    normalizedType.includes("word") ||
+    /\.(doc|docx)$/.test(normalizedName)
+  ) {
+    return "docx";
+  }
+
+  return "other";
+}
+
+function mapTaskStatus(
+  status: "todo" | "in_progress" | "blocked" | "completed",
+): ClientPortalTask["status"] {
+  return status;
+}
+
+function toIsoString(value: Date | string): string {
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+
+  return new Date(value).toISOString();
+}
+
+function mapApprovalRowToPortalApproval(row: {
+  id: string;
+  title: string;
+  description: string | null;
+  status: ClientApprovalStatus;
+  responseNote: string | null;
+  requestedAt: Date | string;
+  respondedAt: Date | string | null;
+}): ClientPortalApproval {
+  return {
+    id: row.id,
+    title: row.title,
+    description:
+      row.description ?? "Review this milestone and share your decision here.",
+    status: row.status,
+    responseNote: row.responseNote ?? undefined,
+    requestedAt: toIsoString(row.requestedAt),
+    respondedAt: row.respondedAt ? toIsoString(row.respondedAt) : null,
+  };
+}
+
+async function getClientPortalAccess(): Promise<ClientPortalAccess> {
+  const profile = await requireRole("client");
+
+  const [assignment] = await db
+    .select({
+      clientId: clients.id,
+      clientName: clients.contactName,
+      companyName: clients.companyName,
+      projectId: projects.id,
+      projectName: projects.name,
+      projectDescription: projects.description,
+      projectStatus: projects.status,
+      progress: projects.progress,
+      liveDemoUrl: projects.liveDemoUrl,
+      repositoryUrl: projects.repositoryUrl,
+      deadline: projects.deadline,
+    })
+    .from(clients)
+    .innerJoin(projectAssignments, eq(projectAssignments.clientId, clients.id))
+    .innerJoin(projects, eq(projectAssignments.projectId, projects.id))
+    .where(
+      and(
+        eq(clients.profileId, profile.id),
+        ne(projects.status, "archived"),
+      ),
+    )
+    .orderBy(desc(projectAssignments.assignedAt))
+    .limit(1);
+
+  return {
+    profile,
+    assignment: assignment ?? null,
+  };
+}
+
+async function buildClientPortalProject(
+  assignment: ClientPortalAssignment,
+): Promise<ClientPortalProject> {
+  const [
+    projectMilestones,
+    projectTasks,
+    projectUpdatesList,
+    projectPayments,
+    projectFilesList,
+    projectFeedback,
+    [latestApproval],
+  ] = await Promise.all([
+    db
+      .select({
+        id: milestones.id,
+        title: milestones.title,
+        description: milestones.description,
+        status: milestones.status,
+        dueDate: milestones.dueDate,
+      })
+      .from(milestones)
+      .where(
+        and(
+          eq(milestones.projectId, assignment.projectId),
+          eq(milestones.isVisibleToClient, true),
+        ),
+      )
+      .orderBy(asc(milestones.position), asc(milestones.createdAt)),
+    db
+      .select({
+        id: tasks.id,
+        title: tasks.title,
+        description: tasks.description,
+        status: tasks.status,
+      })
+      .from(tasks)
+      .where(
+        and(
+          eq(tasks.projectId, assignment.projectId),
+          eq(tasks.isVisibleToClient, true),
+        ),
+      )
+      .orderBy(asc(tasks.position), asc(tasks.createdAt)),
+    db
+      .select({
+        id: projectUpdates.id,
+        title: projectUpdates.title,
+        body: projectUpdates.body,
+        createdAt: projectUpdates.createdAt,
+      })
+      .from(projectUpdates)
+      .where(
+        and(
+          eq(projectUpdates.projectId, assignment.projectId),
+          eq(projectUpdates.isVisibleToClient, true),
+        ),
+      )
+      .orderBy(desc(projectUpdates.createdAt)),
+    db
+      .select({
+        id: payments.id,
+        amountCents: payments.amountCents,
+        status: payments.status,
+        dueDate: payments.dueDate,
+        paidAt: payments.paidAt,
+        notes: payments.notes,
+      })
+      .from(payments)
+      .where(eq(payments.projectId, assignment.projectId))
+      .orderBy(asc(payments.dueDate), asc(payments.createdAt)),
+    db
+      .select({
+        id: projectFiles.id,
+        fileName: projectFiles.fileName,
+        fileType: projectFiles.fileType,
+        fileSize: projectFiles.fileSize,
+        category: projectFiles.category,
+        bucketName: projectFiles.bucketName,
+        storagePath: projectFiles.storagePath,
+        createdAt: projectFiles.createdAt,
+      })
+      .from(projectFiles)
+      .where(
+        and(
+          eq(projectFiles.projectId, assignment.projectId),
+          eq(projectFiles.isVisibleToClient, true),
+        ),
+      )
+      .orderBy(desc(projectFiles.createdAt)),
+    db
+      .select({
+        id: feedback.id,
+        message: feedback.message,
+        status: feedback.status,
+        adminResponse: feedback.adminResponse,
+        createdAt: feedback.createdAt,
+      })
+      .from(feedback)
+      .where(
+        and(
+          eq(feedback.projectId, assignment.projectId),
+          eq(feedback.clientId, assignment.clientId),
+          eq(feedback.isVisibleToClient, true),
+        ),
+      )
+      .orderBy(desc(feedback.createdAt)),
+    db
+      .select({
+        id: approvals.id,
+        title: approvals.title,
+        description: approvals.description,
+        status: approvals.status,
+        responseNote: approvals.responseNote,
+        requestedAt: approvals.requestedAt,
+        respondedAt: approvals.respondedAt,
+      })
+      .from(approvals)
+      .where(eq(approvals.projectId, assignment.projectId))
+      .orderBy(desc(approvals.requestedAt))
+      .limit(1),
+  ]);
+
+  const mappedMilestones = projectMilestones.map((milestone) => ({
+    id: milestone.id,
+    title: milestone.title,
+    description:
+      milestone.description ?? "Milestone details will appear here soon.",
+    status: milestone.status,
+    dueDate:
+      milestone.dueDate ?? assignment.deadline ?? new Date().toISOString(),
+  }));
+
+  const mappedTasks = projectTasks.map((task) => ({
+    id: task.id,
+    title: task.title,
+    description: task.description ?? "Task details will appear here soon.",
+    status: mapTaskStatus(task.status),
+  }));
+
+  const mappedUpdates: ClientPortalUpdate[] = projectUpdatesList.map(
+    (update) => ({
+      id: update.id,
+      title: update.title,
+      body: update.body,
+      createdAt: toIsoString(update.createdAt),
+    }),
+  );
+
+  const mappedPayments: ClientPortalPayment[] = projectPayments.map(
+    (payment) => ({
+      id: payment.id,
+      label: payment.notes?.trim() ? payment.notes.trim() : "Project payment",
+      amountCents: payment.amountCents,
+      status: payment.status,
+      dueDate:
+        payment.dueDate ?? assignment.deadline ?? new Date().toISOString(),
+      paidAt: payment.paidAt ? toIsoString(payment.paidAt) : undefined,
+    }),
+  );
+
+  const mappedFiles: ClientPortalFile[] = projectFilesList.map((file) => ({
+    id: file.id,
+    name: file.fileName,
+    type: inferPortalFileType(file.fileName, file.fileType),
+    size: formatFileSize(file.fileSize),
+    category: fileCategoryLabels[file.category] ?? "Other",
+    uploadedAt: toIsoString(file.createdAt),
+    bucketName: file.bucketName,
+    storagePath: file.storagePath,
+  }));
+
+  const mappedFeedback: ClientPortalFeedback[] = projectFeedback.map(
+    (item) => ({
+      id: item.id,
+      message: item.message,
+      status: item.status,
+      createdAt: toIsoString(item.createdAt),
+      adminResponse: item.adminResponse,
+    }),
+  );
+
+  const totalAmountCents = mappedPayments.reduce(
+    (sum, payment) => sum + payment.amountCents,
+    0,
+  );
+
+  const paidAmountCents = mappedPayments.reduce((sum, payment) => {
+    if (payment.status !== "paid") {
+      return sum;
+    }
+
+    return sum + payment.amountCents;
+  }, 0);
+
+  const currentMilestone =
+    mappedMilestones.find(
+      (milestone) =>
+        milestone.status !== "completed" && milestone.status !== "approved",
+    )?.title ??
+    mappedMilestones.at(-1)?.title ??
+    "No milestone has been added yet.";
+
+  return {
+    id: assignment.projectId,
+    name: assignment.projectName,
+    clientName: assignment.clientName,
+    companyName: assignment.companyName,
+    description:
+      assignment.projectDescription ??
+      "Project details will appear here as delivery moves forward.",
+    status: mapProjectStatus(assignment.projectStatus),
+    progress: assignment.progress,
+    currentMilestone,
+    deadline: assignment.deadline,
+    liveDemoUrl: assignment.liveDemoUrl,
+    repositoryUrl: assignment.repositoryUrl ?? undefined,
+    totalAmountCents,
+    paidAmountCents,
+    paymentStatus: derivePaymentStatus(mappedPayments),
+    milestones: mappedMilestones,
+    tasks: mappedTasks,
+    updates: mappedUpdates,
+    files: mappedFiles,
+    payments: mappedPayments,
+    feedback: mappedFeedback,
+    approval: latestApproval
+      ? mapApprovalRowToPortalApproval(latestApproval)
+      : null,
+  };
+}
+
+export const getClientPortalState = cache(
+  async (): Promise<ClientPortalState> => {
+    const access = await getClientPortalAccess();
+
+    if (!access.assignment) {
+      return {
+        profile: access.profile,
+        project: null,
+      };
+    }
+
+    return {
+      profile: access.profile,
+      project: await buildClientPortalProject(access.assignment),
+    };
+  },
+);
+
 export async function getClientPortalProject() {
-  return clientProjectStore;
+  const state = await getClientPortalState();
+
+  return state.project;
 }
 
 export async function addClientFeedback(message: string) {
-  const feedback: ClientPortalFeedback = {
-    id: `feedback_${Date.now()}`,
-    message,
-    status: "open" satisfies ClientFeedbackStatus,
-    createdAt: new Date().toISOString(),
-  };
+  const access = await getClientPortalAccess();
 
-  clientProjectStore = {
-    ...clientProjectStore,
-    feedback: [feedback, ...clientProjectStore.feedback],
-  };
+  if (!access.assignment) {
+    throw new Error("No project assignment found for this client.");
+  }
 
-  return feedback;
+  const [createdFeedback] = await db
+    .insert(feedback)
+    .values({
+      projectId: access.assignment.projectId,
+      clientId: access.assignment.clientId,
+      createdBy: access.profile.id,
+      message,
+      status: "open",
+      isVisibleToClient: true,
+    })
+    .returning({
+      id: feedback.id,
+      message: feedback.message,
+      status: feedback.status,
+      createdAt: feedback.createdAt,
+      adminResponse: feedback.adminResponse,
+    });
+
+  return {
+    id: createdFeedback.id,
+    message: createdFeedback.message,
+    status: createdFeedback.status,
+    createdAt: toIsoString(createdFeedback.createdAt),
+    adminResponse: createdFeedback.adminResponse,
+  } satisfies ClientPortalFeedback;
 }
 
 export async function respondToClientApproval(input: {
   status: Extract<ClientApprovalStatus, "approved" | "changes_requested">;
   responseNote?: string;
 }) {
-  clientProjectStore = {
-    ...clientProjectStore,
-    approval: {
-      ...clientProjectStore.approval,
-      status: input.status,
-      responseNote: input.responseNote,
-    },
-  };
+  const access = await getClientPortalAccess();
 
-  return clientProjectStore.approval;
+  if (!access.assignment) {
+    return null;
+  }
+
+  const [latestApproval] = await db
+    .select({
+      id: approvals.id,
+    })
+    .from(approvals)
+    .where(eq(approvals.projectId, access.assignment.projectId))
+    .orderBy(desc(approvals.requestedAt))
+    .limit(1);
+
+  if (!latestApproval) {
+    return null;
+  }
+
+  const [updatedApproval] = await db
+    .update(approvals)
+    .set({
+      status: input.status,
+      responseNote: input.responseNote ?? null,
+      respondedBy: access.profile.id,
+      respondedAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(approvals.id, latestApproval.id),
+        eq(approvals.projectId, access.assignment.projectId),
+      ),
+    )
+    .returning({
+      id: approvals.id,
+      title: approvals.title,
+      description: approvals.description,
+      status: approvals.status,
+      responseNote: approvals.responseNote,
+      requestedAt: approvals.requestedAt,
+      respondedAt: approvals.respondedAt,
+    });
+
+  if (!updatedApproval) {
+    return null;
+  }
+
+  return mapApprovalRowToPortalApproval(updatedApproval);
 }

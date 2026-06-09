@@ -115,38 +115,55 @@ export function FeedbackForm({ feedback }: FeedbackFormProps) {
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {feedback.map((item) => (
-            <div
-              key={item.id}
-              className="rounded-2xl border border-slate-200 p-4"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <StatusBadge
-                  label={
-                    item.status === "open"
-                      ? "Open"
-                      : item.status === "reviewed"
-                        ? "Reviewed"
-                        : "Resolved"
-                  }
-                  tone={
-                    item.status === "open"
-                      ? "yellow"
-                      : item.status === "reviewed"
-                        ? "blue"
-                        : "green"
-                  }
-                />
-                <span className="text-xs text-slate-500">
-                  {formatShortDate(item.createdAt)}
-                </span>
-              </div>
+          {feedback.length === 0 ? (
+            <p className="text-sm leading-6 text-slate-600">
+              Your feedback history will appear here after you send a note.
+            </p>
+          ) : (
+            feedback.map((item) => (
+              <div
+                key={item.id}
+                className="rounded-2xl border border-slate-200 p-4"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <StatusBadge
+                    label={
+                      item.status === "open"
+                        ? "Open"
+                        : item.status === "reviewed"
+                          ? "Reviewed"
+                          : "Resolved"
+                    }
+                    tone={
+                      item.status === "open"
+                        ? "yellow"
+                        : item.status === "reviewed"
+                          ? "blue"
+                          : "green"
+                    }
+                  />
+                  <span className="text-xs text-slate-500">
+                    {formatShortDate(item.createdAt)}
+                  </span>
+                </div>
 
-              <p className="mt-3 text-sm leading-6 text-slate-600">
-                {item.message}
-              </p>
-            </div>
-          ))}
+                <p className="mt-3 text-sm leading-6 text-slate-600">
+                  {item.message}
+                </p>
+
+                {item.adminResponse ? (
+                  <div className="mt-4 rounded-xl bg-slate-50 p-3">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                      Freelancer response
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                      {item.adminResponse}
+                    </p>
+                  </div>
+                ) : null}
+              </div>
+            ))
+          )}
         </CardContent>
       </Card>
     </div>

@@ -30,7 +30,14 @@ export async function sendClientFeedbackAction(
     };
   }
 
-  await addClientFeedback(parsed.data.message);
+  try {
+    await addClientFeedback(parsed.data.message);
+  } catch {
+    return {
+      success: false,
+      message: "No project is assigned to this portal yet.",
+    };
+  }
 
   revalidatePath("/client/dashboard");
   revalidatePath("/client/project");
@@ -54,10 +61,17 @@ export async function approveMilestoneAction(
     };
   }
 
-  await respondToClientApproval({
+  const approval = await respondToClientApproval({
     status: "approved",
     responseNote: parsed.data.responseNote || "Approved by client.",
   });
+
+  if (!approval) {
+    return {
+      success: false,
+      message: "No approval request is waiting right now.",
+    };
+  }
 
   revalidatePath("/client/dashboard");
   revalidatePath("/client/project");
@@ -80,11 +94,18 @@ export async function requestChangesAction(
     };
   }
 
-  await respondToClientApproval({
+  const approval = await respondToClientApproval({
     status: "changes_requested",
     responseNote:
       parsed.data.responseNote || "Client requested changes before approval.",
   });
+
+  if (!approval) {
+    return {
+      success: false,
+      message: "No approval request is waiting right now.",
+    };
+  }
 
   revalidatePath("/client/dashboard");
   revalidatePath("/client/project");

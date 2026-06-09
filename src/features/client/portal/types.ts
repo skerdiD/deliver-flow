@@ -11,7 +11,11 @@ export type ClientMilestoneStatus =
   | "approved"
   | "completed";
 
-export type ClientTaskStatus = "todo" | "in_progress" | "completed";
+export type ClientTaskStatus =
+  | "todo"
+  | "in_progress"
+  | "blocked"
+  | "completed";
 
 export type ClientPaymentStatus = "paid" | "partial" | "unpaid" | "overdue";
 
@@ -47,10 +51,12 @@ export type ClientPortalUpdate = {
 export type ClientPortalFile = {
   id: string;
   name: string;
-  type: "pdf" | "image" | "docx";
+  type: "pdf" | "image" | "docx" | "other";
   size: string;
   category: string;
   uploadedAt: string;
+  bucketName: string;
+  storagePath: string;
 };
 
 export type ClientPortalPayment = {
@@ -67,6 +73,7 @@ export type ClientPortalFeedback = {
   message: string;
   status: ClientFeedbackStatus;
   createdAt: string;
+  adminResponse?: string | null;
 };
 
 export type ClientPortalApproval = {
@@ -76,6 +83,7 @@ export type ClientPortalApproval = {
   status: ClientApprovalStatus;
   responseNote?: string;
   requestedAt: string;
+  respondedAt?: string | null;
 };
 
 export type ClientPortalProject = {
@@ -87,8 +95,8 @@ export type ClientPortalProject = {
   status: ClientProjectStatus;
   progress: number;
   currentMilestone: string;
-  deadline: string;
-  liveDemoUrl: string;
+  deadline: string | null;
+  liveDemoUrl?: string | null;
   repositoryUrl?: string;
   totalAmountCents: number;
   paidAmountCents: number;
@@ -99,5 +107,5 @@ export type ClientPortalProject = {
   files: ClientPortalFile[];
   payments: ClientPortalPayment[];
   feedback: ClientPortalFeedback[];
-  approval: ClientPortalApproval;
+  approval: ClientPortalApproval | null;
 };

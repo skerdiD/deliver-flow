@@ -287,7 +287,7 @@ export async function createAdminProject(input: {
   paymentStatus: AdminPaymentStatus;
   budgetDollars: number;
   paidDollars: number;
-}) {
+}): Promise<AdminProject> {
   const client = projectClients.find((item) => item.id === input.clientId);
 
   if (!client) {
@@ -348,7 +348,7 @@ export async function updateAdminProject(
     budgetDollars: number;
     paidDollars: number;
   },
-) {
+): Promise<AdminProject | null> {
   const client = projectClients.find((item) => item.id === input.clientId);
 
   if (!client) {
@@ -389,7 +389,7 @@ export async function updateProjectProgress(
     progress: number;
     status: AdminProjectStatus;
   },
-) {
+): Promise<AdminProject | null> {
   let updatedProject: AdminProject | null = null;
 
   projectsStore = projectsStore.map((project) => {
@@ -416,7 +416,7 @@ export async function addProjectTask(
     description: string;
     dueDate: string;
   },
-) {
+): Promise<AdminProject | null> {
   let updatedProject: AdminProject | null = null;
 
   projectsStore = projectsStore.map((project) => {
@@ -466,7 +466,7 @@ export async function addProjectMilestone(
     description: string;
     dueDate: string;
   },
-) {
+): Promise<AdminProject | null> {
   let updatedProject: AdminProject | null = null;
 
   projectsStore = projectsStore.map((project) => {
@@ -520,7 +520,7 @@ export async function addProjectUpdate(
     title: string;
     body: string;
   },
-) {
+): Promise<AdminProject | null> {
   let updatedProject: AdminProject | null = null;
 
   projectsStore = projectsStore.map((project) => {

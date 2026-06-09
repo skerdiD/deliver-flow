@@ -1,145 +1,99 @@
-"use client";
+import { CalendarDays, ExternalLink, GitBranch } from "lucide-react";
+import Link from "next/link";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useTransition } from "react";
-import { useForm } from "react-hook-form";
-
-import { updateProjectProgressAction } from "@/features/admin/projects/actions";
-import {
-  progressFormSchema,
-  type ProgressFormValues,
-} from "@/features/admin/projects/project-validation";
-import type { AdminProjectStatus } from "@/features/admin/projects/types";
+import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
+import { PaymentStatusBadge } from "@/features/admin/projects/payment-status-badge";
+import { ProjectStatusBadge } from "@/features/admin/projects/project-status-badge";
+import type { AdminProject } from "@/features/admin/projects/types";
+import { formatCurrencyFromCents, formatShortDate } from "@/lib/format";
 
-type ProjectProgressControlProps = {
-  projectId: string;
-  progress: number;
-  status: AdminProjectStatus;
+type ProjectDetailHeaderProps = {
+  project: AdminProject;
 };
 
-export function ProjectProgressControl({
-  projectId,
-  progress,
-  status,
-}: ProjectProgressControlProps) {
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
-
-  const form = useForm<ProgressFormValues>({
-    resolver: zodResolver(progressFormSchema),
-    defaultValues: {
-      progress,
-      status,
-    },
-  });
-
-  function onSubmit(values: ProgressFormValues) {
-    startTransition(async () => {
-      const result = await updateProjectProgressAction(projectId, values);
-
-      if (!result.success) {
-        form.setError("root", { message: result.message });
-        return;
-      }
-
-      router.refresh();
-    });
-  }
-
+export function ProjectDetailHeader({ project }: ProjectDetailHeaderProps) {
   return (
-    <Card className="rounded-2xl border-slate-200 shadow-sm">
-      <CardHeader>
-        <CardTitle>Update project status</CardTitle>
-        <p className="text-sm text-slate-500">
-          Keep the client-facing status honest and easy to understand.
-        </p>
-      </CardHeader>
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow="Project"
+        title={project.name}
+        description={project.description}
+      >
+        <Button variant="outline" asChild>
+          <Link href={`/admin/projects/${project.id}/edit`}>Edit project</Link>
+        </Button>
+      </PageHeader>
 
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {form.formState.errors.root?.message ? (
-              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {form.formState.errors.root.message}
+      <Card className="rounded-2xl border-slate-200 shadow-sm">
+        <CardContent className="p-5">
+          <div className="flex flex-col justify-between gap-5 xl:flex-row xl:items-start">
+            <div className="max-w-3xl">
+              <div className="flex flex-wrap items-center gap-2">
+                <ProjectStatusBadge status={project.status} />
+                <PaymentStatusBadge status={project.paymentStatus} />
               </div>
-            ) : null}
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="progress"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Progress</FormLabel>
-                    <FormControl>
-                      <Input type="number" min={0} max={100} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="mt-5 grid gap-3 md:grid-cols-4">
+                <div className="rounded-xl border border-slate-200 p-4">
+                  <p className="text-xs font-medium text-slate-500">Client</p>
+                  <p className="mt-2 text-sm font-semibold text-slate-950">
+                    {project.client.company}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {project.client.name}
+                  </p>
+                </div>
 
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="in_progress">In progress</SelectItem>
-                        <SelectItem value="waiting_feedback">
-                          Waiting feedback
-                        </SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
-                        <SelectItem value="archived">Archived</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <div className="rounded-xl border border-slate-200 p-4">
+                  <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
+                    <CalendarDays className="size-4" />
+                    Deadline
+                  </div>
+                  <p className="mt-2 text-sm font-semibold text-slate-950">
+                    {formatShortDate(project.deadline)}
+                  </p>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 p-4">
+                  <p className="text-xs font-medium text-slate-500">Budget</p>
+                  <p className="mt-2 text-sm font-semibold text-slate-950">
+                    {formatCurrencyFromCents(project.budgetCents)}
+                  </p>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 p-4">
+                  <p className="text-xs font-medium text-slate-500">Paid</p>
+                  <p className="mt-2 text-sm font-semibold text-slate-950">
+                    {formatCurrencyFromCents(project.paidCents)}
+                  </p>
+                </div>
+              </div>
             </div>
 
-            <Button type="submit" disabled={isPending}>
-              {isPending ? (
-                <>
-                  <Loader2 className="mr-2 size-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                "Save status"
-              )}
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+            <div className="flex min-w-64 flex-col gap-3">
+              <Button asChild>
+                <a href={project.liveDemoUrl} target="_blank" rel="noreferrer">
+                  <ExternalLink className="mr-2 size-4" />
+                  View demo
+                </a>
+              </Button>
+
+              <Button asChild variant="outline">
+                <a
+                  href={project.repositoryUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <GitBranch className="mr-2 size-4" />
+                  View repository
+                </a>
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

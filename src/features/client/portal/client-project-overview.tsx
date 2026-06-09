@@ -1,4 +1,4 @@
-import { CalendarDays, ExternalLink, Github, WalletCards } from "lucide-react";
+import { CalendarDays, ExternalLink, GitBranch, WalletCards } from "lucide-react";
 
 import {
   ClientPaymentStatusBadge,
@@ -49,12 +49,14 @@ export function ClientProjectOverview({ project }: ClientProjectOverviewProps) {
           </div>
 
           <div className="flex min-w-64 flex-col gap-3">
-            <Button asChild>
-              <a href={project.liveDemoUrl} target="_blank" rel="noreferrer">
-                <ExternalLink className="mr-2 size-4" />
-                View Live Demo
-              </a>
-            </Button>
+            {project.liveDemoUrl ? (
+              <Button asChild>
+                <a href={project.liveDemoUrl} target="_blank" rel="noreferrer">
+                  <ExternalLink className="mr-2 size-4" />
+                  View Live Demo
+                </a>
+              </Button>
+            ) : null}
 
             {project.repositoryUrl ? (
               <Button asChild variant="outline">
@@ -63,7 +65,7 @@ export function ClientProjectOverview({ project }: ClientProjectOverviewProps) {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  <Github className="mr-2 size-4" />
+                  <GitBranch className="mr-2 size-4" />
                   View repository
                 </a>
               </Button>
@@ -87,7 +89,9 @@ export function ClientProjectOverview({ project }: ClientProjectOverviewProps) {
               Deadline
             </div>
             <p className="mt-2 text-sm font-semibold text-slate-950">
-              {formatShortDate(project.deadline)}
+              {project.deadline
+                ? formatShortDate(project.deadline)
+                : "Not scheduled yet"}
             </p>
           </div>
 

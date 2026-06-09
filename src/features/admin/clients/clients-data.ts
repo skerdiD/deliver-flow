@@ -88,7 +88,7 @@ export async function createAdminClient(input: {
   email: string;
   company?: string;
   status: AdminClientStatus;
-}) {
+}): Promise<AdminClient> {
   const client: AdminClient = {
     id: `client_${Date.now()}`,
     name: input.name,
@@ -115,7 +115,7 @@ export async function updateAdminClient(
     company?: string;
     status: AdminClientStatus;
   },
-) {
+): Promise<AdminClient | null> {
   let updatedClient: AdminClient | null = null;
 
   clientsStore = clientsStore.map((client) => {

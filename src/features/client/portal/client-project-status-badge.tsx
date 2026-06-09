@@ -60,14 +60,17 @@ export function ClientTaskStatusBadge({ status }: { status: ClientTaskStatus }) 
   const labels: Record<ClientTaskStatus, string> = {
     todo: "To do",
     in_progress: "In progress",
+    blocked: "Blocked",
     completed: "Completed",
   };
 
-  const tones: Record<ClientTaskStatus, "blue" | "green" | "slate"> = {
+  const tones: Record<ClientTaskStatus, "blue" | "green" | "slate" | "yellow"> =
+    {
     todo: "slate",
     in_progress: "blue",
+    blocked: "yellow",
     completed: "green",
-  };
+    };
 
   return <StatusBadge label={labels[status]} tone={tones[status]} />;
 }

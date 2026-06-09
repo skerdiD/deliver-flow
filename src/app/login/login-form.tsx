@@ -65,10 +65,13 @@ export function LoginForm() {
       return;
     }
 
-    const { data: profile, error: profileError } = await supabase
+    const profileResult = await supabase
       .from("profiles")
       .select("role")
       .maybeSingle();
+
+    const profile = profileResult.data as { role: UserRole } | null;
+    const profileError = profileResult.error;
 
     if (profileError || !profile?.role) {
       setErrorMessage(

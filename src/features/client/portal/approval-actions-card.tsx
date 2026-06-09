@@ -30,19 +30,38 @@ import { Textarea } from "@/components/ui/textarea";
 import { formatShortDate } from "@/lib/format";
 
 type ApprovalActionsCardProps = {
-  approval: ClientPortalApproval;
+  approval: ClientPortalApproval | null;
 };
 
 export function ApprovalActionsCard({ approval }: ApprovalActionsCardProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-
   const form = useForm<ClientApprovalResponseValues>({
     resolver: zodResolver(clientApprovalResponseSchema),
     defaultValues: {
-      responseNote: approval.responseNote ?? "",
+      responseNote: approval?.responseNote ?? "",
     },
   });
+
+  if (!approval) {
+    return (
+      <Card className="rounded-2xl border-slate-200 shadow-sm">
+        <CardHeader>
+          <CardTitle>Approval request</CardTitle>
+          <p className="text-sm text-slate-500">
+            No approval request is waiting right now.
+          </p>
+        </CardHeader>
+
+        <CardContent>
+          <p className="text-sm leading-6 text-slate-600">
+            The next approval step will show up here when your freelancer sends
+            it for review.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   function handleApprove(values: ClientApprovalResponseValues) {
     startTransition(async () => {

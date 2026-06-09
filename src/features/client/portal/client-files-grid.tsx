@@ -16,6 +16,16 @@ function getFileIcon(type: ClientPortalFile["type"]) {
 }
 
 export function ClientFilesGrid({ files }: ClientFilesGridProps) {
+  if (files.length === 0) {
+    return (
+      <Card className="rounded-2xl border-slate-200 shadow-sm">
+        <CardContent className="p-5 text-sm leading-6 text-slate-600">
+          No files have been shared for this project yet.
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
       {files.map((file) => {
@@ -39,9 +49,9 @@ export function ClientFilesGrid({ files }: ClientFilesGridProps) {
                 <p>Uploaded: {formatShortDate(file.uploadedAt)}</p>
               </div>
 
-              <Button variant="outline" className="mt-5 w-full">
+              <Button variant="outline" className="mt-5 w-full" disabled>
                 <Download className="mr-2 size-4" />
-                Download
+                Download soon
               </Button>
             </CardContent>
           </Card>

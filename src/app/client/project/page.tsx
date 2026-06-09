@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { FolderOpen } from "lucide-react";
 
+import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
 import { ApprovalActionsCard } from "@/features/client/portal/approval-actions-card";
 import { ClientProjectOverview } from "@/features/client/portal/client-project-overview";
@@ -15,6 +17,24 @@ export const metadata: Metadata = {
 
 export default async function ClientProjectPage() {
   const project = await getClientPortalProject();
+
+  if (!project) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          eyebrow="Project"
+          title="Project overview"
+          description="See what is done, what is active, what comes next, and what needs your review."
+        />
+
+        <EmptyState
+          icon={FolderOpen}
+          title="No project has been assigned yet."
+          description="Your latest project updates will appear here once your freelancer connects a project to this portal."
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
