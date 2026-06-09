@@ -18,7 +18,7 @@ export function FinalCta() {
           </p>
 
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            <Button asChild size="lg">
+            <Button asChild size="lg" className="w-full sm:w-auto">
               <Link href="/login">
                 View demo
                 <ArrowRight className="size-4" />
@@ -29,7 +29,7 @@ export function FinalCta() {
               asChild
               size="lg"
               variant="outline"
-              className="border-white/20 bg-white/10 text-white hover:bg-white/15"
+              className="w-full border-white/20 bg-white/10 text-white hover:bg-white/15 sm:w-auto"
             >
               <Link href="/login">Sign in</Link>
             </Button>

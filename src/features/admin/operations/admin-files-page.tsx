@@ -93,7 +93,7 @@ export function AdminFilesPage({ data }: AdminFilesPageProps) {
                             {file.fileName}
                           </p>
                           <p className="text-xs text-slate-500">
-                            {getFileCategoryLabel(file.category)} ·{" "}
+                            {getFileCategoryLabel(file.category)} -{" "}
                             {formatFileSize(file.fileSize)}
                           </p>
                           <p className="text-xs text-slate-500">

@@ -18,7 +18,7 @@ export function EmptyState({
   onAction,
 }: EmptyStateProps) {
   return (
-    <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
+    <div className="flex min-h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-10 text-center sm:min-h-72 sm:px-8">
       {Icon ? (
         <div className="mb-4 grid size-12 place-items-center rounded-2xl bg-slate-100 text-slate-500">
           <Icon className="size-6" />
@@ -31,7 +31,7 @@ export function EmptyState({
       </p>
 
       {actionLabel ? (
-        <Button className="mt-5" onClick={onAction}>
+        <Button className="mt-5 w-full sm:w-auto" onClick={onAction}>
           {actionLabel}
         </Button>
       ) : null}

@@ -10,7 +10,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 const heroPoints = [
-  "Track what’s done, what’s next, and what needs approval.",
+  "Track what's done, what's next, and what needs approval.",
   "Keep files, updates, approvals, and feedback in one place.",
   "Give clients a clear view without long email threads.",
 ];
@@ -38,14 +38,19 @@ export function HeroSection() {
           </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Button asChild size="lg">
+            <Button asChild size="lg" className="w-full sm:w-auto">
               <Link href="/login">
                 View demo
                 <ArrowRight className="size-4" />
               </Link>
             </Button>
 
-            <Button asChild size="lg" variant="outline">
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="w-full sm:w-auto"
+            >
               <Link href="/login">Sign in</Link>
             </Button>
           </div>
@@ -70,7 +75,7 @@ export function HeroSection() {
                 <p className="mt-1 text-xs text-slate-500">Nova Agency</p>
               </div>
 
-              <span className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
+              <span className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
                 In progress
               </span>
             </div>

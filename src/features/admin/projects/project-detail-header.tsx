@@ -35,7 +35,7 @@ export function ProjectDetailHeader({ project }: ProjectDetailHeaderProps) {
                 <PaymentStatusBadge status={project.paymentStatus} />
               </div>
 
-              <div className="mt-5 grid gap-3 md:grid-cols-4">
+              <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 <div className="rounded-xl border border-slate-200 p-4">
                   <p className="text-xs font-medium text-slate-500">Client</p>
                   <p className="mt-2 text-sm font-semibold text-slate-950">
@@ -72,24 +72,28 @@ export function ProjectDetailHeader({ project }: ProjectDetailHeaderProps) {
               </div>
             </div>
 
-            <div className="flex min-w-64 flex-col gap-3">
-              <Button asChild>
-                <a href={project.liveDemoUrl} target="_blank" rel="noreferrer">
-                  <ExternalLink className="mr-2 size-4" />
-                  View demo
-                </a>
-              </Button>
+            <div className="flex w-full flex-col gap-3 sm:min-w-64 sm:w-auto">
+              {project.liveDemoUrl ? (
+                <Button asChild className="w-full sm:w-auto">
+                  <a href={project.liveDemoUrl} target="_blank" rel="noreferrer">
+                    <ExternalLink className="mr-2 size-4" />
+                    View demo
+                  </a>
+                </Button>
+              ) : null}
 
-              <Button asChild variant="outline">
-                <a
-                  href={project.repositoryUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <GitBranch className="mr-2 size-4" />
-                  View repository
-                </a>
-              </Button>
+              {project.repositoryUrl ? (
+                <Button asChild variant="outline" className="w-full sm:w-auto">
+                  <a
+                    href={project.repositoryUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <GitBranch className="mr-2 size-4" />
+                    View repository
+                  </a>
+                </Button>
+              ) : null}
             </div>
           </div>
         </CardContent>

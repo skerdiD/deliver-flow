@@ -75,7 +75,7 @@ function getPaymentStatusTone(status: PaymentStatus) {
 export function RecentProjectsTable({ projects }: RecentProjectsTableProps) {
   return (
     <Card className="rounded-2xl border-slate-200 shadow-sm">
-      <CardHeader className="flex flex-row items-center justify-between gap-4">
+      <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <CardTitle>Recent projects</CardTitle>
           <p className="mt-1 text-sm text-slate-500">
@@ -83,7 +83,7 @@ export function RecentProjectsTable({ projects }: RecentProjectsTableProps) {
           </p>
         </div>
 
-        <Button asChild variant="outline">
+        <Button asChild variant="outline" className="w-full sm:w-auto">
           <Link href="/admin/projects">
             View all
             <ArrowUpRight className="ml-2 size-4" />

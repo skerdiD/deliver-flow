@@ -67,14 +67,14 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
           </p>
         </div>
 
-        <div className="flex flex-col gap-3 sm:flex-row">
+        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_190px]">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
             <Input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search projects..."
-              className="w-full pl-9 sm:w-72"
+              className="w-full pl-9"
             />
           </div>
 
@@ -171,7 +171,7 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
                     </TableCell>
 
                     <TableCell>
-                      <div className="flex justify-end gap-2">
+                      <div className="flex flex-wrap justify-end gap-2">
                         <Button variant="outline" className="h-9 px-3" asChild>
                           <Link href={`/admin/projects/${project.id}`}>
                             View

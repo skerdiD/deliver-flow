@@ -40,12 +40,12 @@ export function ProjectProgressOverview({
 }: ProjectProgressOverviewProps) {
   return (
     <Card className="rounded-2xl border-slate-200 shadow-sm">
-      <CardHeader>
-        <CardTitle>Project progress</CardTitle>
-        <p className="text-sm text-slate-500">
-          Track what is done, what is next, and what needs approval.
-        </p>
-      </CardHeader>
+        <CardHeader>
+          <CardTitle>Project progress</CardTitle>
+          <p className="text-sm text-slate-500">
+            Track completed work, next steps, and anything waiting for approval.
+          </p>
+        </CardHeader>
 
       <CardContent className="space-y-5">
         {projects.length === 0 ? (

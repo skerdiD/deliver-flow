@@ -33,7 +33,7 @@ export function MobileSidebar({ type }: MobileSidebarProps) {
           </Button>
         </SheetTrigger>
 
-        <SheetContent side="left" className="w-80">
+        <SheetContent side="left" className="w-[min(20rem,calc(100vw-1rem))]">
           <SheetHeader>
             <SheetTitle>DeliverFlow</SheetTitle>
           </SheetHeader>
@@ -51,7 +51,7 @@ export function MobileSidebar({ type }: MobileSidebarProps) {
                   className={cn(
                     "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition",
                     isActive
-                      ? "bg-blue-50 text-blue-700"
+                      ? "bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100"
                       : "text-slate-600 hover:bg-slate-50 hover:text-slate-950",
                   )}
                 >

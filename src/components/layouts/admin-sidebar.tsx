@@ -10,7 +10,7 @@ export function AdminSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden min-h-screen w-72 shrink-0 border-r border-slate-200 bg-white lg:block">
+    <aside className="sticky top-0 hidden h-screen w-72 shrink-0 border-r border-slate-200 bg-white lg:block">
       <div className="flex h-16 items-center border-b border-slate-200 px-6">
         <Link href="/admin/dashboard" className="flex items-center gap-3">
           <div className="grid size-9 place-items-center rounded-xl bg-blue-600 text-sm font-bold text-white">
@@ -36,7 +36,7 @@ export function AdminSidebar() {
               className={cn(
                 "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition",
                 isActive
-                  ? "bg-blue-50 text-blue-700"
+                  ? "bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100"
                   : "text-slate-600 hover:bg-slate-50 hover:text-slate-950",
               )}
             >

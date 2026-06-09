@@ -14,7 +14,7 @@ export function PageHeader({
   children,
 }: PageHeaderProps) {
   return (
-    <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div className="mb-6 flex flex-col gap-4 md:mb-8 lg:flex-row lg:items-end lg:justify-between">
       <div className="max-w-3xl">
         {eyebrow ? (
           <p className="text-sm font-medium text-blue-600">{eyebrow}</p>
@@ -31,7 +31,11 @@ export function PageHeader({
         ) : null}
       </div>
 
-      {children ? <div className="flex items-center gap-2">{children}</div> : null}
+      {children ? (
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap lg:justify-end">
+          {children}
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -78,7 +78,7 @@ export function PaymentSummaryCard({ payments }: PaymentSummaryCardProps) {
             payments.map((payment) => (
               <div
                 key={payment.id}
-                className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 p-3"
+                className="flex flex-col gap-3 rounded-xl border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium text-slate-950">
@@ -92,7 +92,7 @@ export function PaymentSummaryCard({ payments }: PaymentSummaryCardProps) {
                   </p>
                 </div>
 
-                <div className="shrink-0 text-right">
+                <div className="shrink-0 sm:text-right">
                   <p className="text-sm font-semibold text-slate-950">
                     {formatCurrencyFromCents(payment.amountCents)}
                   </p>

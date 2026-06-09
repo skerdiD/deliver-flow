@@ -65,16 +65,16 @@ export function ClientsTable({ clients }: ClientsTableProps) {
           </p>
         </div>
 
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-            <Input
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search clients..."
-              className="w-full pl-9 sm:w-72"
-            />
-          </div>
+          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_160px]">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+              <Input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search clients..."
+                className="w-full pl-9"
+              />
+            </div>
 
           <Select
             value={status}
@@ -154,7 +154,7 @@ export function ClientsTable({ clients }: ClientsTableProps) {
                     </TableCell>
 
                     <TableCell>
-                      <div className="flex justify-end gap-2">
+                      <div className="flex flex-wrap justify-end gap-2">
                         <Button variant="outline" className="h-9 px-3" asChild>
                           <Link href={`/admin/clients/${client.id}`}>
                             View Profile

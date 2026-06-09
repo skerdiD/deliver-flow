@@ -9,7 +9,7 @@ type AuthShellProps = {
 };
 
 const benefits = [
-  "Track what’s done, what’s next, and what needs approval.",
+  "Track what's done, what's next, and what needs approval.",
   "Give clients a clear view of project progress without long email threads.",
   "Keep files, feedback, payments, and approvals organized.",
 ];
@@ -22,7 +22,7 @@ export function AuthShell({
 }: AuthShellProps) {
   return (
     <main className="min-h-screen bg-slate-50 text-slate-950">
-      <div className="grid min-h-screen lg:grid-cols-[1fr_0.95fr]">
+      <div className="grid min-h-screen lg:grid-cols-[minmax(0,1fr)_minmax(440px,0.95fr)]">
         <section className="flex items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
           <div className="w-full max-w-md">
             <Link href="/" className="mb-8 flex w-fit items-center gap-3">
@@ -56,8 +56,8 @@ export function AuthShell({
 
         <aside className="hidden border-l border-slate-200 bg-white lg:flex lg:items-center">
           <div className="mx-auto w-full max-w-xl px-10">
-            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+              <div className="rounded-2xl border border-slate-200 bg-white p-5">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-sm font-semibold text-slate-950">
@@ -66,7 +66,7 @@ export function AuthShell({
                     <p className="mt-1 text-xs text-slate-500">Nova Agency</p>
                   </div>
 
-                  <span className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
+                  <span className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
                     In progress
                   </span>
                 </div>

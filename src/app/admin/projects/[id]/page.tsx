@@ -35,7 +35,7 @@ export default async function ProjectDetailPage({
 
   return (
     <div className="space-y-6">
-      <Button variant="outline" asChild>
+      <Button variant="outline" asChild className="w-full sm:w-auto">
         <Link href="/admin/projects">
           <ArrowLeft className="mr-2 size-4" />
           Back to projects

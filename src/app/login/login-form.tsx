@@ -13,14 +13,9 @@ import {
   type LoginValues,
 } from "@/features/auth/auth-validation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
-import type { UserRole } from "@/types/database";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -31,12 +26,12 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
-function getDashboardPath(role: UserRole) {
-  if (role === "admin") {
-    return routes.admin.dashboard;
+function getSafeNextPath(value: string | null) {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+    return routes.home;
   }
 
-  return routes.client.dashboard;
+  return value;
 }
 
 export function LoginForm() {
@@ -48,6 +43,10 @@ export function LoginForm() {
 
     if (error === "profile_missing") {
       return "Your account exists, but the profile is not ready yet. Please try again or ask the project owner to check your account.";
+    }
+
+    if (error === "role_invalid") {
+      return "Your account role could not be verified. Ask the project owner to review your access.";
     }
 
     return "";
@@ -80,32 +79,7 @@ export function LoginForm() {
       return;
     }
 
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-
-    if (userError || !user) {
-      setAuthError("We could not load your account. Please try again.");
-      setIsLoading(false);
-      return;
-    }
-
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .maybeSingle();
-
-    if (profileError || !profile?.role) {
-      setAuthError(
-        "You signed in, but your profile could not be loaded. Please try again in a moment.",
-      );
-      setIsLoading(false);
-      return;
-    }
-
-    router.replace(getDashboardPath(profile.role));
+    router.replace(getSafeNextPath(searchParams.get("next")));
     router.refresh();
   }
 
@@ -177,7 +151,7 @@ export function LoginForm() {
 
       <CardFooter className="border-t border-slate-200 px-6 py-4">
         <p className="w-full text-center text-sm text-slate-600">
-          Don’t have an account?{" "}
+          Need an account?{" "}
           <Link
             href={routes.auth.signup}
             className="font-medium text-blue-600 hover:text-blue-700"

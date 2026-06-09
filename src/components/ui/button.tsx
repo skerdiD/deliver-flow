@@ -3,7 +3,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 type ButtonVariant = "default" | "outline" | "ghost" | "destructive";
-type ButtonSize = "default" | "icon" | "icon-sm";
+type ButtonSize = "default" | "lg" | "icon" | "icon-sm";
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   asChild?: boolean;
@@ -23,6 +23,7 @@ const variants: Record<ButtonVariant, string> = {
 
 const sizes: Record<ButtonSize, string> = {
   default: "h-10 px-4 py-2",
+  lg: "h-11 px-5 py-2.5",
   icon: "size-10",
   "icon-sm": "size-8",
 };

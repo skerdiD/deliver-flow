@@ -1,7 +1,6 @@
 import {
   CheckCircle2,
   CreditCard,
-  FileText,
   FolderKanban,
   MessageSquare,
   Users,

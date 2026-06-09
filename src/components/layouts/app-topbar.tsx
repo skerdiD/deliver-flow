@@ -31,7 +31,7 @@ export function AppTopbar({
           ) : null}
         </div>
 
-        <div className="hidden w-full max-w-sm items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 lg:flex">
+        <div className="hidden w-full max-w-sm items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 xl:flex">
           <Search className="size-4 text-slate-400" />
           <Input
             className="h-9 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
@@ -39,7 +39,7 @@ export function AppTopbar({
           />
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Button variant="outline" size="icon" className="hidden sm:inline-flex">
             <Bell className="size-4" />
             <span className="sr-only">Notifications</span>

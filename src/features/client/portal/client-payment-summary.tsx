@@ -1,5 +1,6 @@
 import { CreditCard } from "lucide-react";
 
+import { MetricCard } from "@/components/shared/metric-card";
 import { ClientPaymentStatusBadge } from "@/features/client/portal/client-project-status-badge";
 import type { ClientPortalProject } from "@/features/client/portal/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,34 +16,18 @@ export function ClientPaymentSummary({ project }: ClientPaymentSummaryProps) {
   return (
     <div className="space-y-6">
       <section className="grid gap-4 md:grid-cols-3">
-        <Card className="rounded-2xl border-slate-200 shadow-sm">
-          <CardContent className="p-5">
-            <p className="text-sm font-medium text-slate-500">Total amount</p>
-            <p className="mt-2 text-3xl font-semibold text-slate-950">
-              {formatCurrencyFromCents(project.totalAmountCents)}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-2xl border-slate-200 shadow-sm">
-          <CardContent className="p-5">
-            <p className="text-sm font-medium text-slate-500">Paid amount</p>
-            <p className="mt-2 text-3xl font-semibold text-slate-950">
-              {formatCurrencyFromCents(project.paidAmountCents)}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-2xl border-slate-200 shadow-sm">
-          <CardContent className="p-5">
-            <p className="text-sm font-medium text-slate-500">
-              Remaining amount
-            </p>
-            <p className="mt-2 text-3xl font-semibold text-slate-950">
-              {formatCurrencyFromCents(remainingCents)}
-            </p>
-          </CardContent>
-        </Card>
+        <MetricCard
+          title="Total amount"
+          value={formatCurrencyFromCents(project.totalAmountCents)}
+        />
+        <MetricCard
+          title="Paid amount"
+          value={formatCurrencyFromCents(project.paidAmountCents)}
+        />
+        <MetricCard
+          title="Remaining amount"
+          value={formatCurrencyFromCents(remainingCents)}
+        />
       </section>
 
       <Card className="rounded-2xl border-slate-200 shadow-sm">
@@ -82,7 +67,7 @@ export function ClientPaymentSummary({ project }: ClientPaymentSummaryProps) {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 sm:text-right">
+                <div className="flex flex-wrap items-center gap-3 sm:justify-end sm:text-right">
                   <p className="font-semibold text-slate-950">
                     {formatCurrencyFromCents(payment.amountCents)}
                   </p>

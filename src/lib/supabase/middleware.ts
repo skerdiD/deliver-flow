@@ -1,13 +1,20 @@
 import { createServerClient } from "@supabase/ssr";
+import { eq } from "drizzle-orm";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { routes } from "@/config/routes";
+import { db } from "@/db";
+import { profiles } from "@/db/schema";
 import type { Database, UserRole } from "@/types/database";
 
 const protectedPrefixes = ["/admin", "/client"];
 
 function isProtectedRoute(pathname: string) {
   return protectedPrefixes.some((prefix) => pathname.startsWith(prefix));
+}
+
+function isSupportedRole(value: unknown): value is UserRole {
+  return value === "admin" || value === "client";
 }
 
 function getDashboardPath(role: UserRole) {
@@ -20,6 +27,32 @@ function getDashboardPath(role: UserRole) {
 
 function isAuthRoute(pathname: string) {
   return pathname === routes.auth.login || pathname === routes.auth.signup;
+}
+
+function getRequestedPath(request: NextRequest) {
+  return `${request.nextUrl.pathname}${request.nextUrl.search}`;
+}
+
+function buildLoginRedirectUrl(
+  request: NextRequest,
+  input?: {
+    error?: "profile_missing" | "role_invalid";
+    next?: string;
+  },
+) {
+  const loginUrl = request.nextUrl.clone();
+  loginUrl.pathname = routes.auth.login;
+  loginUrl.search = "";
+
+  if (input?.next) {
+    loginUrl.searchParams.set("next", input.next);
+  }
+
+  if (input?.error) {
+    loginUrl.searchParams.set("error", input.error);
+  }
+
+  return loginUrl;
 }
 
 export async function updateSession(request: NextRequest) {
@@ -65,32 +98,66 @@ export async function updateSession(request: NextRequest) {
 
   if (!user) {
     if (isProtectedRoute(pathname)) {
-      const loginUrl = request.nextUrl.clone();
-      loginUrl.pathname = routes.auth.login;
-      loginUrl.searchParams.set("next", pathname);
-
-      return NextResponse.redirect(loginUrl);
+      return NextResponse.redirect(
+        buildLoginRedirectUrl(request, {
+          next: getRequestedPath(request),
+        }),
+      );
     }
 
     return response;
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .maybeSingle();
+  const [profile] = await db
+    .select({
+      role: profiles.role,
+    })
+    .from(profiles)
+    .where(eq(profiles.id, user.id))
+    .limit(1);
 
-  if (!profile?.role) {
-    if (isProtectedRoute(pathname)) {
-      const loginUrl = request.nextUrl.clone();
-      loginUrl.pathname = routes.auth.login;
-      loginUrl.searchParams.set("error", "profile_missing");
+  if (!profile) {
+    if (isAuthRoute(pathname)) {
+      if (request.nextUrl.searchParams.get("error") === "profile_missing") {
+        return response;
+      }
 
-      return NextResponse.redirect(loginUrl);
+      return NextResponse.redirect(
+        buildLoginRedirectUrl(request, {
+          error: "profile_missing",
+        }),
+      );
+    }
+
+    if (isProtectedRoute(pathname) || pathname === routes.home) {
+      return NextResponse.redirect(
+        buildLoginRedirectUrl(request, {
+          error: "profile_missing",
+        }),
+      );
     }
 
     return response;
+  }
+
+  if (!isSupportedRole(profile.role)) {
+    if (isAuthRoute(pathname)) {
+      if (request.nextUrl.searchParams.get("error") === "role_invalid") {
+        return response;
+      }
+
+      return NextResponse.redirect(
+        buildLoginRedirectUrl(request, {
+          error: "role_invalid",
+        }),
+      );
+    }
+
+    return NextResponse.redirect(
+      buildLoginRedirectUrl(request, {
+        error: "role_invalid",
+      }),
+    );
   }
 
   const role = profile.role;

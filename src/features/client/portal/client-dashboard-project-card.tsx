@@ -90,9 +90,9 @@ export function ClientDashboardProjectCard({
             </div>
           </div>
 
-          <div className="flex min-w-64 flex-col gap-3">
+          <div className="flex w-full flex-col gap-3 sm:min-w-64 sm:w-auto">
             {project.liveDemoUrl ? (
-              <Button asChild>
+              <Button asChild className="w-full sm:w-auto">
                 <a href={project.liveDemoUrl} target="_blank" rel="noreferrer">
                   <ExternalLink className="mr-2 size-4" />
                   View Live Demo
@@ -100,14 +100,14 @@ export function ClientDashboardProjectCard({
               </Button>
             ) : null}
 
-            <Button asChild variant="outline">
+            <Button asChild variant="outline" className="w-full sm:w-auto">
               <Link href="/client/feedback">
                 <MessageSquare className="mr-2 size-4" />
                 Send Feedback
               </Link>
             </Button>
 
-            <Button asChild variant="outline">
+            <Button asChild variant="outline" className="w-full sm:w-auto">
               <Link href="/client/project">
                 <CheckCircle2 className="mr-2 size-4" />
                 Approve Milestone
@@ -149,7 +149,7 @@ export function ClientDashboardProjectCard({
               {nextTasks.length > 0 ? (
                 nextTasks.slice(0, 3).map((task) => (
                   <li key={task.id} className="text-sm text-slate-600">
-                    - {task.title}
+                    {task.title}
                   </li>
                 ))
               ) : (
@@ -172,7 +172,7 @@ export function ClientDashboardProjectCard({
                 ? `${project.files.length} files are available for this project.`
                 : "Files will appear here after they are uploaded to the project."}
             </p>
-            <Button asChild variant="outline" className="mt-4">
+            <Button asChild variant="outline" className="mt-4 w-full sm:w-auto">
               <Link href="/client/files">Open files</Link>
             </Button>
           </div>
