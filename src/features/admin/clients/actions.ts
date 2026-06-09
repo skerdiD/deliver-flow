@@ -10,6 +10,7 @@ import {
   clientFormSchema,
   type ClientFormValues,
 } from "@/features/admin/clients/client-validation";
+import { requireRole } from "@/lib/supabase/auth";
 
 export type ClientActionResult = {
   success: boolean;
@@ -47,6 +48,8 @@ function getFieldErrors(error: unknown): ClientActionResult["fieldErrors"] {
 export async function createClientAction(
   values: ClientFormValues,
 ): Promise<ClientActionResult> {
+  await requireRole("admin");
+
   const parsed = clientFormSchema.safeParse(values);
 
   if (!parsed.success) {
@@ -72,6 +75,8 @@ export async function updateClientAction(
   id: string,
   values: ClientFormValues,
 ): Promise<ClientActionResult> {
+  await requireRole("admin");
+
   const parsed = clientFormSchema.safeParse(values);
 
   if (!parsed.success) {

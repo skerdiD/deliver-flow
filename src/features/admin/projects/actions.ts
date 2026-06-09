@@ -24,6 +24,7 @@ import {
   type TaskFormValues,
   type UpdateFormValues,
 } from "@/features/admin/projects/project-validation";
+import { requireRole } from "@/lib/supabase/auth";
 
 export type ProjectActionResult = {
   success: boolean;
@@ -34,6 +35,8 @@ export type ProjectActionResult = {
 export async function createProjectAction(
   values: ProjectFormValues,
 ): Promise<ProjectActionResult> {
+  await requireRole("admin");
+
   const parsed = projectFormSchema.safeParse(values);
 
   if (!parsed.success) {
@@ -58,6 +61,8 @@ export async function updateProjectAction(
   id: string,
   values: ProjectFormValues,
 ): Promise<ProjectActionResult> {
+  await requireRole("admin");
+
   const parsed = projectFormSchema.safeParse(values);
 
   if (!parsed.success) {
@@ -90,6 +95,8 @@ export async function updateProjectProgressAction(
   id: string,
   values: ProgressFormValues,
 ): Promise<ProjectActionResult> {
+  await requireRole("admin");
+
   const parsed = progressFormSchema.safeParse(values);
 
   if (!parsed.success) {
@@ -121,6 +128,8 @@ export async function addTaskAction(
   projectId: string,
   values: TaskFormValues,
 ): Promise<ProjectActionResult> {
+  await requireRole("admin");
+
   const parsed = taskFormSchema.safeParse(values);
 
   if (!parsed.success) {
@@ -152,6 +161,8 @@ export async function markTaskCompleteAction(
   projectId: string,
   taskId: string,
 ) {
+  await requireRole("admin");
+
   await markProjectTaskComplete(projectId, taskId);
 
   revalidatePath(`/admin/projects/${projectId}`);
@@ -161,6 +172,8 @@ export async function addMilestoneAction(
   projectId: string,
   values: MilestoneFormValues,
 ): Promise<ProjectActionResult> {
+  await requireRole("admin");
+
   const parsed = milestoneFormSchema.safeParse(values);
 
   if (!parsed.success) {
@@ -192,6 +205,8 @@ export async function markMilestoneCompleteAction(
   projectId: string,
   milestoneId: string,
 ) {
+  await requireRole("admin");
+
   await markProjectMilestoneComplete(projectId, milestoneId);
 
   revalidatePath(`/admin/projects/${projectId}`);
@@ -201,6 +216,8 @@ export async function addUpdateAction(
   projectId: string,
   values: UpdateFormValues,
 ): Promise<ProjectActionResult> {
+  await requireRole("admin");
+
   const parsed = updateFormSchema.safeParse(values);
 
   if (!parsed.success) {

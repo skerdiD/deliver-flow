@@ -6,7 +6,6 @@ import { useState } from "react";
 
 import { routes } from "@/config/routes";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
-import type { UserRole } from "@/types/database";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,12 +18,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-function getDashboardPath(role: UserRole) {
-  if (role === "admin") {
-    return routes.admin.dashboard;
+function getSafeNextPath(value: string | null) {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+    return routes.home;
   }
 
-  return routes.client.dashboard;
+  return value;
 }
 
 export function LoginForm() {
@@ -39,6 +38,10 @@ export function LoginForm() {
 
     if (error === "profile_missing") {
       return "Your account is signed in, but no profile was found. Ask the admin to check your account setup.";
+    }
+
+    if (error === "role_invalid") {
+      return "Your account role could not be verified. Ask the admin to review your access settings.";
     }
 
     return "";
@@ -65,23 +68,8 @@ export function LoginForm() {
       return;
     }
 
-    const profileResult = await supabase
-      .from("profiles")
-      .select("role")
-      .maybeSingle();
-
-    const profile = profileResult.data as { role: UserRole } | null;
-    const profileError = profileResult.error;
-
-    if (profileError || !profile?.role) {
-      setErrorMessage(
-        "You signed in, but your profile could not be loaded. Please try again or contact the project owner.",
-      );
-      setIsLoading(false);
-      return;
-    }
-
-    router.replace(getDashboardPath(profile.role));
+    const nextPath = getSafeNextPath(searchParams.get("next"));
+    router.replace(nextPath);
     router.refresh();
   }
 
