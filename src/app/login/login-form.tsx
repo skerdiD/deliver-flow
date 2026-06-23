@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, Loader2 } from "lucide-react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -84,8 +83,8 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="rounded-2xl border-slate-200 bg-white shadow-sm">
-      <CardContent className="p-6">
+    <Card className="rounded-xl border-slate-200 bg-white shadow-sm">
+      <CardContent className="p-5 sm:p-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
             {authError ? (
@@ -135,7 +134,11 @@ export function LoginForm() {
               )}
             />
 
-            <Button type="submit" className="h-11 w-full" disabled={isLoading}>
+            <Button
+              type="submit"
+              className="h-11 w-full bg-blue-600 text-white shadow-sm hover:bg-blue-700 focus-visible:ring-blue-600"
+              disabled={isLoading}
+            >
               {isLoading ? (
                 <>
                   <Loader2 className="size-4 animate-spin" />
@@ -149,15 +152,9 @@ export function LoginForm() {
         </Form>
       </CardContent>
 
-      <CardFooter className="border-t border-slate-200 px-6 py-4">
-        <p className="w-full text-center text-sm text-slate-600">
-          Need an account?{" "}
-          <Link
-            href={routes.auth.signup}
-            className="font-medium text-blue-600 hover:text-blue-700"
-          >
-            Create one
-          </Link>
+      <CardFooter className="border-t border-slate-200 px-5 py-4 sm:px-6">
+        <p className="w-full text-center text-sm leading-6 text-slate-600">
+          Need access? Ask your project owner for an invite.
         </p>
       </CardFooter>
     </Card>
