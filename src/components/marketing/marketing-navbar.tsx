@@ -54,7 +54,7 @@ export function MarketingNavbar() {
           </Button>
 
           <Button asChild>
-            <Link href="/login">View demo</Link>
+            <Link href="/login">Open workspace</Link>
           </Button>
         </div>
       </div>

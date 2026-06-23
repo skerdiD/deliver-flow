@@ -23,9 +23,9 @@ export function HowItWorks() {
   return (
     <section id="how-it-works" className="bg-slate-50 py-16 sm:py-20">
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-3xl text-center">
+        <div className="animate-fade-in-up mx-auto max-w-3xl text-center">
           <p className="text-sm font-medium text-blue-600">How it works</p>
-          <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+          <h2 className="mt-2 text-3xl font-semibold text-slate-950 sm:text-4xl">
             A simple delivery flow from first update to final approval.
           </h2>
           <p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base">
@@ -35,12 +35,13 @@ export function HowItWorks() {
         </div>
 
         <div className="mt-10 grid gap-4 lg:grid-cols-3">
-          {steps.map((step) => (
+          {steps.map((step, index) => (
             <div
               key={step.number}
-              className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
+              className="animate-fade-in-up hover-lift rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+              style={{ animationDelay: `${index * 90}ms` }}
             >
-              <div className="flex size-12 items-center justify-center rounded-2xl bg-blue-600 text-sm font-semibold text-white">
+              <div className="flex size-11 items-center justify-center rounded-lg bg-blue-600 text-sm font-semibold text-white">
                 {step.number}
               </div>
 
