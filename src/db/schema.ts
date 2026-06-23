@@ -29,6 +29,11 @@ export const clientStatusEnum = pgEnum("client_status", [
   "archived",
 ]);
 
+export const clientInvitationStatusEnum = pgEnum(
+  "client_invitation_status",
+  ["pending", "accepted", "expired"],
+);
+
 export const projectStatusEnum = pgEnum("project_status", [
   "draft",
   "active",
@@ -142,6 +147,48 @@ export const clients = pgTable(
     createdByIdx: index("clients_created_by_idx").on(table.createdBy),
     statusIdx: index("clients_status_idx").on(table.status),
     createdAtIdx: index("clients_created_at_idx").on(table.createdAt),
+  }),
+);
+
+export const clientInvitations = pgTable(
+  "client_invitations",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    email: text("email").notNull(),
+    clientId: uuid("client_id").references(() => clients.id, {
+      onDelete: "set null",
+    }),
+    tokenHash: text("token_hash").notNull().unique(),
+    status: clientInvitationStatusEnum("status")
+      .notNull()
+      .default("pending"),
+    invitedBy: uuid("invited_by").references(() => profiles.id, {
+      onDelete: "set null",
+    }),
+    acceptedBy: uuid("accepted_by").references(() => profiles.id, {
+      onDelete: "set null",
+    }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    emailStatusIdx: index("client_invitations_email_status_idx").on(
+      table.email,
+      table.status,
+    ),
+    clientIdIdx: index("client_invitations_client_id_idx").on(table.clientId),
+    statusExpiresAtIdx: index("client_invitations_status_expires_at_idx").on(
+      table.status,
+      table.expiresAt,
+    ),
   }),
 );
 
@@ -509,6 +556,9 @@ export type NewProfile = typeof profiles.$inferInsert;
 
 export type Client = typeof clients.$inferSelect;
 export type NewClient = typeof clients.$inferInsert;
+
+export type ClientInvitation = typeof clientInvitations.$inferSelect;
+export type NewClientInvitation = typeof clientInvitations.$inferInsert;
 
 export type Project = typeof projects.$inferSelect;
 export type NewProject = typeof projects.$inferInsert;

@@ -4,6 +4,7 @@ import type { UserRole } from "@/types/database";
 type AuthRouteState =
   | { status: "unauthenticated" }
   | { status: "missing_profile" }
+  | { status: "missing_client" }
   | { status: "invalid_role" }
   | { status: "authenticated"; role: UserRole };
 
@@ -60,6 +61,10 @@ export function getRouteAccessDecision(
     return getInvalidAccountDecision(pathname, "profile_missing");
   }
 
+  if (authState.status === "missing_client") {
+    return getInvalidAccountDecision(pathname, "client_missing");
+  }
+
   if (authState.status === "invalid_role") {
     return getInvalidAccountDecision(pathname, "role_invalid");
   }
@@ -85,7 +90,7 @@ export function getRouteAccessDecision(
 
 function getInvalidAccountDecision(
   pathname: string,
-  error: "profile_missing" | "role_invalid",
+  error: "profile_missing" | "client_missing" | "role_invalid",
 ): RouteAccessDecision {
   if (isAuthRoute(pathname)) {
     return { type: "allow" };
@@ -122,7 +127,7 @@ function pathMatchesPrefix(pathname: string, prefix: string) {
 }
 
 function buildLoginPath(input?: {
-  error?: "profile_missing" | "role_invalid";
+  error?: "profile_missing" | "client_missing" | "role_invalid";
   next?: string;
 }) {
   const searchParams = new URLSearchParams();

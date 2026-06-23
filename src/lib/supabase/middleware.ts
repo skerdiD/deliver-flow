@@ -1,9 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { db } from "@/db";
-import { profiles } from "@/db/schema";
+import { clients, profiles } from "@/db/schema";
 import {
   getRouteAccessDecision,
   isSupportedRole,
@@ -91,6 +91,24 @@ export async function updateSession(request: NextRequest) {
         status: "invalid_role",
       }),
     );
+  }
+
+  if (profile.role === "client") {
+    const [client] = await db
+      .select({ id: clients.id })
+      .from(clients)
+      .where(and(eq(clients.profileId, user.id), eq(clients.status, "active")))
+      .limit(1);
+
+    if (!client) {
+      return applyRouteDecision(
+        request,
+        response,
+        getRouteAccessDecision(pathname, request.nextUrl.search, {
+          status: "missing_client",
+        }),
+      );
+    }
   }
 
   // 3. Apply role-based route policy. Admin and client layouts also call

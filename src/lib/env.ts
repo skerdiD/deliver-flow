@@ -45,3 +45,10 @@ export function getServerEnv() {
     arcjetKey: getRequiredEnv("ARCJET_KEY"),
   };
 }
+
+export function getSupabaseAdminEnv() {
+  return {
+    ...getPublicEnv(),
+    supabaseServiceRoleKey: getRequiredEnv("SUPABASE_SERVICE_ROLE_KEY"),
+  };
+}

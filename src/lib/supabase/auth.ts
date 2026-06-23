@@ -1,12 +1,12 @@
 import "server-only";
 
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 
 import { routes } from "@/config/routes";
 import { db } from "@/db";
-import { profiles } from "@/db/schema";
+import { clients, profiles } from "@/db/schema";
 import {
   getDashboardPathForRole,
   isSupportedRole,
@@ -17,6 +17,7 @@ import type { Profile, UserRole } from "@/types/database";
 type AuthState =
   | { status: "unauthenticated" }
   | { status: "missing_profile"; userId: string }
+  | { status: "missing_client"; userId: string }
   | { status: "invalid_role"; userId: string }
   | { status: "authenticated"; userId: string; profile: Profile };
 
@@ -49,7 +50,7 @@ function toProfile(row: {
 }
 
 function redirectToLogin(
-  error?: "profile_missing" | "role_invalid",
+  error?: "profile_missing" | "client_missing" | "role_invalid",
 ): never {
   if (!error) {
     redirect(routes.auth.login);
@@ -110,6 +111,21 @@ export const getAuthState = cache(async (): Promise<AuthState> => {
     };
   }
 
+  if (profileRow.role === "client") {
+    const [clientRow] = await db
+      .select({ id: clients.id })
+      .from(clients)
+      .where(and(eq(clients.profileId, user.id), eq(clients.status, "active")))
+      .limit(1);
+
+    if (!clientRow) {
+      return {
+        status: "missing_client",
+        userId: user.id,
+      };
+    }
+  }
+
   return {
     status: "authenticated",
     userId: user.id,
@@ -136,6 +152,10 @@ export async function requireCurrentProfile(): Promise<Profile> {
 
   if (authState.status === "missing_profile") {
     redirectToLogin("profile_missing");
+  }
+
+  if (authState.status === "missing_client") {
+    redirectToLogin("client_missing");
   }
 
   if (authState.status === "invalid_role") {

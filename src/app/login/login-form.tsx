@@ -48,6 +48,10 @@ export function LoginForm() {
       return "Your account role could not be verified. Ask the project owner to review your access.";
     }
 
+    if (error === "client_missing") {
+      return "Your account is not connected to an active client invite yet. Open your invite link or ask your project owner for a new invite.";
+    }
+
     return "";
   });
 

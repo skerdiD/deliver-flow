@@ -2,6 +2,7 @@ import { relations } from "drizzle-orm";
 
 import {
   approvals,
+  clientInvitations,
   clients,
   feedback,
   milestones,
@@ -45,6 +46,12 @@ export const profilesRelations = relations(profiles, ({ many }) => ({
   uploadedFiles: many(projectFiles, {
     relationName: "fileUploader",
   }),
+  sentClientInvitations: many(clientInvitations, {
+    relationName: "clientInvitationSender",
+  }),
+  acceptedClientInvitations: many(clientInvitations, {
+    relationName: "clientInvitationAcceptor",
+  }),
 }));
 
 export const clientsRelations = relations(clients, ({ one, many }) => ({
@@ -60,7 +67,28 @@ export const clientsRelations = relations(clients, ({ one, many }) => ({
   }),
   projectAssignments: many(projectAssignments),
   feedback: many(feedback),
+  invitations: many(clientInvitations),
 }));
+
+export const clientInvitationsRelations = relations(
+  clientInvitations,
+  ({ one }) => ({
+    client: one(clients, {
+      fields: [clientInvitations.clientId],
+      references: [clients.id],
+    }),
+    inviter: one(profiles, {
+      fields: [clientInvitations.invitedBy],
+      references: [profiles.id],
+      relationName: "clientInvitationSender",
+    }),
+    accepter: one(profiles, {
+      fields: [clientInvitations.acceptedBy],
+      references: [profiles.id],
+      relationName: "clientInvitationAcceptor",
+    }),
+  }),
+);
 
 export const projectsRelations = relations(projects, ({ one, many }) => ({
   creator: one(profiles, {

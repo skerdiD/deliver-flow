@@ -10,6 +10,8 @@ export type UserRole = "admin" | "client";
 
 export type ClientStatus = "active" | "inactive" | "archived";
 
+export type ClientInvitationStatus = "pending" | "accepted" | "expired";
+
 export type ProjectStatus =
   | "draft"
   | "active"
@@ -121,6 +123,48 @@ export type Database = {
           status?: ClientStatus;
           notes?: string | null;
           created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+
+      client_invitations: {
+        Row: {
+          id: string;
+          email: string;
+          client_id: string | null;
+          token_hash: string;
+          status: ClientInvitationStatus;
+          invited_by: string | null;
+          accepted_by: string | null;
+          expires_at: string;
+          accepted_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          email: string;
+          client_id?: string | null;
+          token_hash: string;
+          status?: ClientInvitationStatus;
+          invited_by?: string | null;
+          accepted_by?: string | null;
+          expires_at: string;
+          accepted_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          email?: string;
+          client_id?: string | null;
+          token_hash?: string;
+          status?: ClientInvitationStatus;
+          invited_by?: string | null;
+          accepted_by?: string | null;
+          expires_at?: string;
+          accepted_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -522,6 +566,7 @@ export type Database = {
 
     Enums: {
       app_role: UserRole;
+      client_invitation_status: ClientInvitationStatus;
       client_status: ClientStatus;
       project_status: ProjectStatus;
       milestone_status: MilestoneStatus;
@@ -549,6 +594,7 @@ export type Updates<T extends keyof Database["public"]["Tables"]> =
 
 export type Profile = Tables<"profiles">;
 export type Client = Tables<"clients">;
+export type ClientInvitation = Tables<"client_invitations">;
 export type Project = Tables<"projects">;
 export type ProjectAssignment = Tables<"project_assignments">;
 export type Milestone = Tables<"milestones">;

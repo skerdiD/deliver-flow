@@ -4,15 +4,20 @@ import Link from "next/link";
 
 import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
+import { ClientInvitePanel } from "@/features/admin/clients/client-invite-panel";
 import { ClientsTable } from "@/features/admin/clients/clients-table";
 import { getAdminClients } from "@/features/admin/clients/clients-data";
+import { getAdminClientInvites } from "@/features/admin/clients/invite-data";
 
 export const metadata: Metadata = {
   title: "Clients",
 };
 
 export default async function AdminClientsPage() {
-  const clients = await getAdminClients();
+  const [clients, invites] = await Promise.all([
+    getAdminClients(),
+    getAdminClientInvites(),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -28,6 +33,8 @@ export default async function AdminClientsPage() {
           </Link>
         </Button>
       </PageHeader>
+
+      <ClientInvitePanel invites={invites} />
 
       <ClientsTable clients={clients} />
     </div>

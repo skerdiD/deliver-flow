@@ -115,5 +115,15 @@ describe("route protection policy", () => {
         destination: "/login?error=role_invalid",
       },
     );
+
+    assert.deepEqual(
+      getRouteAccessDecision("/client/dashboard", "", {
+        status: "missing_client",
+      }),
+      {
+        type: "redirect",
+        destination: "/login?error=client_missing",
+      },
+    );
   });
 });
