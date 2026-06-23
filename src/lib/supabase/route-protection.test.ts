@@ -1,129 +1,136 @@
-import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { describe, expect, it } from "vitest";
 
 import { routes } from "@/config/routes";
-import { getRouteAccessDecision } from "@/lib/supabase/route-protection";
+import {
+  getDashboardPathForRole,
+  getRouteAccessDecision,
+  isProtectedRoute,
+  isSupportedRole,
+} from "@/lib/supabase/route-protection";
 
 describe("route protection policy", () => {
   it("redirects unauthenticated users from admin routes to login with next", () => {
-    assert.deepEqual(
+    expect(
       getRouteAccessDecision("/admin/projects", "?status=active", {
         status: "unauthenticated",
       }),
-      {
+    ).toEqual({
         type: "redirect",
         destination: "/login?next=%2Fadmin%2Fprojects%3Fstatus%3Dactive",
-      },
-    );
+      });
   });
 
   it("redirects unauthenticated users from client routes to login with next", () => {
-    assert.deepEqual(
+    expect(
       getRouteAccessDecision("/client/dashboard", "", {
         status: "unauthenticated",
       }),
-      {
+    ).toEqual({
         type: "redirect",
         destination: "/login?next=%2Fclient%2Fdashboard",
-      },
-    );
+      });
   });
 
   it("allows admins into admin routes and redirects them away from client routes", () => {
-    assert.deepEqual(
+    expect(
       getRouteAccessDecision("/admin/dashboard", "", {
         status: "authenticated",
         role: "admin",
       }),
-      { type: "allow" },
-    );
+    ).toEqual({ type: "allow" });
 
-    assert.deepEqual(
+    expect(
       getRouteAccessDecision("/client/dashboard", "", {
         status: "authenticated",
         role: "admin",
       }),
-      {
+    ).toEqual({
         type: "redirect",
         destination: routes.admin.dashboard,
-      },
-    );
+      });
   });
 
   it("allows clients into client routes and redirects them away from admin routes", () => {
-    assert.deepEqual(
+    expect(
       getRouteAccessDecision("/client/files", "", {
         status: "authenticated",
         role: "client",
       }),
-      { type: "allow" },
-    );
+    ).toEqual({ type: "allow" });
 
-    assert.deepEqual(
+    expect(
       getRouteAccessDecision("/admin/payments", "", {
         status: "authenticated",
         role: "client",
       }),
-      {
+    ).toEqual({
         type: "redirect",
         destination: routes.client.dashboard,
-      },
-    );
+      });
   });
 
   it("redirects authenticated users away from auth routes and home to their dashboard", () => {
-    assert.deepEqual(
+    expect(
       getRouteAccessDecision(routes.auth.login, "", {
         status: "authenticated",
         role: "client",
       }),
-      {
+    ).toEqual({
         type: "redirect",
         destination: routes.client.dashboard,
-      },
-    );
+      });
 
-    assert.deepEqual(
+    expect(
       getRouteAccessDecision(routes.home, "", {
         status: "authenticated",
         role: "admin",
       }),
-      {
+    ).toEqual({
         type: "redirect",
         destination: routes.admin.dashboard,
-      },
-    );
+      });
   });
 
   it("sends invalid account states to login with stable error codes", () => {
-    assert.deepEqual(
+    expect(
       getRouteAccessDecision("/admin/dashboard", "", {
         status: "missing_profile",
       }),
-      {
+    ).toEqual({
         type: "redirect",
         destination: "/login?error=profile_missing",
-      },
-    );
+      });
 
-    assert.deepEqual(
+    expect(
       getRouteAccessDecision("/client/dashboard", "", {
         status: "invalid_role",
       }),
-      {
+    ).toEqual({
         type: "redirect",
         destination: "/login?error=role_invalid",
-      },
-    );
+      });
 
-    assert.deepEqual(
+    expect(
       getRouteAccessDecision("/client/dashboard", "", {
         status: "missing_client",
       }),
-      {
+    ).toEqual({
         type: "redirect",
         destination: "/login?error=client_missing",
-      },
-    );
+      });
+  });
+
+  it("recognizes protected route prefixes and supported roles", () => {
+    expect(isProtectedRoute("/admin/dashboard")).toBe(true);
+    expect(isProtectedRoute("/client/project")).toBe(true);
+    expect(isProtectedRoute("/login")).toBe(false);
+    expect(isSupportedRole("admin")).toBe(true);
+    expect(isSupportedRole("client")).toBe(true);
+    expect(isSupportedRole("owner")).toBe(false);
+  });
+
+  it("maps roles to their dashboard redirect targets", () => {
+    expect(getDashboardPathForRole("admin")).toBe(routes.admin.dashboard);
+    expect(getDashboardPathForRole("client")).toBe(routes.client.dashboard);
   });
 });
