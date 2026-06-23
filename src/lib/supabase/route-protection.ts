@@ -119,7 +119,7 @@ function getRequiredRoleForPath(pathname: string): UserRole | null {
 }
 
 function isAuthRoute(pathname: string) {
-  return pathname === routes.auth.login || pathname === routes.auth.signup;
+  return pathname === routes.auth.login;
 }
 
 function pathMatchesPrefix(pathname: string, prefix: string) {

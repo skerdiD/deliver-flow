@@ -12,6 +12,7 @@ import {
   acceptInviteAction,
   type AcceptInviteActionState,
 } from "@/features/invitations/actions";
+import { routes } from "@/config/routes";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 type AcceptInviteCardProps = {
@@ -106,7 +107,7 @@ export function AcceptInviteCard({
           </form>
         ) : (
           <Button asChild className="w-full">
-            <Link href={`/login?next=/invite/${encodeURIComponent(token)}`}>
+            <Link href={`${routes.auth.login}?next=${routes.invite.accept(token)}`}>
               Sign in to continue
             </Link>
           </Button>

@@ -5,6 +5,7 @@ import { and, desc, eq, lte } from "drizzle-orm";
 import { db } from "@/db";
 import { clientInvitations, clients } from "@/db/schema";
 import { createInviteToken, hashInviteToken } from "@/features/invitations/token";
+import { routes } from "@/config/routes";
 import { getAppBaseUrl } from "@/lib/app-url";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Profile } from "@/types/database";
@@ -158,7 +159,7 @@ export async function createClientInvite(
     expiresAt,
   });
 
-  const inviteLink = `${await getAppBaseUrl()}/invite/${token}`;
+  const inviteLink = `${await getAppBaseUrl()}${routes.invite.accept(token)}`;
   const emailDeliveryError = await sendSupabaseInviteEmail(email, inviteLink);
 
   return {

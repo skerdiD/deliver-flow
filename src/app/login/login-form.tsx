@@ -69,21 +69,28 @@ export function LoginForm() {
     setIsLoading(true);
     setAuthError("");
 
-    const supabase = createSupabaseBrowserClient();
+    try {
+      const supabase = createSupabaseBrowserClient();
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email: values.email,
-      password: values.password,
-    });
+      const { error } = await supabase.auth.signInWithPassword({
+        email: values.email,
+        password: values.password,
+      });
 
-    if (error) {
-      setAuthError("Email or password is incorrect.");
+      if (error) {
+        setAuthError("Email or password is incorrect.");
+        setIsLoading(false);
+        return;
+      }
+
+      router.replace(getSafeNextPath(searchParams.get("next")));
+      router.refresh();
+    } catch {
+      setAuthError(
+        "Could not connect to authentication. Check your Supabase URL, anon key, and network connection.",
+      );
       setIsLoading(false);
-      return;
     }
-
-    router.replace(getSafeNextPath(searchParams.get("next")));
-    router.refresh();
   }
 
   return (

@@ -3,7 +3,10 @@ export const routes = {
 
   auth: {
     login: "/login",
-    signup: "/signup",
+  },
+
+  invite: {
+    accept: (token: string) => `/invite/${encodeURIComponent(token)}`,
   },
 
   admin: {

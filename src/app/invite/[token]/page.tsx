@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { routes } from "@/config/routes";
 import { AcceptInviteCard } from "@/features/invitations/accept-invite-card";
 import { getInvitePreview } from "@/features/invitations/invite-data";
 import { inviteTokenSchema } from "@/features/invitations/validation";
@@ -80,7 +81,9 @@ function InviteStateCard(props: {
               "This invite link is not valid. Check the link or ask your project owner for a new invite."}
           </p>
           <Button asChild>
-            <Link href="/login">{props.actionLabel ?? "Back to login"}</Link>
+            <Link href={routes.auth.login}>
+              {props.actionLabel ?? "Back to login"}
+            </Link>
           </Button>
         </CardContent>
       </Card>
