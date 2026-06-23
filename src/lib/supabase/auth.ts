@@ -7,6 +7,10 @@ import { cache } from "react";
 import { routes } from "@/config/routes";
 import { db } from "@/db";
 import { profiles } from "@/db/schema";
+import {
+  getDashboardPathForRole,
+  isSupportedRole,
+} from "@/lib/supabase/route-protection";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Profile, UserRole } from "@/types/database";
 
@@ -15,18 +19,6 @@ type AuthState =
   | { status: "missing_profile"; userId: string }
   | { status: "invalid_role"; userId: string }
   | { status: "authenticated"; userId: string; profile: Profile };
-
-export function getDashboardPathForRole(role: UserRole) {
-  if (role === "admin") {
-    return routes.admin.dashboard;
-  }
-
-  return routes.client.dashboard;
-}
-
-function isSupportedRole(value: unknown): value is UserRole {
-  return value === "admin" || value === "client";
-}
 
 function toIsoString(value: Date | string) {
   if (value instanceof Date) {

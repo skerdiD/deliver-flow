@@ -2,58 +2,13 @@ import { createServerClient } from "@supabase/ssr";
 import { eq } from "drizzle-orm";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { routes } from "@/config/routes";
 import { db } from "@/db";
 import { profiles } from "@/db/schema";
-import type { Database, UserRole } from "@/types/database";
-
-const protectedPrefixes = ["/admin", "/client"];
-
-function isProtectedRoute(pathname: string) {
-  return protectedPrefixes.some((prefix) => pathname.startsWith(prefix));
-}
-
-function isSupportedRole(value: unknown): value is UserRole {
-  return value === "admin" || value === "client";
-}
-
-function getDashboardPath(role: UserRole) {
-  if (role === "admin") {
-    return routes.admin.dashboard;
-  }
-
-  return routes.client.dashboard;
-}
-
-function isAuthRoute(pathname: string) {
-  return pathname === routes.auth.login || pathname === routes.auth.signup;
-}
-
-function getRequestedPath(request: NextRequest) {
-  return `${request.nextUrl.pathname}${request.nextUrl.search}`;
-}
-
-function buildLoginRedirectUrl(
-  request: NextRequest,
-  input?: {
-    error?: "profile_missing" | "role_invalid";
-    next?: string;
-  },
-) {
-  const loginUrl = request.nextUrl.clone();
-  loginUrl.pathname = routes.auth.login;
-  loginUrl.search = "";
-
-  if (input?.next) {
-    loginUrl.searchParams.set("next", input.next);
-  }
-
-  if (input?.error) {
-    loginUrl.searchParams.set("error", input.error);
-  }
-
-  return loginUrl;
-}
+import {
+  getRouteAccessDecision,
+  isSupportedRole,
+} from "@/lib/supabase/route-protection";
+import type { Database } from "@/types/database";
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({
@@ -92,22 +47,24 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
+  // 1. Ask Supabase for the authenticated user. getUser() validates the token
+  // with Supabase instead of trusting the local cookie contents.
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
-    if (isProtectedRoute(pathname)) {
-      return NextResponse.redirect(
-        buildLoginRedirectUrl(request, {
-          next: getRequestedPath(request),
-        }),
-      );
-    }
-
-    return response;
+    return applyRouteDecision(
+      request,
+      response,
+      getRouteAccessDecision(pathname, request.nextUrl.search, {
+        status: "unauthenticated",
+      }),
+    );
   }
 
+  // 2. Resolve the app profile role from the database. The session alone only
+  // proves identity; profiles.role is the authorization source of truth.
   const [profile] = await db
     .select({
       role: profiles.role,
@@ -117,74 +74,61 @@ export async function updateSession(request: NextRequest) {
     .limit(1);
 
   if (!profile) {
-    if (isAuthRoute(pathname)) {
-      if (request.nextUrl.searchParams.get("error") === "profile_missing") {
-        return response;
-      }
-
-      return NextResponse.redirect(
-        buildLoginRedirectUrl(request, {
-          error: "profile_missing",
-        }),
-      );
-    }
-
-    if (isProtectedRoute(pathname) || pathname === routes.home) {
-      return NextResponse.redirect(
-        buildLoginRedirectUrl(request, {
-          error: "profile_missing",
-        }),
-      );
-    }
-
-    return response;
-  }
-
-  if (!isSupportedRole(profile.role)) {
-    if (isAuthRoute(pathname)) {
-      if (request.nextUrl.searchParams.get("error") === "role_invalid") {
-        return response;
-      }
-
-      return NextResponse.redirect(
-        buildLoginRedirectUrl(request, {
-          error: "role_invalid",
-        }),
-      );
-    }
-
-    return NextResponse.redirect(
-      buildLoginRedirectUrl(request, {
-        error: "role_invalid",
+    return applyRouteDecision(
+      request,
+      response,
+      getRouteAccessDecision(pathname, request.nextUrl.search, {
+        status: "missing_profile",
       }),
     );
   }
 
-  const role = profile.role;
-
-  if (isAuthRoute(pathname)) {
-    const dashboardUrl = request.nextUrl.clone();
-    dashboardUrl.pathname = getDashboardPath(role);
-    dashboardUrl.search = "";
-
-    return NextResponse.redirect(dashboardUrl);
+  if (!isSupportedRole(profile.role)) {
+    return applyRouteDecision(
+      request,
+      response,
+      getRouteAccessDecision(pathname, request.nextUrl.search, {
+        status: "invalid_role",
+      }),
+    );
   }
 
-  if (pathname.startsWith("/admin") && role !== "admin") {
-    const clientDashboardUrl = request.nextUrl.clone();
-    clientDashboardUrl.pathname = routes.client.dashboard;
-    clientDashboardUrl.search = "";
+  // 3. Apply role-based route policy. Admin and client layouts also call
+  // requireRole(), so direct server renders remain protected if proxy is
+  // bypassed or future routes are added under these segments.
+  return applyRouteDecision(
+    request,
+    response,
+    getRouteAccessDecision(pathname, request.nextUrl.search, {
+      status: "authenticated",
+      role: profile.role,
+    }),
+  );
+}
 
-    return NextResponse.redirect(clientDashboardUrl);
+function applyRouteDecision(
+  request: NextRequest,
+  response: NextResponse,
+  decision: ReturnType<typeof getRouteAccessDecision>,
+) {
+  if (decision.type === "allow") {
+    return response;
   }
 
-  if (pathname.startsWith("/client") && role !== "client") {
-    const adminDashboardUrl = request.nextUrl.clone();
-    adminDashboardUrl.pathname = routes.admin.dashboard;
-    adminDashboardUrl.search = "";
+  const redirectUrl = request.nextUrl.clone();
+  const [pathname, search = ""] = decision.destination.split("?");
+  redirectUrl.pathname = pathname;
+  redirectUrl.search = search;
 
-    return NextResponse.redirect(adminDashboardUrl);
-  }
+  return redirectWithSessionCookies(response, redirectUrl);
+}
 
-  return response;
+function redirectWithSessionCookies(response: NextResponse, url: URL) {
+  const redirectResponse = NextResponse.redirect(url);
+
+  response.cookies.getAll().forEach((cookie) => {
+    redirectResponse.cookies.set(cookie);
+  });
+
+  return redirectResponse;
 }
