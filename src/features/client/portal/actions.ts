@@ -7,7 +7,7 @@ import {
   respondToClientApproval,
 } from "@/features/client/portal/portal-data";
 import {
-  clientApprovalResponseSchema,
+  clientApprovalActionSchema,
   clientFeedbackSchema,
   type ClientApprovalResponseValues,
   type ClientFeedbackValues,
@@ -52,7 +52,10 @@ export async function sendClientFeedbackAction(
 export async function approveMilestoneAction(
   values: ClientApprovalResponseValues,
 ): Promise<ClientPortalActionResult> {
-  const parsed = clientApprovalResponseSchema.safeParse(values);
+  const parsed = clientApprovalActionSchema.safeParse({
+    ...values,
+    status: "approved",
+  });
 
   if (!parsed.success) {
     return {
@@ -61,15 +64,22 @@ export async function approveMilestoneAction(
     };
   }
 
-  const approval = await respondToClientApproval({
-    status: "approved",
-    responseNote: parsed.data.responseNote || "Approved by client.",
-  });
+  try {
+    const approval = await respondToClientApproval({
+      status: parsed.data.status,
+      responseNote: parsed.data.responseNote || "Approved by client.",
+    });
 
-  if (!approval) {
+    if (!approval) {
+      return {
+        success: false,
+        message: "No approval request is waiting right now.",
+      };
+    }
+  } catch {
     return {
       success: false,
-      message: "No approval request is waiting right now.",
+      message: "Approval response could not be saved.",
     };
   }
 
@@ -85,7 +95,10 @@ export async function approveMilestoneAction(
 export async function requestChangesAction(
   values: ClientApprovalResponseValues,
 ): Promise<ClientPortalActionResult> {
-  const parsed = clientApprovalResponseSchema.safeParse(values);
+  const parsed = clientApprovalActionSchema.safeParse({
+    ...values,
+    status: "changes_requested",
+  });
 
   if (!parsed.success) {
     return {
@@ -94,16 +107,23 @@ export async function requestChangesAction(
     };
   }
 
-  const approval = await respondToClientApproval({
-    status: "changes_requested",
-    responseNote:
-      parsed.data.responseNote || "Client requested changes before approval.",
-  });
+  try {
+    const approval = await respondToClientApproval({
+      status: parsed.data.status,
+      responseNote:
+        parsed.data.responseNote || "Client requested changes before approval.",
+    });
 
-  if (!approval) {
+    if (!approval) {
+      return {
+        success: false,
+        message: "No approval request is waiting right now.",
+      };
+    }
+  } catch {
     return {
       success: false,
-      message: "No approval request is waiting right now.",
+      message: "Change request could not be saved.",
     };
   }
 

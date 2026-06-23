@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+export const clientApprovalStatusValues = [
+  "approved",
+  "changes_requested",
+] as const;
+
 export const clientFeedbackSchema = z.object({
   message: z
     .string()
@@ -9,7 +14,15 @@ export const clientFeedbackSchema = z.object({
 });
 
 export const clientApprovalResponseSchema = z.object({
-  responseNote: z.string().trim().max(800).optional(),
+  responseNote: z
+    .string()
+    .trim()
+    .max(800, "Approval note should stay under 800 characters.")
+    .optional(),
+});
+
+export const clientApprovalActionSchema = clientApprovalResponseSchema.extend({
+  status: z.enum(clientApprovalStatusValues),
 });
 
 export type ClientFeedbackValues = z.infer<typeof clientFeedbackSchema>;

@@ -7,6 +7,7 @@ import {
   updateAdminClient,
 } from "@/features/admin/clients/clients-data";
 import {
+  clientIdActionSchema,
   clientFormSchema,
   type ClientFormValues,
 } from "@/features/admin/clients/client-validation";
@@ -60,15 +61,22 @@ export async function createClientAction(
     };
   }
 
-  const client = await createAdminClient(parsed.data);
+  try {
+    const client = await createAdminClient(parsed.data);
 
-  revalidatePath("/admin/clients");
+    revalidatePath("/admin/clients");
 
-  return {
-    success: true,
-    message: "Client added.",
-    clientId: client.id,
-  };
+    return {
+      success: true,
+      message: "Client added.",
+      clientId: client.id,
+    };
+  } catch {
+    return {
+      success: false,
+      message: "Client could not be added.",
+    };
+  }
 }
 
 export async function updateClientAction(
@@ -76,6 +84,14 @@ export async function updateClientAction(
   values: ClientFormValues,
 ): Promise<ClientActionResult> {
   await requireRole("admin");
+
+  const idParsed = clientIdActionSchema.safeParse({ clientId: id });
+  if (!idParsed.success) {
+    return {
+      success: false,
+      message: "Client id is invalid.",
+    };
+  }
 
   const parsed = clientFormSchema.safeParse(values);
 
@@ -87,21 +103,28 @@ export async function updateClientAction(
     };
   }
 
-  const client = await updateAdminClient(id, parsed.data);
+  try {
+    const client = await updateAdminClient(idParsed.data.clientId, parsed.data);
 
-  if (!client) {
+    if (!client) {
+      return {
+        success: false,
+        message: "Client not found.",
+      };
+    }
+
+    revalidatePath("/admin/clients");
+    revalidatePath(`/admin/clients/${idParsed.data.clientId}`);
+
+    return {
+      success: true,
+      message: "Client saved.",
+      clientId: client.id,
+    };
+  } catch {
     return {
       success: false,
-      message: "Client not found.",
+      message: "Client could not be saved.",
     };
   }
-
-  revalidatePath("/admin/clients");
-  revalidatePath(`/admin/clients/${id}`);
-
-  return {
-    success: true,
-    message: "Client saved.",
-    clientId: client.id,
-  };
 }

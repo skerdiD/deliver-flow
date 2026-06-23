@@ -15,56 +15,125 @@ export const paymentStatusValues = [
   "overdue",
 ] as const;
 
+export const projectRouteIdSchema = z
+  .string()
+  .trim()
+  .min(1, "Project id is required.")
+  .max(120, "Project id is too long.")
+  .regex(/^[a-zA-Z0-9_-]+$/, "Project id is invalid.");
+
+export const projectItemRouteIdSchema = z
+  .string()
+  .trim()
+  .min(1, "Item id is required.")
+  .max(120, "Item id is too long.")
+  .regex(/^[a-zA-Z0-9_-]+$/, "Item id is invalid.");
+
+const dateInputSchema = z
+  .string()
+  .trim()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Enter a valid date.");
+
+const optionalUrlSchema = z
+  .string()
+  .trim()
+  .max(500, "URL is too long.")
+  .url("Enter a valid URL.")
+  .optional()
+  .or(z.literal(""));
+
 export const projectFormSchema = z.object({
-  name: z.string().trim().min(1, "Project name is required."),
-  clientId: z.string().trim().min(1, "Choose a client."),
-  description: z.string().trim().min(1, "Project description is required."),
+  name: z
+    .string()
+    .trim()
+    .min(1, "Project name is required.")
+    .max(120, "Project name is too long."),
+  clientId: projectRouteIdSchema,
+  description: z
+    .string()
+    .trim()
+    .min(1, "Project description is required.")
+    .max(1200, "Project description is too long."),
   status: z.enum(projectStatusValues),
   progress: z.coerce
     .number()
+    .int("Progress must be a whole number.")
     .min(0, "Progress cannot be below 0.")
     .max(100, "Progress cannot be above 100."),
-  deadline: z.string().trim().min(1, "Deadline is required."),
-  liveDemoUrl: z
-    .string()
-    .trim()
-    .url("Enter a valid live demo URL.")
-    .optional()
-    .or(z.literal("")),
-  repositoryUrl: z
-    .string()
-    .trim()
-    .url("Enter a valid repository URL.")
-    .optional()
-    .or(z.literal("")),
+  deadline: dateInputSchema,
+  liveDemoUrl: optionalUrlSchema,
+  repositoryUrl: optionalUrlSchema,
   paymentStatus: z.enum(paymentStatusValues),
-  budgetDollars: z.coerce.number().min(0, "Budget cannot be negative."),
-  paidDollars: z.coerce.number().min(0, "Paid amount cannot be negative."),
+  budgetDollars: z.coerce
+    .number()
+    .min(0, "Budget cannot be negative.")
+    .max(10_000_000, "Budget is too large."),
+  paidDollars: z.coerce
+    .number()
+    .min(0, "Paid amount cannot be negative.")
+    .max(10_000_000, "Paid amount is too large."),
+}).refine((values) => values.paidDollars <= values.budgetDollars, {
+  message: "Paid amount cannot exceed the project budget.",
+  path: ["paidDollars"],
 });
 
 export const taskFormSchema = z.object({
-  title: z.string().trim().min(1, "Task title is required."),
-  description: z.string().trim().min(1, "Task description is required."),
-  dueDate: z.string().trim().min(1, "Due date is required."),
+  title: z
+    .string()
+    .trim()
+    .min(1, "Task title is required.")
+    .max(160, "Task title is too long."),
+  description: z
+    .string()
+    .trim()
+    .min(1, "Task description is required.")
+    .max(1000, "Task description is too long."),
+  dueDate: dateInputSchema,
 });
 
 export const milestoneFormSchema = z.object({
-  title: z.string().trim().min(1, "Milestone title is required."),
-  description: z.string().trim().min(1, "Milestone description is required."),
-  dueDate: z.string().trim().min(1, "Due date is required."),
+  title: z
+    .string()
+    .trim()
+    .min(1, "Milestone title is required.")
+    .max(160, "Milestone title is too long."),
+  description: z
+    .string()
+    .trim()
+    .min(1, "Milestone description is required.")
+    .max(1000, "Milestone description is too long."),
+  dueDate: dateInputSchema,
 });
 
 export const updateFormSchema = z.object({
-  title: z.string().trim().min(1, "Update title is required."),
-  body: z.string().trim().min(1, "Update body is required."),
+  title: z
+    .string()
+    .trim()
+    .min(1, "Update title is required.")
+    .max(160, "Update title is too long."),
+  body: z
+    .string()
+    .trim()
+    .min(1, "Update body is required.")
+    .max(2000, "Update body is too long."),
 });
 
 export const progressFormSchema = z.object({
   progress: z.coerce
     .number()
+    .int("Progress must be a whole number.")
     .min(0, "Progress cannot be below 0.")
     .max(100, "Progress cannot be above 100."),
   status: z.enum(projectStatusValues),
+});
+
+export const projectIdActionSchema = z.object({
+  projectId: projectRouteIdSchema,
+});
+
+export const projectItemActionSchema = z.object({
+  projectId: projectRouteIdSchema,
+  itemId: projectItemRouteIdSchema,
 });
 
 export type ProjectFormValues = z.infer<typeof projectFormSchema>;

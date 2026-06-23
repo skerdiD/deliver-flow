@@ -15,7 +15,9 @@ import {
 import {
   milestoneFormSchema,
   progressFormSchema,
+  projectIdActionSchema,
   projectFormSchema,
+  projectItemActionSchema,
   taskFormSchema,
   updateFormSchema,
   type MilestoneFormValues,
@@ -32,6 +34,14 @@ export type ProjectActionResult = {
   projectId?: string;
 };
 
+function getActionErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message === "Client not found.") {
+    return error.message;
+  }
+
+  return fallback;
+}
+
 export async function createProjectAction(
   values: ProjectFormValues,
 ): Promise<ProjectActionResult> {
@@ -46,15 +56,22 @@ export async function createProjectAction(
     };
   }
 
-  const project = await createAdminProject(parsed.data);
+  try {
+    const project = await createAdminProject(parsed.data);
 
-  revalidatePath("/admin/projects");
+    revalidatePath("/admin/projects");
 
-  return {
-    success: true,
-    message: "Project created.",
-    projectId: project.id,
-  };
+    return {
+      success: true,
+      message: "Project created.",
+      projectId: project.id,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: getActionErrorMessage(error, "Project could not be created."),
+    };
+  }
 }
 
 export async function updateProjectAction(
@@ -62,6 +79,14 @@ export async function updateProjectAction(
   values: ProjectFormValues,
 ): Promise<ProjectActionResult> {
   await requireRole("admin");
+
+  const idParsed = projectIdActionSchema.safeParse({ projectId: id });
+  if (!idParsed.success) {
+    return {
+      success: false,
+      message: "Project id is invalid.",
+    };
+  }
 
   const parsed = projectFormSchema.safeParse(values);
 
@@ -72,23 +97,30 @@ export async function updateProjectAction(
     };
   }
 
-  const project = await updateAdminProject(id, parsed.data);
+  try {
+    const project = await updateAdminProject(idParsed.data.projectId, parsed.data);
 
-  if (!project) {
+    if (!project) {
+      return {
+        success: false,
+        message: "Project not found.",
+      };
+    }
+
+    revalidatePath("/admin/projects");
+    revalidatePath(`/admin/projects/${idParsed.data.projectId}`);
+
+    return {
+      success: true,
+      message: "Project saved.",
+      projectId: project.id,
+    };
+  } catch (error) {
     return {
       success: false,
-      message: "Project not found.",
+      message: getActionErrorMessage(error, "Project could not be saved."),
     };
   }
-
-  revalidatePath("/admin/projects");
-  revalidatePath(`/admin/projects/${id}`);
-
-  return {
-    success: true,
-    message: "Project saved.",
-    projectId: project.id,
-  };
 }
 
 export async function updateProjectProgressAction(
@@ -96,6 +128,14 @@ export async function updateProjectProgressAction(
   values: ProgressFormValues,
 ): Promise<ProjectActionResult> {
   await requireRole("admin");
+
+  const idParsed = projectIdActionSchema.safeParse({ projectId: id });
+  if (!idParsed.success) {
+    return {
+      success: false,
+      message: "Project id is invalid.",
+    };
+  }
 
   const parsed = progressFormSchema.safeParse(values);
 
@@ -106,7 +146,7 @@ export async function updateProjectProgressAction(
     };
   }
 
-  const project = await updateProjectProgress(id, parsed.data);
+  const project = await updateProjectProgress(idParsed.data.projectId, parsed.data);
 
   if (!project) {
     return {
@@ -115,12 +155,12 @@ export async function updateProjectProgressAction(
     };
   }
 
-  revalidatePath(`/admin/projects/${id}`);
+  revalidatePath(`/admin/projects/${idParsed.data.projectId}`);
 
   return {
     success: true,
     message: "Project progress updated.",
-    projectId: id,
+    projectId: idParsed.data.projectId,
   };
 }
 
@@ -129,6 +169,14 @@ export async function addTaskAction(
   values: TaskFormValues,
 ): Promise<ProjectActionResult> {
   await requireRole("admin");
+
+  const idParsed = projectIdActionSchema.safeParse({ projectId });
+  if (!idParsed.success) {
+    return {
+      success: false,
+      message: "Project id is invalid.",
+    };
+  }
 
   const parsed = taskFormSchema.safeParse(values);
 
@@ -139,7 +187,7 @@ export async function addTaskAction(
     };
   }
 
-  const project = await addProjectTask(projectId, parsed.data);
+  const project = await addProjectTask(idParsed.data.projectId, parsed.data);
 
   if (!project) {
     return {
@@ -148,24 +196,42 @@ export async function addTaskAction(
     };
   }
 
-  revalidatePath(`/admin/projects/${projectId}`);
+  revalidatePath(`/admin/projects/${idParsed.data.projectId}`);
 
   return {
     success: true,
     message: "Task added.",
-    projectId,
+    projectId: idParsed.data.projectId,
   };
 }
 
 export async function markTaskCompleteAction(
   projectId: string,
   taskId: string,
-) {
+): Promise<ProjectActionResult> {
   await requireRole("admin");
 
-  await markProjectTaskComplete(projectId, taskId);
+  const parsed = projectItemActionSchema.safeParse({
+    projectId,
+    itemId: taskId,
+  });
 
-  revalidatePath(`/admin/projects/${projectId}`);
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: "Task id is invalid.",
+    };
+  }
+
+  await markProjectTaskComplete(parsed.data.projectId, parsed.data.itemId);
+
+  revalidatePath(`/admin/projects/${parsed.data.projectId}`);
+
+  return {
+    success: true,
+    message: "Task completed.",
+    projectId: parsed.data.projectId,
+  };
 }
 
 export async function addMilestoneAction(
@@ -173,6 +239,14 @@ export async function addMilestoneAction(
   values: MilestoneFormValues,
 ): Promise<ProjectActionResult> {
   await requireRole("admin");
+
+  const idParsed = projectIdActionSchema.safeParse({ projectId });
+  if (!idParsed.success) {
+    return {
+      success: false,
+      message: "Project id is invalid.",
+    };
+  }
 
   const parsed = milestoneFormSchema.safeParse(values);
 
@@ -183,7 +257,10 @@ export async function addMilestoneAction(
     };
   }
 
-  const project = await addProjectMilestone(projectId, parsed.data);
+  const project = await addProjectMilestone(
+    idParsed.data.projectId,
+    parsed.data,
+  );
 
   if (!project) {
     return {
@@ -192,24 +269,45 @@ export async function addMilestoneAction(
     };
   }
 
-  revalidatePath(`/admin/projects/${projectId}`);
+  revalidatePath(`/admin/projects/${idParsed.data.projectId}`);
 
   return {
     success: true,
     message: "Milestone added.",
-    projectId,
+    projectId: idParsed.data.projectId,
   };
 }
 
 export async function markMilestoneCompleteAction(
   projectId: string,
   milestoneId: string,
-) {
+): Promise<ProjectActionResult> {
   await requireRole("admin");
 
-  await markProjectMilestoneComplete(projectId, milestoneId);
+  const parsed = projectItemActionSchema.safeParse({
+    projectId,
+    itemId: milestoneId,
+  });
 
-  revalidatePath(`/admin/projects/${projectId}`);
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: "Milestone id is invalid.",
+    };
+  }
+
+  await markProjectMilestoneComplete(
+    parsed.data.projectId,
+    parsed.data.itemId,
+  );
+
+  revalidatePath(`/admin/projects/${parsed.data.projectId}`);
+
+  return {
+    success: true,
+    message: "Milestone completed.",
+    projectId: parsed.data.projectId,
+  };
 }
 
 export async function addUpdateAction(
@@ -217,6 +315,14 @@ export async function addUpdateAction(
   values: UpdateFormValues,
 ): Promise<ProjectActionResult> {
   await requireRole("admin");
+
+  const idParsed = projectIdActionSchema.safeParse({ projectId });
+  if (!idParsed.success) {
+    return {
+      success: false,
+      message: "Project id is invalid.",
+    };
+  }
 
   const parsed = updateFormSchema.safeParse(values);
 
@@ -227,7 +333,7 @@ export async function addUpdateAction(
     };
   }
 
-  const project = await addProjectUpdate(projectId, parsed.data);
+  const project = await addProjectUpdate(idParsed.data.projectId, parsed.data);
 
   if (!project) {
     return {
@@ -236,11 +342,11 @@ export async function addUpdateAction(
     };
   }
 
-  revalidatePath(`/admin/projects/${projectId}`);
+  revalidatePath(`/admin/projects/${idParsed.data.projectId}`);
 
   return {
     success: true,
     message: "Project update added.",
-    projectId,
+    projectId: idParsed.data.projectId,
   };
 }
