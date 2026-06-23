@@ -8,6 +8,13 @@
       "when": 1780993109364,
       "tag": "0000_famous_enchantress",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1782200071482,
+      "tag": "0001_handy_black_queen",
+      "breakpoints": true
     }
   ]
 }

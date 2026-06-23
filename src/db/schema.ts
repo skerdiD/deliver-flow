@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
   boolean,
+  check,
   date,
   index,
   integer,
@@ -139,6 +140,8 @@ export const clients = pgTable(
   (table) => ({
     profileIdIdx: index("clients_profile_id_idx").on(table.profileId),
     createdByIdx: index("clients_created_by_idx").on(table.createdBy),
+    statusIdx: index("clients_status_idx").on(table.status),
+    createdAtIdx: index("clients_created_at_idx").on(table.createdAt),
   }),
 );
 
@@ -167,7 +170,16 @@ export const projects = pgTable(
       .defaultNow(),
   },
   (table) => ({
+    progressCheck: check(
+      "projects_progress_check",
+      sql`${table.progress} >= 0 AND ${table.progress} <= 100`,
+    ),
     createdByIdx: index("projects_created_by_idx").on(table.createdBy),
+    statusIdx: index("projects_status_idx").on(table.status),
+    statusUpdatedAtIdx: index("projects_status_updated_at_idx").on(
+      table.status,
+      table.updatedAt,
+    ),
   }),
 );
 
@@ -199,6 +211,10 @@ export const projectAssignments = pgTable(
       table.projectId,
     ),
     clientIdIdx: index("project_assignments_client_id_idx").on(table.clientId),
+    clientAssignedAtIdx: index("project_assignments_client_assigned_at_idx").on(
+      table.clientId,
+      table.assignedAt,
+    ),
   }),
 );
 
@@ -229,6 +245,15 @@ export const milestones = pgTable(
   },
   (table) => ({
     projectIdIdx: index("milestones_project_id_idx").on(table.projectId),
+    projectVisiblePositionIdx: index("milestones_project_visible_pos_idx").on(
+      table.projectId,
+      table.isVisibleToClient,
+      table.position,
+    ),
+    projectStatusIdx: index("milestones_project_status_idx").on(
+      table.projectId,
+      table.status,
+    ),
   }),
 );
 
@@ -264,6 +289,15 @@ export const tasks = pgTable(
   (table) => ({
     projectIdIdx: index("tasks_project_id_idx").on(table.projectId),
     milestoneIdIdx: index("tasks_milestone_id_idx").on(table.milestoneId),
+    projectStatusIdx: index("tasks_project_status_idx").on(
+      table.projectId,
+      table.status,
+    ),
+    projectVisiblePositionIdx: index("tasks_project_visible_pos_idx").on(
+      table.projectId,
+      table.isVisibleToClient,
+      table.position,
+    ),
   }),
 );
 
@@ -294,6 +328,9 @@ export const projectUpdates = pgTable(
   },
   (table) => ({
     projectIdIdx: index("project_updates_project_id_idx").on(table.projectId),
+    projectVisibleCreatedAtIdx: index(
+      "project_updates_project_visible_created_at_idx",
+    ).on(table.projectId, table.isVisibleToClient, table.createdAt),
   }),
 );
 
@@ -326,6 +363,15 @@ export const feedback = pgTable(
   (table) => ({
     projectIdIdx: index("feedback_project_id_idx").on(table.projectId),
     clientIdIdx: index("feedback_client_id_idx").on(table.clientId),
+    projectClientCreatedAtIdx: index("feedback_project_client_created_at_idx").on(
+      table.projectId,
+      table.clientId,
+      table.createdAt,
+    ),
+    statusCreatedAtIdx: index("feedback_status_created_at_idx").on(
+      table.status,
+      table.createdAt,
+    ),
   }),
 );
 
@@ -365,6 +411,13 @@ export const approvals = pgTable(
   (table) => ({
     projectIdIdx: index("approvals_project_id_idx").on(table.projectId),
     milestoneIdIdx: index("approvals_milestone_id_idx").on(table.milestoneId),
+    projectStatusRequestedAtIdx: index(
+      "approvals_project_status_requested_at_idx",
+    ).on(table.projectId, table.status, table.requestedAt),
+    statusRequestedAtIdx: index("approvals_status_requested_at_idx").on(
+      table.status,
+      table.requestedAt,
+    ),
   }),
 );
 
@@ -391,7 +444,20 @@ export const payments = pgTable(
       .defaultNow(),
   },
   (table) => ({
+    amountCentsCheck: check(
+      "payments_amount_cents_check",
+      sql`${table.amountCents} > 0`,
+    ),
     projectIdIdx: index("payments_project_id_idx").on(table.projectId),
+    projectStatusDueDateIdx: index("payments_project_status_due_date_idx").on(
+      table.projectId,
+      table.status,
+      table.dueDate,
+    ),
+    statusDueDateIdx: index("payments_status_due_date_idx").on(
+      table.status,
+      table.dueDate,
+    ),
   }),
 );
 
@@ -422,7 +488,15 @@ export const projectFiles = pgTable(
       .defaultNow(),
   },
   (table) => ({
+    fileSizeCheck: check(
+      "project_files_file_size_check",
+      sql`${table.fileSize} IS NULL OR ${table.fileSize} >= 0`,
+    ),
     projectIdIdx: index("project_files_project_id_idx").on(table.projectId),
+    projectVisibleCreatedAtIdx: index(
+      "project_files_project_visible_created_at_idx",
+    ).on(table.projectId, table.isVisibleToClient, table.createdAt),
+    uploadedByIdx: index("project_files_uploaded_by_idx").on(table.uploadedBy),
     uniqueStorageObject: unique("project_files_bucket_path_unique").on(
       table.bucketName,
       table.storagePath,
