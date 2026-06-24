@@ -27,10 +27,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { formatShortDate } from "@/lib/format";
 
 type FeedbackFormProps = {
+  projectId: string;
   feedback: ClientPortalFeedback[];
 };
 
-export function FeedbackForm({ feedback }: FeedbackFormProps) {
+export function FeedbackForm({ projectId, feedback }: FeedbackFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -43,7 +44,7 @@ export function FeedbackForm({ feedback }: FeedbackFormProps) {
 
   function onSubmit(values: ClientFeedbackValues) {
     startTransition(async () => {
-      const result = await sendClientFeedbackAction(values);
+      const result = await sendClientFeedbackAction(projectId, values);
 
       if (!result.success) {
         form.setError("root", { message: result.message });

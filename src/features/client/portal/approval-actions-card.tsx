@@ -30,10 +30,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { formatShortDate } from "@/lib/format";
 
 type ApprovalActionsCardProps = {
+  projectId: string;
   approval: ClientPortalApproval | null;
 };
 
-export function ApprovalActionsCard({ approval }: ApprovalActionsCardProps) {
+export function ApprovalActionsCard({
+  projectId,
+  approval,
+}: ApprovalActionsCardProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const form = useForm<ClientApprovalResponseValues>({
@@ -65,7 +69,7 @@ export function ApprovalActionsCard({ approval }: ApprovalActionsCardProps) {
 
   function handleApprove(values: ClientApprovalResponseValues) {
     startTransition(async () => {
-      const result = await approveMilestoneAction(values);
+      const result = await approveMilestoneAction(projectId, values);
 
       if (!result.success) {
         form.setError("root", { message: result.message });
@@ -78,7 +82,7 @@ export function ApprovalActionsCard({ approval }: ApprovalActionsCardProps) {
 
   function handleRequestChanges(values: ClientApprovalResponseValues) {
     startTransition(async () => {
-      const result = await requestChangesAction(values);
+      const result = await requestChangesAction(projectId, values);
 
       if (!result.success) {
         form.setError("root", { message: result.message });

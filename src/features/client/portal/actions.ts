@@ -19,6 +19,7 @@ export type ClientPortalActionResult = {
 };
 
 export async function sendClientFeedbackAction(
+  projectId: string,
   values: ClientFeedbackValues,
 ): Promise<ClientPortalActionResult> {
   const parsed = clientFeedbackSchema.safeParse(values);
@@ -31,7 +32,7 @@ export async function sendClientFeedbackAction(
   }
 
   try {
-    await addClientFeedback(parsed.data.message);
+    await addClientFeedback(projectId, parsed.data.message);
   } catch {
     return {
       success: false,
@@ -41,7 +42,9 @@ export async function sendClientFeedbackAction(
 
   revalidatePath("/client/dashboard");
   revalidatePath("/client/project");
+  revalidatePath(`/client/project/${projectId}`);
   revalidatePath("/client/feedback");
+  revalidatePath(`/client/feedback/${projectId}`);
 
   return {
     success: true,
@@ -50,6 +53,7 @@ export async function sendClientFeedbackAction(
 }
 
 export async function approveMilestoneAction(
+  projectId: string,
   values: ClientApprovalResponseValues,
 ): Promise<ClientPortalActionResult> {
   const parsed = clientApprovalActionSchema.safeParse({
@@ -66,6 +70,7 @@ export async function approveMilestoneAction(
 
   try {
     const approval = await respondToClientApproval({
+      projectId,
       status: parsed.data.status,
       responseNote: parsed.data.responseNote || "Approved by client.",
     });
@@ -85,6 +90,7 @@ export async function approveMilestoneAction(
 
   revalidatePath("/client/dashboard");
   revalidatePath("/client/project");
+  revalidatePath(`/client/project/${projectId}`);
 
   return {
     success: true,
@@ -93,6 +99,7 @@ export async function approveMilestoneAction(
 }
 
 export async function requestChangesAction(
+  projectId: string,
   values: ClientApprovalResponseValues,
 ): Promise<ClientPortalActionResult> {
   const parsed = clientApprovalActionSchema.safeParse({
@@ -109,6 +116,7 @@ export async function requestChangesAction(
 
   try {
     const approval = await respondToClientApproval({
+      projectId,
       status: parsed.data.status,
       responseNote:
         parsed.data.responseNote || "Client requested changes before approval.",
@@ -129,6 +137,7 @@ export async function requestChangesAction(
 
   revalidatePath("/client/dashboard");
   revalidatePath("/client/project");
+  revalidatePath(`/client/project/${projectId}`);
 
   return {
     success: true,

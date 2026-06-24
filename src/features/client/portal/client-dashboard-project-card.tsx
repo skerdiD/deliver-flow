@@ -4,6 +4,7 @@ import {
   ExternalLink,
   FileText,
   MessageSquare,
+  WalletCards,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -29,6 +30,10 @@ export function ClientDashboardProjectCard({
   ).length;
   const nextTasks = project.tasks.filter((task) => task.status !== "completed");
   const latestUpdate = project.updates[0];
+  const projectHref = `/client/project/${project.id}`;
+  const filesHref = `/client/files/${project.id}`;
+  const feedbackHref = `/client/feedback/${project.id}`;
+  const paymentsHref = `/client/payments/${project.id}`;
 
   return (
     <Card className="rounded-lg border-slate-200 shadow-sm">
@@ -101,16 +106,23 @@ export function ClientDashboardProjectCard({
             ) : null}
 
             <Button asChild variant="outline" className="w-full sm:w-auto">
-              <Link href="/client/feedback">
+              <Link href={feedbackHref}>
                 <MessageSquare className="mr-2 size-4" />
                 Send Feedback
               </Link>
             </Button>
 
             <Button asChild variant="outline" className="w-full sm:w-auto">
-              <Link href="/client/project">
+              <Link href={projectHref}>
                 <CheckCircle2 className="mr-2 size-4" />
-                Approve Milestone
+                View Project
+              </Link>
+            </Button>
+
+            <Button asChild variant="outline" className="w-full sm:w-auto">
+              <Link href={paymentsHref}>
+                <WalletCards className="mr-2 size-4" />
+                View Payments
               </Link>
             </Button>
           </div>
@@ -173,7 +185,7 @@ export function ClientDashboardProjectCard({
                 : "Files will appear here after they are uploaded to the project."}
             </p>
             <Button asChild variant="outline" className="mt-4 w-full sm:w-auto">
-              <Link href="/client/files">Open files</Link>
+              <Link href={filesHref}>Open files</Link>
             </Button>
           </div>
         </div>

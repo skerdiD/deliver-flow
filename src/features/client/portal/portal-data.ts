@@ -46,12 +46,11 @@ type ClientPortalAssignment = {
 
 export type ClientPortalState = {
   profile: Profile;
-  project: ClientPortalProject | null;
+  projects: ClientPortalProject[];
 };
 
 type ClientPortalAccess = {
   profile: Profile;
-  assignment: ClientPortalAssignment | null;
 };
 
 const fileCategoryLabels: Record<string, string> = {
@@ -195,6 +194,44 @@ function mapApprovalRowToPortalApproval(row: {
 async function getClientPortalAccess(): Promise<ClientPortalAccess> {
   const profile = await requireRole("client");
 
+  return {
+    profile,
+  };
+}
+
+async function getClientPortalAssignments(
+  profileId: string,
+): Promise<ClientPortalAssignment[]> {
+  return db
+    .select({
+      clientId: clients.id,
+      clientName: clients.contactName,
+      companyName: clients.companyName,
+      projectId: projects.id,
+      projectName: projects.name,
+      projectDescription: projects.description,
+      projectStatus: projects.status,
+      progress: projects.progress,
+      liveDemoUrl: projects.liveDemoUrl,
+      repositoryUrl: projects.repositoryUrl,
+      deadline: projects.deadline,
+    })
+    .from(clients)
+    .innerJoin(projectAssignments, eq(projectAssignments.clientId, clients.id))
+    .innerJoin(projects, eq(projectAssignments.projectId, projects.id))
+    .where(
+      and(
+        eq(clients.profileId, profileId),
+        ne(projects.status, "archived"),
+      ),
+    )
+    .orderBy(desc(projectAssignments.assignedAt));
+}
+
+async function getClientPortalAssignmentById(
+  profileId: string,
+  projectId: string,
+): Promise<ClientPortalAssignment | null> {
   const [assignment] = await db
     .select({
       clientId: clients.id,
@@ -214,17 +251,14 @@ async function getClientPortalAccess(): Promise<ClientPortalAccess> {
     .innerJoin(projects, eq(projectAssignments.projectId, projects.id))
     .where(
       and(
-        eq(clients.profileId, profile.id),
+        eq(clients.profileId, profileId),
+        eq(projects.id, projectId),
         ne(projects.status, "archived"),
       ),
     )
-    .orderBy(desc(projectAssignments.assignedAt))
     .limit(1);
 
-  return {
-    profile,
-    assignment: assignment ?? null,
-  };
+  return assignment ?? null;
 }
 
 async function buildClientPortalProject(
@@ -461,39 +495,66 @@ async function buildClientPortalProject(
 export const getClientPortalState = cache(
   async (): Promise<ClientPortalState> => {
     const access = await getClientPortalAccess();
+    const assignments = await getClientPortalAssignments(access.profile.id);
 
-    if (!access.assignment) {
-      return {
-        profile: access.profile,
-        project: null,
-      };
-    }
-
+    const projectsList = await Promise.all(
+      assignments.map((assignment) => buildClientPortalProject(assignment)),
+    );
     return {
       profile: access.profile,
-      project: await buildClientPortalProject(access.assignment),
+      projects: projectsList,
     };
   },
 );
 
-export async function getClientPortalProject() {
+export async function getClientPortalProjects() {
   const state = await getClientPortalState();
 
-  return state.project;
+  return state.projects;
 }
 
-export async function addClientFeedback(message: string) {
-  const access = await getClientPortalAccess();
+export async function getLatestClientPortalProject() {
+  const projectsList = await getClientPortalProjects();
 
-  if (!access.assignment) {
+  return projectsList[0] ?? null;
+}
+
+export const getClientPortalProjectById = cache(
+  async (projectId: string): Promise<ClientPortalProject | null> => {
+    const access = await getClientPortalAccess();
+    const assignment = await getClientPortalAssignmentById(
+      access.profile.id,
+      projectId,
+    );
+
+    if (!assignment) {
+      return null;
+    }
+
+    return buildClientPortalProject(assignment);
+  },
+);
+
+export async function getClientPortalProject() {
+  return getLatestClientPortalProject();
+}
+
+export async function addClientFeedback(projectId: string, message: string) {
+  const access = await getClientPortalAccess();
+  const assignment = await getClientPortalAssignmentById(
+    access.profile.id,
+    projectId,
+  );
+
+  if (!assignment) {
     throw new Error("No project assignment found for this client.");
   }
 
   const [createdFeedback] = await db
     .insert(feedback)
     .values({
-      projectId: access.assignment.projectId,
-      clientId: access.assignment.clientId,
+      projectId: assignment.projectId,
+      clientId: assignment.clientId,
       createdBy: access.profile.id,
       message,
       status: "open",
@@ -517,12 +578,17 @@ export async function addClientFeedback(message: string) {
 }
 
 export async function respondToClientApproval(input: {
+  projectId: string;
   status: Extract<ClientApprovalStatus, "approved" | "changes_requested">;
   responseNote?: string;
 }) {
   const access = await getClientPortalAccess();
+  const assignment = await getClientPortalAssignmentById(
+    access.profile.id,
+    input.projectId,
+  );
 
-  if (!access.assignment) {
+  if (!assignment) {
     return null;
   }
 
@@ -531,7 +597,7 @@ export async function respondToClientApproval(input: {
       id: approvals.id,
     })
     .from(approvals)
-    .where(eq(approvals.projectId, access.assignment.projectId))
+    .where(eq(approvals.projectId, assignment.projectId))
     .orderBy(desc(approvals.requestedAt))
     .limit(1);
 
@@ -551,7 +617,7 @@ export async function respondToClientApproval(input: {
     .where(
       and(
         eq(approvals.id, latestApproval.id),
-        eq(approvals.projectId, access.assignment.projectId),
+        eq(approvals.projectId, assignment.projectId),
       ),
     )
     .returning({

@@ -11,13 +11,13 @@ export const metadata: Metadata = {
 };
 
 export default async function ClientDashboardPage() {
-  const { profile, project } = await getClientPortalState();
+  const { profile, projects } = await getClientPortalState();
 
   const title = profile.full_name
     ? `Welcome back, ${profile.full_name}`
     : "Welcome back";
 
-  if (!project) {
+  if (projects.length === 0) {
     return (
       <div className="space-y-6">
         <PageHeader
@@ -28,8 +28,8 @@ export default async function ClientDashboardPage() {
 
         <EmptyState
           icon={FolderOpen}
-          title="No project has been assigned yet."
-          description="Your latest project updates will appear here after a project is connected to your portal."
+          title="No active projects yet"
+          description="Your project updates will appear here after an active project is connected to your portal."
         />
       </div>
     );
@@ -40,10 +40,14 @@ export default async function ClientDashboardPage() {
       <PageHeader
         eyebrow="Client portal"
         title={title}
-        description="Check project progress, latest updates, files, approvals, and payment status in one place."
+        description="Check progress, latest updates, files, approvals, and payment status across every active project."
       />
 
-      <ClientDashboardProjectCard project={project} />
+      <div className="grid gap-6 2xl:grid-cols-2">
+        {projects.map((project) => (
+          <ClientDashboardProjectCard key={project.id} project={project} />
+        ))}
+      </div>
     </div>
   );
 }

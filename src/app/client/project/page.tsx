@@ -1,64 +1,35 @@
 import type { Metadata } from "next";
 import { FolderOpen } from "lucide-react";
+import { redirect } from "next/navigation";
 
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
-import { ApprovalActionsCard } from "@/features/client/portal/approval-actions-card";
-import { ClientProjectOverview } from "@/features/client/portal/client-project-overview";
-import { ClientTasksCard } from "@/features/client/portal/client-tasks-card";
-import { ClientTimelineCard } from "@/features/client/portal/client-timeline-card";
-import { ClientUpdatesCard } from "@/features/client/portal/client-updates-card";
-import { FeedbackForm } from "@/features/client/portal/feedback-form";
-import { getClientPortalProject } from "@/features/client/portal/portal-data";
+import { getLatestClientPortalProject } from "@/features/client/portal/portal-data";
 
 export const metadata: Metadata = {
   title: "Project",
 };
 
 export default async function ClientProjectPage() {
-  const project = await getClientPortalProject();
+  const project = await getLatestClientPortalProject();
 
-  if (!project) {
-    return (
-      <div className="space-y-6">
-        <PageHeader
-          eyebrow="Project"
-          title="Project overview"
-          description="See what is done, what is active, what comes next, and what needs your review."
-        />
-
-        <EmptyState
-          icon={FolderOpen}
-          title="No project has been assigned yet."
-          description="Your latest project updates will appear here once your freelancer connects a project to this portal."
-        />
-      </div>
-    );
+  if (project) {
+    redirect(`/client/project/${project.id}`);
   }
 
   return (
     <div className="space-y-6">
       <PageHeader
         eyebrow="Project"
-        title={project.name}
+        title="Project overview"
         description="See what is done, what is active, what comes next, and what needs your review."
       />
 
-      <ClientProjectOverview project={project} />
-
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(360px,0.85fr)]">
-        <div className="space-y-6">
-          <ClientTimelineCard milestones={project.milestones} />
-          <ClientTasksCard tasks={project.tasks} />
-          <ClientUpdatesCard updates={project.updates} />
-        </div>
-
-        <div className="space-y-6">
-          <ApprovalActionsCard approval={project.approval} />
-        </div>
-      </div>
-
-      <FeedbackForm feedback={project.feedback} />
+      <EmptyState
+        icon={FolderOpen}
+        title="No active projects yet"
+        description="Your project updates will appear here once your freelancer connects an active project to this portal."
+      />
     </div>
   );
 }
