@@ -5,6 +5,7 @@ import { Menu } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { BrandLogo } from "@/components/shared/brand-logo";
 import {
   Sheet,
   SheetContent,
@@ -35,7 +36,9 @@ export function MobileSidebar({ type }: MobileSidebarProps) {
 
         <SheetContent side="left" className="w-[min(20rem,calc(100vw-1rem))]">
           <SheetHeader>
-            <SheetTitle>DeliverFlow</SheetTitle>
+            <SheetTitle>
+              <BrandLogo subtitle={type === "admin" ? "Admin workspace" : "Client portal"} />
+            </SheetTitle>
           </SheetHeader>
 
           <nav className="mt-6 space-y-1">

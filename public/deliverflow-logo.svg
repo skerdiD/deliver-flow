@@ -1,0 +1,10 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">DeliverFlow logo</title>
+  <desc id="desc">A geometric D mark with a forward arrow and approval check.</desc>
+  <rect width="128" height="128" rx="30" fill="#020617"/>
+  <path d="M34 31H62C81.8823 31 98 47.1178 98 67C98 86.8823 81.8823 103 62 103H34V31Z" fill="white"/>
+  <path d="M49 47H62C73.0457 47 82 55.9543 82 67C82 78.0457 73.0457 87 62 87H49V47Z" fill="#020617"/>
+  <path d="M54 66H91" stroke="#2563EB" stroke-width="10" stroke-linecap="round"/>
+  <path d="M78 52L96 66L78 80" stroke="#2563EB" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M43 72L54 83L75 58" stroke="#38BDF8" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

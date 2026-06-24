@@ -1,3 +1,5 @@
+import { BrandLogo } from "@/components/shared/brand-logo";
+
 type AuthShellProps = {
   title: string;
   description: string;
@@ -8,20 +10,11 @@ export function AuthShell({ title, description, children }: AuthShellProps) {
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10 text-slate-950 sm:px-6">
       <section className="w-full max-w-md">
-        <div className="mb-8 flex items-center justify-center gap-3">
-          <div className="grid size-10 place-items-center rounded-lg bg-blue-600 text-sm font-bold text-white shadow-sm">
-            D
-          </div>
-
-          <div>
-            <p className="text-sm font-semibold leading-none text-slate-950">
-              DeliverFlow
-            </p>
-            <p className="mt-1 text-xs text-slate-500">
-              Private client workspace
-            </p>
-          </div>
-        </div>
+        <BrandLogo
+          className="mb-8 justify-center"
+          iconClassName="size-10 bg-slate-950"
+          subtitle="Private client workspace"
+        />
 
         <div className="mb-6 text-center">
           <h1 className="text-3xl font-semibold text-slate-950">

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { BrandLogo } from "@/components/shared/brand-logo";
 import { adminNavigation } from "@/config/navigation";
 import { cn } from "@/lib/utils";
 
@@ -12,14 +13,8 @@ export function AdminSidebar() {
   return (
     <aside className="sticky top-0 hidden h-screen w-72 shrink-0 border-r border-slate-200 bg-white lg:block">
       <div className="flex h-16 items-center border-b border-slate-200 px-6">
-        <Link href="/admin/dashboard" className="flex items-center gap-3">
-          <div className="grid size-9 place-items-center rounded-lg bg-slate-950 text-sm font-bold text-white shadow-sm">
-            D
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-slate-950">DeliverFlow</p>
-            <p className="text-xs text-slate-500">Admin workspace</p>
-          </div>
+        <Link href="/admin/dashboard">
+          <BrandLogo subtitle="Admin workspace" />
         </Link>
       </div>
 
