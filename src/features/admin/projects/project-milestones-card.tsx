@@ -73,7 +73,7 @@ export function ProjectMilestonesCard({
   }
 
   return (
-    <Card className="rounded-2xl border-slate-200 shadow-sm">
+    <Card className="rounded-lg border-slate-200 shadow-sm">
       <CardHeader>
         <CardTitle>Milestones</CardTitle>
         <p className="text-sm text-slate-500">
@@ -86,11 +86,11 @@ export function ProjectMilestonesCard({
           {milestones.map((milestone) => (
             <div
               key={milestone.id}
-              className="rounded-2xl border border-slate-200 p-4"
+              className="rounded-lg border border-slate-200 p-4"
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex gap-3">
-                  <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-600">
+                  <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-700">
                     <Flag className="size-4" />
                   </div>
 
@@ -147,13 +147,13 @@ export function ProjectMilestonesCard({
           ))}
         </div>
 
-        <div className="rounded-2xl border border-dashed border-slate-300 p-4">
+        <div className="rounded-lg border border-dashed border-slate-300 p-4">
           <p className="mb-4 font-semibold text-slate-950">Add milestone</p>
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               {form.formState.errors.root?.message ? (
-                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                   {form.formState.errors.root.message}
                 </div>
               ) : null}

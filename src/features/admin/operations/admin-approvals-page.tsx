@@ -44,7 +44,7 @@ export function AdminApprovalsPage({ data }: AdminApprovalsPageProps) {
         />
       </div>
 
-      <Card className="rounded-2xl border-slate-200 shadow-sm">
+      <Card className="rounded-lg border-slate-200 shadow-sm">
         <CardHeader>
           <CardTitle>Approval requests</CardTitle>
           <p className="text-sm text-slate-500">
@@ -84,10 +84,12 @@ export function AdminApprovalsPage({ data }: AdminApprovalsPageProps) {
                             {approval.title}
                           </p>
                           <p className="text-sm text-slate-500">
-                            {approval.milestoneTitle ?? "General approval request"}
+                            {approval.milestoneTitle ??
+                              "General approval request"}
                           </p>
                           <p className="text-xs text-slate-500">
-                            Requested {formatDateTimeLabel(approval.requestedAt)}
+                            Requested{" "}
+                            {formatDateTimeLabel(approval.requestedAt)}
                           </p>
                         </div>
                       </TableCell>
@@ -130,10 +132,10 @@ function SummaryCard(props: {
   description: string;
 }) {
   return (
-    <Card className="rounded-2xl border-slate-200 shadow-sm">
+    <Card className="rounded-lg border-slate-200 shadow-sm">
       <CardContent className="space-y-2 p-6">
         <p className="text-sm font-medium text-slate-500">{props.label}</p>
-        <p className="text-3xl font-semibold tracking-tight text-slate-950">
+        <p className="text-2xl font-semibold leading-8 text-slate-950">
           {props.value}
         </p>
         <p className="text-sm text-slate-500">{props.description}</p>

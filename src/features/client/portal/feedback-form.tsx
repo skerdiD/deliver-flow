@@ -57,7 +57,7 @@ export function FeedbackForm({ feedback }: FeedbackFormProps) {
 
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
-      <Card className="rounded-2xl border-slate-200 shadow-sm">
+      <Card className="rounded-lg border-slate-200 shadow-sm">
         <CardHeader>
           <CardTitle>Send feedback</CardTitle>
           <p className="text-sm text-slate-500">
@@ -69,7 +69,7 @@ export function FeedbackForm({ feedback }: FeedbackFormProps) {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               {form.formState.errors.root?.message ? (
-                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                   {form.formState.errors.root.message}
                 </div>
               ) : null}
@@ -106,7 +106,7 @@ export function FeedbackForm({ feedback }: FeedbackFormProps) {
         </CardContent>
       </Card>
 
-      <Card className="rounded-2xl border-slate-200 shadow-sm">
+      <Card className="rounded-lg border-slate-200 shadow-sm">
         <CardHeader>
           <CardTitle>Previous feedback</CardTitle>
           <p className="text-sm text-slate-500">
@@ -123,7 +123,7 @@ export function FeedbackForm({ feedback }: FeedbackFormProps) {
             feedback.map((item) => (
               <div
                 key={item.id}
-                className="rounded-2xl border border-slate-200 p-4"
+                className="rounded-lg border border-slate-200 p-4"
               >
                 <div className="flex items-center justify-between gap-3">
                   <StatusBadge
@@ -152,7 +152,7 @@ export function FeedbackForm({ feedback }: FeedbackFormProps) {
                 </p>
 
                 {item.adminResponse ? (
-                  <div className="mt-4 rounded-xl bg-slate-50 p-3">
+                  <div className="mt-4 rounded-lg bg-slate-50 p-3">
                     <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
                       Freelancer response
                     </p>

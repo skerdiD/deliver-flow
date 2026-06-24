@@ -10,7 +10,7 @@ type ClientUpdatesCardProps = {
 
 export function ClientUpdatesCard({ updates }: ClientUpdatesCardProps) {
   return (
-    <Card className="rounded-2xl border-slate-200 shadow-sm">
+    <Card className="rounded-lg border-slate-200 shadow-sm">
       <CardHeader>
         <CardTitle>Update history</CardTitle>
         <p className="text-sm text-slate-500">
@@ -27,10 +27,10 @@ export function ClientUpdatesCard({ updates }: ClientUpdatesCardProps) {
           updates.map((update) => (
             <div
               key={update.id}
-              className="rounded-2xl border border-slate-200 p-4"
+              className="rounded-lg border border-slate-200 p-4"
             >
               <div className="flex items-start gap-3">
-                <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-600">
+                <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-700">
                   <MessageCircle className="size-4" />
                 </div>
 

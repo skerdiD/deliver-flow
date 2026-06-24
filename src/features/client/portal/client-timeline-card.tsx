@@ -11,7 +11,7 @@ type ClientTimelineCardProps = {
 
 export function ClientTimelineCard({ milestones }: ClientTimelineCardProps) {
   return (
-    <Card className="rounded-2xl border-slate-200 shadow-sm">
+    <Card className="rounded-lg border-slate-200 shadow-sm">
       <CardHeader>
         <CardTitle>Progress timeline</CardTitle>
         <p className="text-sm text-slate-500">
@@ -34,11 +34,11 @@ export function ClientTimelineCard({ milestones }: ClientTimelineCardProps) {
                   <div className="absolute left-5 top-11 h-full w-px bg-slate-200" />
                 ) : null}
 
-                <div className="relative z-10 grid size-10 shrink-0 place-items-center rounded-2xl bg-blue-50 text-blue-600">
+                <div className="relative z-10 grid size-10 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-700">
                   <Flag className="size-4" />
                 </div>
 
-                <div className="min-w-0 flex-1 rounded-2xl border border-slate-200 p-4">
+                <div className="min-w-0 flex-1 rounded-lg border border-slate-200 p-4">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="font-semibold text-slate-950">
                       {milestone.title}

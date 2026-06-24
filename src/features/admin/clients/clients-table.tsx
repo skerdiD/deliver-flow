@@ -56,7 +56,7 @@ export function ClientsTable({ clients }: ClientsTableProps) {
   }, [clients, search, status]);
 
   return (
-    <Card className="rounded-2xl border-slate-200 shadow-sm">
+    <Card className="rounded-lg border-slate-200 shadow-sm">
       <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <CardTitle>Clients</CardTitle>
@@ -65,16 +65,16 @@ export function ClientsTable({ clients }: ClientsTableProps) {
           </p>
         </div>
 
-          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_160px]">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-              <Input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search clients..."
-                className="w-full pl-9"
-              />
-            </div>
+        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_160px]">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+            <Input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search clients..."
+              className="w-full pl-9"
+            />
+          </div>
 
           <Select
             value={status}
@@ -100,7 +100,7 @@ export function ClientsTable({ clients }: ClientsTableProps) {
             description="Try changing the search or status filter. New clients will appear here after you add them."
           />
         ) : (
-          <div className="overflow-hidden rounded-xl border border-slate-200">
+          <div className="overflow-hidden rounded-lg border border-slate-200">
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50">

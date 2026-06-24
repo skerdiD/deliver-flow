@@ -1,4 +1,9 @@
-import { CalendarDays, ExternalLink, GitBranch, WalletCards } from "lucide-react";
+import {
+  CalendarDays,
+  ExternalLink,
+  GitBranch,
+  WalletCards,
+} from "lucide-react";
 
 import {
   ClientPaymentStatusBadge,
@@ -18,7 +23,7 @@ export function ClientProjectOverview({ project }: ClientProjectOverviewProps) {
   const remainingCents = project.totalAmountCents - project.paidAmountCents;
 
   return (
-    <Card className="rounded-2xl border-slate-200 shadow-sm">
+    <Card className="rounded-lg border-slate-200 shadow-sm">
       <CardContent className="p-5">
         <div className="flex flex-col justify-between gap-5 xl:flex-row xl:items-start">
           <div className="max-w-3xl">
@@ -27,7 +32,7 @@ export function ClientProjectOverview({ project }: ClientProjectOverviewProps) {
               <ClientPaymentStatusBadge status={project.paymentStatus} />
             </div>
 
-            <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950">
+            <h1 className="mt-4 text-2xl font-semibold leading-8 text-slate-950">
               {project.name}
             </h1>
 
@@ -48,9 +53,9 @@ export function ClientProjectOverview({ project }: ClientProjectOverviewProps) {
             </div>
           </div>
 
-          <div className="flex min-w-64 flex-col gap-3">
+          <div className="flex w-full flex-col gap-3 sm:min-w-64 xl:w-auto">
             {project.liveDemoUrl ? (
-              <Button asChild>
+              <Button asChild className="w-full xl:w-auto">
                 <a href={project.liveDemoUrl} target="_blank" rel="noreferrer">
                   <ExternalLink className="mr-2 size-4" />
                   View Live Demo
@@ -59,7 +64,7 @@ export function ClientProjectOverview({ project }: ClientProjectOverviewProps) {
             ) : null}
 
             {project.repositoryUrl ? (
-              <Button asChild variant="outline">
+              <Button asChild variant="outline" className="w-full xl:w-auto">
                 <a
                   href={project.repositoryUrl}
                   target="_blank"
@@ -74,7 +79,7 @@ export function ClientProjectOverview({ project }: ClientProjectOverviewProps) {
         </div>
 
         <div className="mt-6 grid gap-3 md:grid-cols-4">
-          <div className="rounded-xl border border-slate-200 p-4">
+          <div className="rounded-lg border border-slate-200 p-4">
             <p className="text-xs font-medium text-slate-500">
               Current milestone
             </p>
@@ -83,7 +88,7 @@ export function ClientProjectOverview({ project }: ClientProjectOverviewProps) {
             </p>
           </div>
 
-          <div className="rounded-xl border border-slate-200 p-4">
+          <div className="rounded-lg border border-slate-200 p-4">
             <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
               <CalendarDays className="size-4" />
               Deadline
@@ -95,7 +100,7 @@ export function ClientProjectOverview({ project }: ClientProjectOverviewProps) {
             </p>
           </div>
 
-          <div className="rounded-xl border border-slate-200 p-4">
+          <div className="rounded-lg border border-slate-200 p-4">
             <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
               <WalletCards className="size-4" />
               Paid
@@ -105,7 +110,7 @@ export function ClientProjectOverview({ project }: ClientProjectOverviewProps) {
             </p>
           </div>
 
-          <div className="rounded-xl border border-slate-200 p-4">
+          <div className="rounded-lg border border-slate-200 p-4">
             <p className="text-xs font-medium text-slate-500">Remaining</p>
             <p className="mt-2 text-sm font-semibold text-slate-950">
               {formatCurrencyFromCents(remainingCents)}

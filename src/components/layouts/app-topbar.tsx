@@ -18,20 +18,20 @@ export function AppTopbar({
   userRoleLabel,
 }: AppTopbarProps) {
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/85 backdrop-blur-xl">
-      <div className="flex min-h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
+      <div className="flex min-h-16 items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
         <div className="min-w-0">
-          <h1 className="truncate text-base font-semibold text-slate-950">
+          <h1 className="truncate text-sm font-semibold text-slate-950 sm:text-base">
             {title}
           </h1>
           {description ? (
-            <p className="hidden text-sm text-slate-500 sm:block">
+            <p className="hidden max-w-xl truncate text-sm text-slate-500 sm:block">
               {description}
             </p>
           ) : null}
         </div>
 
-        <div className="hidden w-full max-w-sm items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 xl:flex">
+        <div className="hidden h-10 w-full max-w-sm items-center gap-2 rounded-lg border border-slate-200 bg-slate-50/80 px-3 shadow-inner xl:flex">
           <Search className="size-4 text-slate-400" />
           <Input
             className="h-9 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
@@ -40,7 +40,11 @@ export function AppTopbar({
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          <Button variant="outline" size="icon" className="hidden sm:inline-flex">
+          <Button
+            variant="outline"
+            size="icon"
+            className="hidden border-slate-200 bg-white/80 sm:inline-flex"
+          >
             <Bell className="size-4" />
             <span className="sr-only">Notifications</span>
           </Button>

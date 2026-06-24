@@ -24,10 +24,10 @@ export function MobileSidebar({ type }: MobileSidebarProps) {
   const navigation = type === "admin" ? adminNavigation : clientNavigation;
 
   return (
-    <div className="border-b border-slate-200 bg-white px-4 py-3 lg:hidden">
+    <div className="border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur lg:hidden">
       <Sheet>
         <SheetTrigger asChild>
-          <Button variant="outline" className="gap-2">
+          <Button variant="outline" className="gap-2 border-slate-200">
             <Menu className="size-4" />
             Menu
           </Button>
@@ -49,14 +49,14 @@ export function MobileSidebar({ type }: MobileSidebarProps) {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition",
+                    "flex min-h-10 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                     isActive
-                      ? "bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-950",
+                      ? "bg-slate-950 text-white shadow-sm"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-950",
                   )}
                 >
-                  <Icon className="size-4" />
-                  {item.title}
+                  <Icon className="size-4 shrink-0" />
+                  <span className="truncate">{item.title}</span>
                 </Link>
               );
             })}

@@ -45,7 +45,7 @@ export function ApprovalActionsCard({ approval }: ApprovalActionsCardProps) {
 
   if (!approval) {
     return (
-      <Card className="rounded-2xl border-slate-200 shadow-sm">
+      <Card className="rounded-lg border-slate-200 shadow-sm">
         <CardHeader>
           <CardTitle>Approval request</CardTitle>
           <p className="text-sm text-slate-500">
@@ -90,7 +90,7 @@ export function ApprovalActionsCard({ approval }: ApprovalActionsCardProps) {
   }
 
   return (
-    <Card className="rounded-2xl border-slate-200 shadow-sm">
+    <Card className="rounded-lg border-slate-200 shadow-sm">
       <CardHeader>
         <CardTitle>Approval request</CardTitle>
         <p className="text-sm text-slate-500">
@@ -99,7 +99,7 @@ export function ApprovalActionsCard({ approval }: ApprovalActionsCardProps) {
       </CardHeader>
 
       <CardContent>
-        <div className="rounded-2xl border border-slate-200 p-4">
+        <div className="rounded-lg border border-slate-200 p-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="font-semibold text-slate-950">{approval.title}</p>
@@ -118,7 +118,7 @@ export function ApprovalActionsCard({ approval }: ApprovalActionsCardProps) {
         <Form {...form}>
           <form className="mt-5 space-y-4">
             {form.formState.errors.root?.message ? (
-              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {form.formState.errors.root.message}
               </div>
             ) : null}

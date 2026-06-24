@@ -49,7 +49,7 @@ function getProjectStatusTone(status: AdminClientProjectStatus) {
 
 export function ClientProjectsTable({ projects }: ClientProjectsTableProps) {
   return (
-    <Card className="rounded-2xl border-slate-200 shadow-sm">
+    <Card className="rounded-lg border-slate-200 shadow-sm">
       <CardHeader>
         <CardTitle>Assigned projects</CardTitle>
         <p className="text-sm text-slate-500">
@@ -65,7 +65,7 @@ export function ClientProjectsTable({ projects }: ClientProjectsTableProps) {
             description="Assign a project to this client when delivery work starts."
           />
         ) : (
-          <div className="overflow-hidden rounded-xl border border-slate-200">
+          <div className="overflow-hidden rounded-lg border border-slate-200">
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50">

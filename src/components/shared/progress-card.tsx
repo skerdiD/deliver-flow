@@ -22,7 +22,7 @@ export function ProgressCard({
   icon: Icon,
 }: ProgressCardProps) {
   return (
-    <Card className="rounded-2xl border-slate-200 shadow-sm">
+    <Card>
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
@@ -41,7 +41,7 @@ export function ProgressCard({
           </div>
 
           {Icon ? (
-            <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-600">
+            <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-700">
               <Icon className="size-5" />
             </div>
           ) : null}

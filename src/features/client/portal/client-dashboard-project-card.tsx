@@ -31,7 +31,7 @@ export function ClientDashboardProjectCard({
   const latestUpdate = project.updates[0];
 
   return (
-    <Card className="rounded-2xl border-slate-200 shadow-sm">
+    <Card className="rounded-lg border-slate-200 shadow-sm">
       <CardContent className="p-5">
         <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-start">
           <div className="max-w-3xl">
@@ -40,7 +40,7 @@ export function ClientDashboardProjectCard({
               <ClientPaymentStatusBadge status={project.paymentStatus} />
             </div>
 
-            <h2 className="mt-4 text-2xl font-semibold tracking-tight text-slate-950">
+            <h2 className="mt-4 text-2xl font-semibold leading-8 text-slate-950">
               {project.name}
             </h2>
 
@@ -61,7 +61,7 @@ export function ClientDashboardProjectCard({
             </div>
 
             <div className="mt-5 grid gap-3 md:grid-cols-3">
-              <div className="rounded-xl border border-slate-200 p-3">
+              <div className="rounded-lg border border-slate-200 p-3">
                 <p className="text-xs font-medium text-slate-500">
                   Current milestone
                 </p>
@@ -70,7 +70,7 @@ export function ClientDashboardProjectCard({
                 </p>
               </div>
 
-              <div className="rounded-xl border border-slate-200 p-3">
+              <div className="rounded-lg border border-slate-200 p-3">
                 <p className="text-xs font-medium text-slate-500">
                   Completed tasks
                 </p>
@@ -79,7 +79,7 @@ export function ClientDashboardProjectCard({
                 </p>
               </div>
 
-              <div className="rounded-xl border border-slate-200 p-3">
+              <div className="rounded-lg border border-slate-200 p-3">
                 <p className="text-xs font-medium text-slate-500">Deadline</p>
                 <p className="mt-1 text-sm font-semibold text-slate-950">
                   {project.deadline
@@ -117,7 +117,7 @@ export function ClientDashboardProjectCard({
         </div>
 
         <div className="mt-6 grid gap-4 lg:grid-cols-3">
-          <div className="rounded-2xl border border-slate-200 p-4 lg:col-span-2">
+          <div className="rounded-lg border border-slate-200 p-4 lg:col-span-2">
             <p className="text-sm font-semibold text-slate-950">
               Latest update from freelancer
             </p>
@@ -128,9 +128,9 @@ export function ClientDashboardProjectCard({
             </p>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 p-4">
+          <div className="rounded-lg border border-slate-200 p-4">
             <div className="flex items-center gap-2">
-              <CreditCard className="size-4 text-blue-600" />
+              <CreditCard className="size-4 text-slate-500" />
               <p className="text-sm font-semibold text-slate-950">
                 Payment status
               </p>
@@ -143,7 +143,7 @@ export function ClientDashboardProjectCard({
         </div>
 
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          <div className="rounded-2xl border border-slate-200 p-4">
+          <div className="rounded-lg border border-slate-200 p-4">
             <p className="text-sm font-semibold text-slate-950">Next steps</p>
             <ul className="mt-3 space-y-2">
               {nextTasks.length > 0 ? (
@@ -160,9 +160,9 @@ export function ClientDashboardProjectCard({
             </ul>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 p-4">
+          <div className="rounded-lg border border-slate-200 p-4">
             <div className="flex items-center gap-2">
-              <FileText className="size-4 text-blue-600" />
+              <FileText className="size-4 text-slate-500" />
               <p className="text-sm font-semibold text-slate-950">
                 Files and documents
               </p>

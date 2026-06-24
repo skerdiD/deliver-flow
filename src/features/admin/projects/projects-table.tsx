@@ -58,7 +58,7 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
   }, [projects, search, status]);
 
   return (
-    <Card className="rounded-2xl border-slate-200 shadow-sm">
+    <Card className="rounded-lg border-slate-200 shadow-sm">
       <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <CardTitle>Projects</CardTitle>
@@ -104,7 +104,7 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
             description="Try changing the search or status filter. New projects will appear here after you create them."
           />
         ) : (
-          <div className="overflow-hidden rounded-xl border border-slate-200">
+          <div className="overflow-hidden rounded-lg border border-slate-200">
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50">

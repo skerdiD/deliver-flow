@@ -61,7 +61,7 @@ export function ProjectUpdatesCard({
   }
 
   return (
-    <Card className="rounded-2xl border-slate-200 shadow-sm">
+    <Card className="rounded-lg border-slate-200 shadow-sm">
       <CardHeader>
         <CardTitle>Project updates</CardTitle>
         <p className="text-sm text-slate-500">
@@ -70,7 +70,7 @@ export function ProjectUpdatesCard({
       </CardHeader>
 
       <CardContent className="space-y-5">
-        <div className="rounded-2xl border border-dashed border-slate-300 p-4">
+        <div className="rounded-lg border border-dashed border-slate-300 p-4">
           <div className="mb-4 flex items-center gap-2">
             <Send className="size-4 text-blue-600" />
             <p className="font-semibold text-slate-950">Add project update</p>
@@ -79,7 +79,7 @@ export function ProjectUpdatesCard({
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               {form.formState.errors.root?.message ? (
-                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                   {form.formState.errors.root.message}
                 </div>
               ) : null}
@@ -91,7 +91,10 @@ export function ProjectUpdatesCard({
                   <FormItem>
                     <FormLabel>Update title</FormLabel>
                     <FormControl>
-                      <Input placeholder="Backend integration started" {...field} />
+                      <Input
+                        placeholder="Backend integration started"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -134,7 +137,7 @@ export function ProjectUpdatesCard({
           {updates.map((update) => (
             <div
               key={update.id}
-              className="rounded-2xl border border-slate-200 p-4"
+              className="rounded-lg border border-slate-200 p-4"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="font-semibold text-slate-950">{update.title}</p>

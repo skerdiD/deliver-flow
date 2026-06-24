@@ -33,7 +33,7 @@ function getActivityIcon(type: ActivityType) {
 
 function getActivityIconClass(type: ActivityType) {
   const classes: Record<ActivityType, string> = {
-    project: "bg-blue-50 text-blue-600",
+    project: "bg-slate-100 text-slate-700",
     feedback: "bg-purple-50 text-purple-600",
     payment: "bg-emerald-50 text-emerald-600",
     approval: "bg-amber-50 text-amber-600",
@@ -45,7 +45,7 @@ function getActivityIconClass(type: ActivityType) {
 
 export function ActivityTimeline({ activities }: ActivityTimelineProps) {
   return (
-    <Card className="rounded-2xl border-slate-200 shadow-sm">
+    <Card className="rounded-lg border-slate-200 shadow-sm">
       <CardHeader>
         <CardTitle>Activity timeline</CardTitle>
         <p className="text-sm text-slate-500">
@@ -74,7 +74,7 @@ export function ActivityTimeline({ activities }: ActivityTimelineProps) {
 
                   <div
                     className={cn(
-                      "relative z-10 grid size-10 shrink-0 place-items-center rounded-2xl",
+                      "relative z-10 grid size-10 shrink-0 place-items-center rounded-lg",
                       getActivityIconClass(activity.type),
                     )}
                   >

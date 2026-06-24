@@ -26,7 +26,7 @@ export function ProjectDetailHeader({ project }: ProjectDetailHeaderProps) {
         </Button>
       </PageHeader>
 
-      <Card className="rounded-2xl border-slate-200 shadow-sm">
+      <Card className="rounded-lg border-slate-200 shadow-sm">
         <CardContent className="p-5">
           <div className="flex flex-col justify-between gap-5 xl:flex-row xl:items-start">
             <div className="max-w-3xl">
@@ -36,7 +36,7 @@ export function ProjectDetailHeader({ project }: ProjectDetailHeaderProps) {
               </div>
 
               <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                <div className="rounded-xl border border-slate-200 p-4">
+                <div className="rounded-lg border border-slate-200 p-4">
                   <p className="text-xs font-medium text-slate-500">Client</p>
                   <p className="mt-2 text-sm font-semibold text-slate-950">
                     {project.client.company}
@@ -46,7 +46,7 @@ export function ProjectDetailHeader({ project }: ProjectDetailHeaderProps) {
                   </p>
                 </div>
 
-                <div className="rounded-xl border border-slate-200 p-4">
+                <div className="rounded-lg border border-slate-200 p-4">
                   <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
                     <CalendarDays className="size-4" />
                     Deadline
@@ -56,14 +56,14 @@ export function ProjectDetailHeader({ project }: ProjectDetailHeaderProps) {
                   </p>
                 </div>
 
-                <div className="rounded-xl border border-slate-200 p-4">
+                <div className="rounded-lg border border-slate-200 p-4">
                   <p className="text-xs font-medium text-slate-500">Budget</p>
                   <p className="mt-2 text-sm font-semibold text-slate-950">
                     {formatCurrencyFromCents(project.budgetCents)}
                   </p>
                 </div>
 
-                <div className="rounded-xl border border-slate-200 p-4">
+                <div className="rounded-lg border border-slate-200 p-4">
                   <p className="text-xs font-medium text-slate-500">Paid</p>
                   <p className="mt-2 text-sm font-semibold text-slate-950">
                     {formatCurrencyFromCents(project.paidCents)}
@@ -75,7 +75,11 @@ export function ProjectDetailHeader({ project }: ProjectDetailHeaderProps) {
             <div className="flex w-full flex-col gap-3 sm:min-w-64 sm:w-auto">
               {project.liveDemoUrl ? (
                 <Button asChild className="w-full sm:w-auto">
-                  <a href={project.liveDemoUrl} target="_blank" rel="noreferrer">
+                  <a
+                    href={project.liveDemoUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
                     <ExternalLink className="mr-2 size-4" />
                     View demo
                   </a>

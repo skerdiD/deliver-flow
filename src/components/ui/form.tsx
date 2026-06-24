@@ -61,12 +61,15 @@ function useFormField() {
   };
 }
 
-function FormItem({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+function FormItem({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
   const id = React.useId();
 
   return (
     <FormItemContext.Provider value={{ id }}>
-      <div className={cn("space-y-2", className)} {...props} />
+      <div className={cn("space-y-2.5", className)} {...props} />
     </FormItemContext.Provider>
   );
 }
@@ -79,18 +82,18 @@ function FormLabel({
 
   return (
     <Label
-      className={cn(error ? "text-red-600" : undefined, className)}
+      className={cn(
+        "text-sm font-medium text-slate-700",
+        error ? "text-red-600" : undefined,
+        className,
+      )}
       htmlFor={formItemId}
       {...props}
     />
   );
 }
 
-function FormControl({
-  children,
-}: {
-  children: React.ReactElement;
-}) {
+function FormControl({ children }: { children: React.ReactElement }) {
   const { error, formItemId, formDescriptionId, formMessageId } =
     useFormField();
   const child = children as React.ReactElement<Record<string, unknown>>;
@@ -114,7 +117,7 @@ function FormDescription({
   return (
     <p
       id={formDescriptionId}
-      className={cn("text-sm text-slate-500", className)}
+      className={cn("text-sm leading-5 text-slate-500", className)}
       {...props}
     />
   );
@@ -135,7 +138,7 @@ function FormMessage({
   return (
     <p
       id={formMessageId}
-      className={cn("text-sm font-medium text-red-600", className)}
+      className={cn("text-sm font-medium leading-5 text-red-600", className)}
       {...props}
     >
       {body}

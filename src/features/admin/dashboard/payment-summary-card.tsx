@@ -44,7 +44,7 @@ export function PaymentSummaryCard({ payments }: PaymentSummaryCardProps) {
     .reduce((total, payment) => total + payment.amountCents, 0);
 
   return (
-    <Card className="rounded-2xl border-slate-200 shadow-sm">
+    <Card className="rounded-lg border-slate-200 shadow-sm">
       <CardHeader>
         <CardTitle>Payment summary</CardTitle>
         <p className="text-sm text-slate-500">
@@ -53,9 +53,9 @@ export function PaymentSummaryCard({ payments }: PaymentSummaryCardProps) {
       </CardHeader>
 
       <CardContent>
-        <div className="mb-5 rounded-2xl border border-blue-100 bg-blue-50 p-4">
+        <div className="mb-5 rounded-lg border border-blue-100 bg-blue-50 p-4">
           <div className="flex items-center gap-3">
-            <div className="grid size-10 place-items-center rounded-xl bg-white text-blue-600">
+            <div className="grid size-10 place-items-center rounded-lg bg-white text-blue-600">
               <CreditCard className="size-4" />
             </div>
             <div>
@@ -78,7 +78,7 @@ export function PaymentSummaryCard({ payments }: PaymentSummaryCardProps) {
             payments.map((payment) => (
               <div
                 key={payment.id}
-                className="flex flex-col gap-3 rounded-xl border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between"
+                className="flex flex-col gap-3 rounded-lg border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium text-slate-950">

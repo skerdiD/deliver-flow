@@ -48,17 +48,15 @@ export function ProjectProgressControl({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const form = useForm<
-    ProjectProgressInputValues,
-    unknown,
-    ProgressFormValues
-  >({
-    resolver: zodResolver(progressFormSchema),
-    defaultValues: {
-      progress,
-      status,
-    } as ProjectProgressInputValues,
-  });
+  const form = useForm<ProjectProgressInputValues, unknown, ProgressFormValues>(
+    {
+      resolver: zodResolver(progressFormSchema),
+      defaultValues: {
+        progress,
+        status,
+      } as ProjectProgressInputValues,
+    },
+  );
 
   function onSubmit(values: ProgressFormValues) {
     startTransition(async () => {
@@ -74,7 +72,7 @@ export function ProjectProgressControl({
   }
 
   return (
-    <Card className="rounded-2xl border-slate-200 shadow-sm">
+    <Card className="rounded-lg border-slate-200 shadow-sm">
       <CardHeader>
         <CardTitle>Update project status</CardTitle>
         <p className="text-sm text-slate-500">
@@ -86,7 +84,7 @@ export function ProjectProgressControl({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {form.formState.errors.root?.message ? (
-              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {form.formState.errors.root.message}
               </div>
             ) : null}

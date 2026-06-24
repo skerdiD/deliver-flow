@@ -10,7 +10,7 @@ type DashboardQuickActionsProps = {
 
 export function DashboardQuickActions({ actions }: DashboardQuickActionsProps) {
   return (
-    <Card className="rounded-2xl border-slate-200 shadow-sm">
+    <Card className="rounded-lg border-slate-200 shadow-sm">
       <CardHeader>
         <CardTitle>Quick actions</CardTitle>
         <p className="text-sm text-slate-500">
@@ -25,9 +25,9 @@ export function DashboardQuickActions({ actions }: DashboardQuickActionsProps) {
           return (
             <div
               key={action.title}
-              className="rounded-2xl border border-slate-200 p-4 transition hover:border-blue-200 hover:bg-blue-50/40"
+              className="rounded-lg border border-slate-200 p-4 transition hover:border-blue-200 hover:bg-blue-50/40"
             >
-              <div className="grid size-11 place-items-center rounded-2xl bg-blue-50 text-blue-600">
+              <div className="grid size-11 place-items-center rounded-lg bg-slate-100 text-slate-700">
                 <Icon className="size-5" />
               </div>
 

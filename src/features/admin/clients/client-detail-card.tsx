@@ -11,11 +11,13 @@ type ClientDetailCardProps = {
 export function ClientDetailCard({ client }: ClientDetailCardProps) {
   return (
     <div className="grid gap-4 lg:grid-cols-3">
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
+      <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-sm font-medium text-blue-600">Client profile</p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
+              Client profile
+            </p>
+            <h1 className="mt-2 text-2xl font-semibold leading-8 text-slate-950">
               {client.name}
             </h1>
             <p className="mt-2 text-sm text-slate-600">
@@ -27,7 +29,7 @@ export function ClientDetailCard({ client }: ClientDetailCardProps) {
         </div>
 
         <div className="mt-6 grid gap-4 md:grid-cols-3">
-          <div className="rounded-xl border border-slate-200 p-4">
+          <div className="rounded-lg border border-slate-200 p-4">
             <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
               <Building2 className="size-4" />
               Company
@@ -37,7 +39,7 @@ export function ClientDetailCard({ client }: ClientDetailCardProps) {
             </p>
           </div>
 
-          <div className="rounded-xl border border-slate-200 p-4">
+          <div className="rounded-lg border border-slate-200 p-4">
             <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
               <Mail className="size-4" />
               Email
@@ -47,7 +49,7 @@ export function ClientDetailCard({ client }: ClientDetailCardProps) {
             </p>
           </div>
 
-          <div className="rounded-xl border border-slate-200 p-4">
+          <div className="rounded-lg border border-slate-200 p-4">
             <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
               <WalletCards className="size-4" />
               Total paid
@@ -59,7 +61,7 @@ export function ClientDetailCard({ client }: ClientDetailCardProps) {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
         <p className="text-sm font-medium text-slate-500">Latest activity</p>
         <p className="mt-3 text-sm leading-6 text-slate-700">
           {client.latestActivity}

@@ -13,7 +13,7 @@ export function ClientTasksCard({ tasks }: ClientTasksCardProps) {
   const pending = tasks.filter((task) => task.status !== "completed");
 
   return (
-    <Card className="rounded-2xl border-slate-200 shadow-sm">
+    <Card className="rounded-lg border-slate-200 shadow-sm">
       <CardHeader>
         <CardTitle>Tasks</CardTitle>
         <p className="text-sm text-slate-500">
@@ -23,9 +23,7 @@ export function ClientTasksCard({ tasks }: ClientTasksCardProps) {
 
       <CardContent className="grid gap-4 lg:grid-cols-2">
         <div>
-          <p className="mb-3 text-sm font-semibold text-slate-950">
-            Completed
-          </p>
+          <p className="mb-3 text-sm font-semibold text-slate-950">Completed</p>
 
           <div className="space-y-3">
             {completed.length === 0 ? (
@@ -36,7 +34,7 @@ export function ClientTasksCard({ tasks }: ClientTasksCardProps) {
               completed.map((task) => (
                 <div
                   key={task.id}
-                  className="rounded-2xl border border-slate-200 p-4"
+                  className="rounded-lg border border-slate-200 p-4"
                 >
                   <div className="flex items-start gap-3">
                     <CheckCircle2 className="mt-0.5 size-5 text-emerald-600" />
@@ -67,7 +65,7 @@ export function ClientTasksCard({ tasks }: ClientTasksCardProps) {
               pending.map((task) => (
                 <div
                   key={task.id}
-                  className="rounded-2xl border border-slate-200 p-4"
+                  className="rounded-lg border border-slate-200 p-4"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="font-medium text-slate-950">{task.title}</p>

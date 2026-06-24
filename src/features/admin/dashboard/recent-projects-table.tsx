@@ -74,7 +74,7 @@ function getPaymentStatusTone(status: PaymentStatus) {
 
 export function RecentProjectsTable({ projects }: RecentProjectsTableProps) {
   return (
-    <Card className="rounded-2xl border-slate-200 shadow-sm">
+    <Card className="rounded-lg border-slate-200 shadow-sm">
       <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <CardTitle>Recent projects</CardTitle>
@@ -98,7 +98,7 @@ export function RecentProjectsTable({ projects }: RecentProjectsTableProps) {
             description="Projects will appear here after you create them."
           />
         ) : (
-          <div className="overflow-hidden rounded-xl border border-slate-200">
+          <div className="overflow-hidden rounded-lg border border-slate-200">
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50">
@@ -116,14 +116,18 @@ export function RecentProjectsTable({ projects }: RecentProjectsTableProps) {
                   <TableRow key={project.id}>
                     <TableCell>
                       <div>
-                        <p className="font-medium text-slate-950">{project.name}</p>
+                        <p className="font-medium text-slate-950">
+                          {project.name}
+                        </p>
                         <p className="mt-1 text-xs text-slate-500">
                           {project.currentMilestone}
                         </p>
                       </div>
                     </TableCell>
 
-                    <TableCell className="text-slate-600">{project.client}</TableCell>
+                    <TableCell className="text-slate-600">
+                      {project.client}
+                    </TableCell>
 
                     <TableCell>
                       <StatusBadge

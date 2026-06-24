@@ -35,7 +35,7 @@ function getFeedbackStatusTone(status: FeedbackStatus) {
 
 export function RecentFeedbackPanel({ feedback }: RecentFeedbackPanelProps) {
   return (
-    <Card className="rounded-2xl border-slate-200 shadow-sm">
+    <Card className="rounded-lg border-slate-200 shadow-sm">
       <CardHeader>
         <CardTitle>Recent feedback</CardTitle>
         <p className="text-sm text-slate-500">
@@ -54,11 +54,11 @@ export function RecentFeedbackPanel({ feedback }: RecentFeedbackPanelProps) {
           feedback.map((item) => (
             <div
               key={item.id}
-              className="rounded-2xl border border-slate-200 bg-white p-4"
+              className="rounded-lg border border-slate-200 bg-white p-4"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <div className="grid size-9 place-items-center rounded-xl bg-blue-50 text-blue-600">
+                  <div className="grid size-9 place-items-center rounded-lg bg-slate-100 text-slate-700">
                     <MessageSquare className="size-4" />
                   </div>
                   <div>

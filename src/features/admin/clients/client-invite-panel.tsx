@@ -76,7 +76,7 @@ export function ClientInvitePanel({ invites }: ClientInvitePanelProps) {
   }
 
   return (
-    <Card className="rounded-2xl border-slate-200 shadow-sm">
+    <Card className="rounded-lg border-slate-200 shadow-sm">
       <CardHeader className="gap-2">
         <CardTitle>Invite client access</CardTitle>
         <p className="text-sm text-slate-500">
@@ -161,8 +161,8 @@ export function ClientInvitePanel({ invites }: ClientInvitePanelProps) {
           <div
             className={
               result.success
-                ? "rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900"
-                : "rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+                ? "rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900"
+                : "rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700"
             }
           >
             <p className="font-medium">{result.message}</p>
@@ -189,7 +189,7 @@ export function ClientInvitePanel({ invites }: ClientInvitePanelProps) {
           </div>
         ) : null}
 
-        <div className="overflow-hidden rounded-xl border border-slate-200">
+        <div className="overflow-hidden rounded-lg border border-slate-200">
           <Table>
             <TableHeader>
               <TableRow className="bg-slate-50">
@@ -246,9 +246,7 @@ export function ClientInvitePanel({ invites }: ClientInvitePanelProps) {
   );
 }
 
-function InviteStatusBadge(props: {
-  status: AdminClientInvite["status"];
-}) {
+function InviteStatusBadge(props: { status: AdminClientInvite["status"] }) {
   if (props.status === "accepted") {
     return (
       <Badge className="border-green-200 bg-green-50 text-green-700">
@@ -266,8 +264,6 @@ function InviteStatusBadge(props: {
   }
 
   return (
-    <Badge className="border-blue-200 bg-blue-50 text-blue-700">
-      Invited
-    </Badge>
+    <Badge className="border-blue-200 bg-blue-50 text-blue-700">Invited</Badge>
   );
 }

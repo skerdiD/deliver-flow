@@ -18,10 +18,10 @@ export function EmptyState({
   onAction,
 }: EmptyStateProps) {
   return (
-    <div className="flex min-h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-10 text-center sm:min-h-72 sm:px-8">
+    <div className="flex min-h-56 flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50/60 px-6 py-10 text-center sm:min-h-64 sm:px-8">
       {Icon ? (
-        <div className="mb-4 grid size-12 place-items-center rounded-2xl bg-slate-100 text-slate-500">
-          <Icon className="size-6" />
+        <div className="mb-4 grid size-11 place-items-center rounded-lg bg-white text-slate-500 shadow-sm ring-1 ring-slate-200">
+          <Icon className="size-5" />
         </div>
       ) : null}
 

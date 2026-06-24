@@ -44,9 +44,13 @@ html {
 }
 
 body {
-  background: hsl(var(--background));
+  background: hsl(210 40% 98%);
   color: hsl(var(--foreground));
   font-feature-settings:
     "rlig" 1,
     "calt" 1;
+}
+
+::selection {
+  background: hsl(221.2 83.2% 53.3% / 0.16);
 }

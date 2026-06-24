@@ -13,15 +13,13 @@ export function PaymentStatusBadge({ status }: PaymentStatusBadgeProps) {
     overdue: "Overdue",
   };
 
-  const tones: Record<
-    AdminPaymentStatus,
-    "blue" | "green" | "yellow" | "red"
-  > = {
-    paid: "green",
-    unpaid: "yellow",
-    partial: "blue",
-    overdue: "red",
-  };
+  const tones: Record<AdminPaymentStatus, "blue" | "green" | "yellow" | "red"> =
+    {
+      paid: "green",
+      unpaid: "yellow",
+      partial: "blue",
+      overdue: "red",
+    };
 
   return <StatusBadge label={labels[status]} tone={tones[status]} />;
 }

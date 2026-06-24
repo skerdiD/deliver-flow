@@ -18,7 +18,7 @@ function getFileIcon(type: ClientPortalFile["type"]) {
 export function ClientFilesGrid({ files }: ClientFilesGridProps) {
   if (files.length === 0) {
     return (
-      <Card className="rounded-2xl border-slate-200 shadow-sm">
+      <Card className="rounded-lg border-slate-200 shadow-sm">
         <CardContent className="p-6 text-sm leading-6 text-slate-600">
           No files have been shared for this project yet.
         </CardContent>
@@ -32,12 +32,9 @@ export function ClientFilesGrid({ files }: ClientFilesGridProps) {
         const Icon = getFileIcon(file.type);
 
         return (
-          <Card
-            key={file.id}
-            className="rounded-2xl border-slate-200 shadow-sm"
-          >
+          <Card key={file.id} className="rounded-lg border-slate-200 shadow-sm">
             <CardContent className="p-5">
-              <div className="grid size-12 place-items-center rounded-2xl bg-blue-50 text-blue-600">
+              <div className="grid size-12 place-items-center rounded-lg bg-slate-100 text-slate-700">
                 <Icon className="size-6" />
               </div>
 

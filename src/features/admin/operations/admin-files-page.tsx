@@ -51,7 +51,7 @@ export function AdminFilesPage({ data }: AdminFilesPageProps) {
         />
       </div>
 
-      <Card className="rounded-2xl border-slate-200 shadow-sm">
+      <Card className="rounded-lg border-slate-200 shadow-sm">
         <CardHeader>
           <CardTitle>Project files</CardTitle>
           <p className="text-sm text-slate-500">
@@ -117,7 +117,9 @@ export function AdminFilesPage({ data }: AdminFilesPageProps) {
                           tone={visibilityMeta.tone}
                         />
                       </TableCell>
-                      <TableCell>{formatDateTimeLabel(file.createdAt)}</TableCell>
+                      <TableCell>
+                        {formatDateTimeLabel(file.createdAt)}
+                      </TableCell>
                     </TableRow>
                   );
                 })}
@@ -136,10 +138,10 @@ function SummaryCard(props: {
   description: string;
 }) {
   return (
-    <Card className="rounded-2xl border-slate-200 shadow-sm">
+    <Card className="rounded-lg border-slate-200 shadow-sm">
       <CardContent className="space-y-2 p-6">
         <p className="text-sm font-medium text-slate-500">{props.label}</p>
-        <p className="text-3xl font-semibold tracking-tight text-slate-950">
+        <p className="text-2xl font-semibold leading-8 text-slate-950">
           {props.value}
         </p>
         <p className="text-sm text-slate-500">{props.description}</p>

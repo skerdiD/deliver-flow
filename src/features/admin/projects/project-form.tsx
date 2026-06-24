@@ -98,7 +98,7 @@ export function ProjectForm({
   }
 
   return (
-    <Card className="max-w-4xl rounded-2xl border-slate-200 shadow-sm">
+    <Card className="max-w-4xl rounded-lg border-slate-200 shadow-sm">
       <CardHeader>
         <CardTitle>
           {mode === "create" ? "Create project" : "Edit project"}
@@ -114,7 +114,7 @@ export function ProjectForm({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {form.formState.errors.root?.message ? (
-              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {form.formState.errors.root.message}
               </div>
             ) : null}
@@ -152,7 +152,7 @@ export function ProjectForm({
                       <SelectContent>
                         {clients.map((client) => (
                           <SelectItem key={client.id} value={client.id}>
-                            {client.company} · {client.name}
+                            {client.company} - {client.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -235,7 +235,9 @@ export function ProjectForm({
                         onChange={(event) => field.onChange(event.target.value)}
                       />
                     </FormControl>
-                    <FormDescription>Use a value from 0 to 100.</FormDescription>
+                    <FormDescription>
+                      Use a value from 0 to 100.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -264,7 +266,10 @@ export function ProjectForm({
                   <FormItem>
                     <FormLabel>Live demo link</FormLabel>
                     <FormControl>
-                      <Input placeholder="https://demo.example.com" {...field} />
+                      <Input
+                        placeholder="https://demo.example.com"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

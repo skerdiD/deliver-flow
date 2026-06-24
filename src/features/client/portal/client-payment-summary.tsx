@@ -30,7 +30,7 @@ export function ClientPaymentSummary({ project }: ClientPaymentSummaryProps) {
         />
       </section>
 
-      <Card className="rounded-2xl border-slate-200 shadow-sm">
+      <Card className="rounded-lg border-slate-200 shadow-sm">
         <CardHeader>
           <CardTitle>Payment history</CardTitle>
           <p className="text-sm text-slate-500">
@@ -47,10 +47,10 @@ export function ClientPaymentSummary({ project }: ClientPaymentSummaryProps) {
             project.payments.map((payment) => (
               <div
                 key={payment.id}
-                className="flex flex-col gap-4 rounded-2xl border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between"
+                className="flex flex-col gap-4 rounded-lg border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="flex items-start gap-3">
-                  <div className="grid size-10 place-items-center rounded-xl bg-blue-50 text-blue-600">
+                  <div className="grid size-10 place-items-center rounded-lg bg-slate-100 text-slate-700">
                     <CreditCard className="size-4" />
                   </div>
 

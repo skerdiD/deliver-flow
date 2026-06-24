@@ -9,9 +9,11 @@ type ProjectFeedbackPreviewProps = {
   feedback: AdminProjectFeedback[];
 };
 
-export function ProjectFeedbackPreview({ feedback }: ProjectFeedbackPreviewProps) {
+export function ProjectFeedbackPreview({
+  feedback,
+}: ProjectFeedbackPreviewProps) {
   return (
-    <Card className="rounded-2xl border-slate-200 shadow-sm">
+    <Card className="rounded-lg border-slate-200 shadow-sm">
       <CardHeader>
         <CardTitle>Feedback preview</CardTitle>
         <p className="text-sm text-slate-500">
@@ -21,7 +23,7 @@ export function ProjectFeedbackPreview({ feedback }: ProjectFeedbackPreviewProps
 
       <CardContent className="space-y-4">
         {feedback.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-300 p-6 text-center">
+          <div className="rounded-lg border border-dashed border-slate-300 p-6 text-center">
             <MessageSquare className="mx-auto size-6 text-slate-400" />
             <p className="mt-3 text-sm font-medium text-slate-950">
               No feedback yet
@@ -34,7 +36,7 @@ export function ProjectFeedbackPreview({ feedback }: ProjectFeedbackPreviewProps
           feedback.map((item) => (
             <div
               key={item.id}
-              className="rounded-2xl border border-slate-200 p-4"
+              className="rounded-lg border border-slate-200 p-4"
             >
               <div className="flex items-start justify-between gap-3">
                 <div>

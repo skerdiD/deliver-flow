@@ -93,7 +93,7 @@ export function ClientForm({
   }
 
   return (
-    <Card className="max-w-3xl rounded-2xl border-slate-200 shadow-sm">
+    <Card className="max-w-3xl rounded-lg border-slate-200 shadow-sm">
       <CardHeader>
         <CardTitle>
           {mode === "create" ? "Add Client" : "Edit Client"}
@@ -109,7 +109,7 @@ export function ClientForm({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
             {form.formState.errors.root?.message ? (
-              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {form.formState.errors.root.message}
               </div>
             ) : null}

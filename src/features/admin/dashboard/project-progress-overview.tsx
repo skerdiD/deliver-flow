@@ -39,13 +39,13 @@ export function ProjectProgressOverview({
   projects,
 }: ProjectProgressOverviewProps) {
   return (
-    <Card className="rounded-2xl border-slate-200 shadow-sm">
-        <CardHeader>
-          <CardTitle>Project progress</CardTitle>
-          <p className="text-sm text-slate-500">
-            Track completed work, next steps, and anything waiting for approval.
-          </p>
-        </CardHeader>
+    <Card className="rounded-lg border-slate-200 shadow-sm">
+      <CardHeader>
+        <CardTitle>Project progress</CardTitle>
+        <p className="text-sm text-slate-500">
+          Track completed work, next steps, and anything waiting for approval.
+        </p>
+      </CardHeader>
 
       <CardContent className="space-y-5">
         {projects.length === 0 ? (
@@ -56,16 +56,23 @@ export function ProjectProgressOverview({
           />
         ) : (
           projects.map((project) => (
-            <div key={project.id} className="rounded-2xl border border-slate-200 p-4">
+            <div
+              key={project.id}
+              className="rounded-lg border border-slate-200 p-4"
+            >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex min-w-0 items-start gap-3">
-                  <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-600">
+                  <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-700">
                     <FolderKanban className="size-4" />
                   </div>
 
                   <div className="min-w-0">
-                    <p className="font-semibold text-slate-950">{project.name}</p>
-                    <p className="mt-1 text-sm text-slate-500">{project.client}</p>
+                    <p className="font-semibold text-slate-950">
+                      {project.name}
+                    </p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      {project.client}
+                    </p>
                   </div>
                 </div>
 
@@ -77,7 +84,9 @@ export function ProjectProgressOverview({
 
               <div className="mt-5">
                 <div className="mb-2 flex items-center justify-between text-sm">
-                  <span className="text-slate-500">{project.currentMilestone}</span>
+                  <span className="text-slate-500">
+                    {project.currentMilestone}
+                  </span>
                   <span className="font-semibold text-slate-950">
                     {project.progress}%
                   </span>
