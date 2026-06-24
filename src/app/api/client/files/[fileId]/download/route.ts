@@ -1,0 +1,76 @@
+import { and, eq, ne } from "drizzle-orm";
+import { NextResponse } from "next/server";
+
+import { db } from "@/db";
+import {
+  clients,
+  projectAssignments,
+  projectFiles,
+  projects,
+} from "@/db/schema";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { getCurrentProfile } from "@/lib/supabase/auth";
+
+const SIGNED_URL_EXPIRES_IN_SECONDS = 60;
+
+function jsonError(message: string, status: number) {
+  return NextResponse.json({ error: message }, { status });
+}
+
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ fileId: string }> },
+) {
+  const profile = await getCurrentProfile();
+
+  if (!profile) {
+    return jsonError("Authentication required.", 401);
+  }
+
+  if (profile.role !== "client") {
+    return jsonError("Client access required.", 403);
+  }
+
+  const { fileId } = await params;
+
+  const [file] = await db
+    .select({
+      fileName: projectFiles.fileName,
+      bucketName: projectFiles.bucketName,
+      storagePath: projectFiles.storagePath,
+    })
+    .from(projectFiles)
+    .innerJoin(projects, eq(projectFiles.projectId, projects.id))
+    .innerJoin(
+      projectAssignments,
+      eq(projectAssignments.projectId, projects.id),
+    )
+    .innerJoin(clients, eq(projectAssignments.clientId, clients.id))
+    .where(
+      and(
+        eq(projectFiles.id, fileId),
+        eq(projectFiles.isVisibleToClient, true),
+        ne(projects.status, "archived"),
+        eq(clients.profileId, profile.id),
+        eq(clients.status, "active"),
+      ),
+    )
+    .limit(1);
+
+  if (!file) {
+    return jsonError("File not found.", 404);
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase.storage
+    .from(file.bucketName)
+    .createSignedUrl(file.storagePath, SIGNED_URL_EXPIRES_IN_SECONDS, {
+      download: file.fileName,
+    });
+
+  if (error || !data?.signedUrl) {
+    return jsonError("File download is temporarily unavailable.", 502);
+  }
+
+  return NextResponse.redirect(data.signedUrl, 302);
+}

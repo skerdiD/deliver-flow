@@ -42,13 +42,16 @@ export function ClientFilesGrid({ files }: ClientFilesGridProps) {
               <p className="mt-1 text-sm text-slate-500">{file.category}</p>
 
               <div className="mt-4 space-y-1 text-sm text-slate-600">
+                <p>Type: {file.type.toUpperCase()}</p>
                 <p>Size: {file.size}</p>
                 <p>Uploaded: {formatShortDate(file.uploadedAt)}</p>
               </div>
 
-              <Button variant="outline" className="mt-5 w-full" disabled>
-                <Download className="mr-2 size-4" />
-                Download soon
+              <Button asChild variant="outline" className="mt-5 w-full">
+                <a href={`/api/client/files/${file.id}/download`}>
+                  <Download className="mr-2 size-4" />
+                  Download
+                </a>
               </Button>
             </CardContent>
           </Card>
