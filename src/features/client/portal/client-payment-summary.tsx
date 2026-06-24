@@ -34,14 +34,14 @@ export function ClientPaymentSummary({ project }: ClientPaymentSummaryProps) {
         <CardHeader>
           <CardTitle>Payment history</CardTitle>
           <p className="text-sm text-slate-500">
-            Simple payment tracking for this project.
+            Manual payment tracking for this project.
           </p>
         </CardHeader>
 
         <CardContent className="space-y-3">
           {project.payments.length === 0 ? (
             <p className="text-sm leading-6 text-slate-600">
-              Payment details will appear here when a schedule is added.
+              No payment records have been added yet.
             </p>
           ) : (
             project.payments.map((payment) => (

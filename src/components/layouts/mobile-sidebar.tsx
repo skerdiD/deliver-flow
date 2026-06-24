@@ -36,9 +36,10 @@ export function MobileSidebar({ type }: MobileSidebarProps) {
 
         <SheetContent side="left" className="w-[min(20rem,calc(100vw-1rem))]">
           <SheetHeader>
-            <SheetTitle>
-              <BrandLogo subtitle={type === "admin" ? "Admin workspace" : "Client portal"} />
-            </SheetTitle>
+            <BrandLogo
+              subtitle={type === "admin" ? "Admin workspace" : "Client portal"}
+            />
+            <SheetTitle className="sr-only">DeliverFlow navigation</SheetTitle>
           </SheetHeader>
 
           <nav className="mt-6 space-y-1">

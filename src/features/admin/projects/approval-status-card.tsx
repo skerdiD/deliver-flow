@@ -21,8 +21,7 @@ export function ApprovalStatusCard({ approvals }: ApprovalStatusCardProps) {
           <div>
             <CardTitle>Approvals</CardTitle>
             <p className="text-sm text-slate-500">
-              Track client sign-off requests, responses, and related
-              milestones.
+              Track review requests, client replies, and related milestones.
             </p>
           </div>
 
@@ -41,8 +40,7 @@ export function ApprovalStatusCard({ approvals }: ApprovalStatusCardProps) {
               No approvals requested yet
             </p>
             <p className="mt-1 text-sm text-slate-500">
-              Approval requests will appear here when work is sent to the
-              client for review.
+              Review requests will show here when work is sent to the client.
             </p>
           </div>
         ) : (

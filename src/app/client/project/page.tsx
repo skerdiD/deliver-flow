@@ -28,7 +28,7 @@ export default async function ClientProjectPage() {
       <EmptyState
         icon={FolderOpen}
         title="No active projects yet"
-        description="Your project updates will appear here once your freelancer connects an active project to this portal."
+        description="You will see project updates here once a project is added to your portal."
       />
     </div>
   );

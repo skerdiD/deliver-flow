@@ -41,15 +41,15 @@ export function LoginForm() {
     const error = searchParams.get("error");
 
     if (error === "profile_missing") {
-      return "Your account exists, but the profile is not ready yet. Please try again or ask the project owner to check your account.";
+      return "Your account exists, but your profile is not ready yet. Ask the project owner to check your access.";
     }
 
     if (error === "role_invalid") {
-      return "Your account role could not be verified. Ask the project owner to review your access.";
+      return "We could not confirm your account role. Ask the project owner to review your access.";
     }
 
     if (error === "client_missing") {
-      return "Your account is not connected to an active client invite yet. Open your invite link or ask your project owner for a new invite.";
+      return "Your account is not linked to an active client yet. Open your invite link or ask for a new one.";
     }
 
     return "";
@@ -87,7 +87,7 @@ export function LoginForm() {
       router.refresh();
     } catch {
       setAuthError(
-        "Could not connect to authentication. Check your Supabase URL, anon key, and network connection.",
+        "We could not sign you in right now. Please try again in a moment.",
       );
       setIsLoading(false);
     }

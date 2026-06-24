@@ -155,7 +155,7 @@ export function ClientDashboardProjectCard({
             <p className="mt-2 text-sm leading-6 text-slate-600">
               {latestUpdate
                 ? latestUpdate.body
-                : "Your latest project updates will appear here."}
+                : "No updates have been shared yet."}
             </p>
           </div>
 
@@ -201,7 +201,7 @@ export function ClientDashboardProjectCard({
             <p className="mt-2 text-sm text-slate-600">
               {project.files.length > 0
                 ? `${project.files.length} files are available for this project.`
-                : "Files will appear here after they are uploaded to the project."}
+                : "No files have been shared for this project yet."}
             </p>
             <Button asChild variant="outline" className="mt-4 w-full sm:w-auto">
               <Link href={filesHref}>Open files</Link>

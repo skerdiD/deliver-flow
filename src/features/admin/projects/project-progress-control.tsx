@@ -76,7 +76,7 @@ export function ProjectProgressControl({
       <CardHeader>
         <CardTitle>Update project status</CardTitle>
         <p className="text-sm text-slate-500">
-          Keep the client-facing status honest and easy to understand.
+          Keep progress and status clear for you and the client.
         </p>
       </CardHeader>
 

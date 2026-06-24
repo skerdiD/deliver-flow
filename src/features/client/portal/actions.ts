@@ -36,7 +36,7 @@ export async function sendClientFeedbackAction(
   } catch {
     return {
       success: false,
-      message: "No project is assigned to this portal yet.",
+      message: "You do not have access to this project.",
     };
   }
 
@@ -80,13 +80,13 @@ export async function approveMilestoneAction(
     if (!approval) {
       return {
         success: false,
-        message: "This approval request is no longer waiting for a response.",
+        message: "This approval has already been answered.",
       };
     }
   } catch {
     return {
       success: false,
-      message: "Approval response could not be saved.",
+      message: "We could not save your approval. Please try again.",
     };
   }
 
@@ -135,13 +135,13 @@ export async function requestChangesAction(
     if (!approval) {
       return {
         success: false,
-        message: "This approval request is no longer waiting for a response.",
+        message: "This approval has already been answered.",
       };
     }
   } catch {
     return {
       success: false,
-      message: "Change request could not be saved.",
+      message: "We could not send your change request. Please try again.",
     };
   }
 

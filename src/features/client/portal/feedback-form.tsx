@@ -62,7 +62,7 @@ export function FeedbackForm({ projectId, feedback }: FeedbackFormProps) {
         <CardHeader>
           <CardTitle>Send feedback</CardTitle>
           <p className="text-sm text-slate-500">
-            Share notes tied to this project instead of losing them in messages.
+            Send project notes in one place so nothing gets lost.
           </p>
         </CardHeader>
 
@@ -111,14 +111,14 @@ export function FeedbackForm({ projectId, feedback }: FeedbackFormProps) {
         <CardHeader>
           <CardTitle>Previous feedback</CardTitle>
           <p className="text-sm text-slate-500">
-            Notes you already sent for this project.
+            Notes you have already sent for this project.
           </p>
         </CardHeader>
 
         <CardContent className="space-y-4">
           {feedback.length === 0 ? (
             <p className="text-sm leading-6 text-slate-600">
-              Your feedback history will appear here after you send a note.
+              No feedback has been sent yet.
             </p>
           ) : (
             feedback.map((item) => (
@@ -155,7 +155,7 @@ export function FeedbackForm({ projectId, feedback }: FeedbackFormProps) {
                 {item.adminResponse ? (
                   <div className="mt-4 rounded-lg bg-slate-50 p-3">
                     <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                      Freelancer response
+                      Reply from your freelancer
                     </p>
                     <p className="mt-2 text-sm leading-6 text-slate-600">
                       {item.adminResponse}

@@ -22,8 +22,7 @@ export function ProjectPaymentsCard({ payments }: ProjectPaymentsCardProps) {
       <CardHeader>
         <CardTitle>Payments</CardTitle>
         <p className="text-sm text-slate-500">
-          Manual payment tracking for this project. No checkout or payment
-          automation is connected.
+          Manual payment tracking for this project. No checkout is connected.
         </p>
       </CardHeader>
 
@@ -32,7 +31,7 @@ export function ProjectPaymentsCard({ payments }: ProjectPaymentsCardProps) {
           <EmptyState
             icon={CreditCard}
             title="No payment records yet"
-            description="Manual payment records will appear here after they are added to the project."
+            description="Payment records will show here after they are added."
           />
         ) : (
           payments.map((payment) => {
@@ -55,7 +54,7 @@ export function ProjectPaymentsCard({ payments }: ProjectPaymentsCardProps) {
                       Due {formatNullableDate(payment.dueDate)}
                     </p>
                     <p className="mt-2 text-sm leading-6 text-slate-600">
-                      {payment.notes ?? "No payment note added."}
+                      {payment.notes ?? "No note added."}
                     </p>
                   </div>
 

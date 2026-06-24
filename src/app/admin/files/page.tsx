@@ -16,7 +16,7 @@ export default async function AdminFilesRoute() {
       <PageHeader
         eyebrow="Files"
         title="Review project files"
-        description="Keep uploaded assets organized, confirm client visibility, and spot missing file metadata quickly."
+        description="Keep project files organized and check what clients can see."
       />
 
       <AdminFilesPage data={data} />

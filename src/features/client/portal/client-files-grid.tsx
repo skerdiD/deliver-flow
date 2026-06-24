@@ -20,7 +20,7 @@ export function ClientFilesGrid({ files }: ClientFilesGridProps) {
     return (
       <Card className="rounded-lg border-slate-200 shadow-sm">
         <CardContent className="p-6 text-sm leading-6 text-slate-600">
-          No files have been shared for this project yet.
+          No files have been shared for this project.
         </CardContent>
       </Card>
     );

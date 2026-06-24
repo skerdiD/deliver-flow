@@ -49,8 +49,8 @@ export function ApprovalActionsCard({
           <div>
             <CardTitle>Approval requests</CardTitle>
             <p className="mt-2 text-sm text-slate-500">
-              Review deliverables, approve completed work, or request changes
-              with a clear note.
+              Review the work, approve it, or ask for changes with a clear
+              note.
             </p>
           </div>
 
@@ -68,8 +68,8 @@ export function ApprovalActionsCard({
               No approvals requested yet
             </p>
             <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-600">
-              Approval requests will appear here when your freelancer sends work
-              for review.
+              You will see review requests here when work is ready for your
+              sign-off.
             </p>
           </div>
         ) : (
@@ -169,10 +169,10 @@ function ApprovalRequestItem({
       {!isWaitingForResponse ? (
         <div className="mt-4 rounded-lg bg-slate-50 p-3">
           <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-            Client response
+            Your response
           </p>
           <p className="mt-2 text-sm leading-6 text-slate-600">
-            {approval.responseNote ?? "No response note added."}
+            {approval.responseNote ?? "No note was added."}
           </p>
         </div>
       ) : (
@@ -193,7 +193,7 @@ function ApprovalRequestItem({
                   <FormControl>
                     <Textarea
                       className="min-h-28"
-                      placeholder="Add a short note. Required when requesting changes."
+                      placeholder="Add a short note. This is required if you request changes."
                       disabled={isPending}
                       {...field}
                     />

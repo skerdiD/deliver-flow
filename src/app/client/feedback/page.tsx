@@ -28,7 +28,7 @@ export default async function ClientFeedbackPage() {
       <EmptyState
         icon={MessageSquareMore}
         title="No active projects yet"
-        description="Once a project is assigned, you can send feedback so your freelancer knows what to adjust."
+        description="You can send feedback after a project is added to your portal."
       />
     </div>
   );

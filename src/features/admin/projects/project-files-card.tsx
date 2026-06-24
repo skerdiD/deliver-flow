@@ -16,7 +16,7 @@ export function ProjectFilesCard({ files }: ProjectFilesCardProps) {
       <CardHeader>
         <CardTitle>Files</CardTitle>
         <p className="text-sm text-slate-500">
-          Delivery files connected to this project and their client visibility.
+          Files connected to this project and what the client can see.
         </p>
       </CardHeader>
 
@@ -25,7 +25,7 @@ export function ProjectFilesCard({ files }: ProjectFilesCardProps) {
           <EmptyState
             icon={Files}
             title="No files connected yet"
-            description="Files will appear here after they are uploaded and saved to the project."
+            description="Files will show here after they are added to the project."
           />
         ) : (
           files.map((file) => (
@@ -39,7 +39,8 @@ export function ProjectFilesCard({ files }: ProjectFilesCardProps) {
                     {file.fileName}
                   </p>
                   <p className="mt-1 text-sm text-slate-500">
-                    {file.fileType ?? "Unknown type"} - {formatFileSize(file.fileSize)}
+                    {file.fileType ?? "Unknown type"} -{" "}
+                    {formatFileSize(file.fileSize)}
                   </p>
                   <p className="mt-2 break-all text-xs text-slate-500">
                     {file.bucketName}/{file.storagePath}

@@ -185,7 +185,7 @@ function mapApprovalRowToPortalApproval(row: {
     id: row.id,
     title: row.title,
     description:
-      row.description ?? "Review this milestone and share your decision here.",
+      row.description ?? "Review this work and share your decision.",
     status: row.status,
     projectName: row.projectName,
     milestoneName: row.milestoneName,
@@ -394,7 +394,7 @@ async function buildClientPortalProject(
     id: milestone.id,
     title: milestone.title,
     description:
-      milestone.description ?? "Milestone details will appear here soon.",
+      milestone.description ?? "No milestone details have been added yet.",
     status: milestone.status,
     dueDate:
       milestone.dueDate ?? assignment.deadline ?? new Date().toISOString(),
@@ -403,7 +403,7 @@ async function buildClientPortalProject(
   const mappedTasks = projectTasks.map((task) => ({
     id: task.id,
     title: task.title,
-    description: task.description ?? "Task details will appear here soon.",
+    description: task.description ?? "No task details have been added yet.",
     status: mapTaskStatus(task.status),
   }));
 
@@ -494,7 +494,7 @@ async function buildClientPortalProject(
     companyName: assignment.companyName,
     description:
       assignment.projectDescription ??
-      "Project details will appear here as delivery moves forward.",
+      "Project details will be added as the work moves forward.",
     status: mapProjectStatus(assignment.projectStatus),
     progress: assignment.progress,
     currentMilestone,

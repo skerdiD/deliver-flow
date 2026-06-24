@@ -28,7 +28,7 @@ export default async function ClientFilesPage() {
       <EmptyState
         icon={FolderOpen}
         title="No active projects yet"
-        description="Files will show up here after your freelancer adds them to an assigned project."
+        description="Files will show here after a project is added to your portal."
       />
     </div>
   );

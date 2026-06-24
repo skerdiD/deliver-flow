@@ -28,7 +28,7 @@ export default async function ClientPaymentsPage() {
       <EmptyState
         icon={WalletCards}
         title="No active projects yet"
-        description="Payment details will appear here after a project and payment schedule are added to your portal."
+        description="Payment details will show here after a project and payment schedule are added."
       />
     </div>
   );

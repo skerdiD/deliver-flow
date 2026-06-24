@@ -37,12 +37,12 @@ export function AdminPaymentsPage({ data }: AdminPaymentsPageProps) {
         <SummaryCard
           label="Still open"
           value={formatPaymentAmount(data.summary.outstandingCents, "USD")}
-          description="Invoices that are unpaid, partial, or overdue."
+          description="Amounts that still need attention."
         />
         <SummaryCard
           label="Pending payments"
           value={String(data.summary.pendingCount)}
-          description="Invoices waiting on a normal payment step."
+          description="Payments waiting for a normal next step."
         />
         <SummaryCard
           label="Overdue"
@@ -55,8 +55,7 @@ export function AdminPaymentsPage({ data }: AdminPaymentsPageProps) {
         <CardHeader>
           <CardTitle>Payments</CardTitle>
           <p className="text-sm text-slate-500">
-            Track what has been paid, what is still open, and which clients need
-            a reminder.
+            Track what has been paid and what still needs follow-up.
           </p>
         </CardHeader>
 
@@ -64,8 +63,8 @@ export function AdminPaymentsPage({ data }: AdminPaymentsPageProps) {
           {data.payments.length === 0 ? (
             <EmptyState
               icon={CreditCard}
-              title="No payments have been added yet."
-              description="Once invoices are saved to the database, they will show up here with status and due dates."
+              title="No payments have been added yet"
+              description="Payment records will show here with status and due dates."
             />
           ) : (
             <Table>
@@ -114,7 +113,7 @@ export function AdminPaymentsPage({ data }: AdminPaymentsPageProps) {
                         {formatDateTimeLabel(payment.paidAt, "Not paid yet")}
                       </TableCell>
                       <TableCell className="max-w-sm whitespace-normal text-sm text-slate-500">
-                        {payment.notes ?? "No payment note added."}
+                        {payment.notes ?? "No note added."}
                       </TableCell>
                     </TableRow>
                   );
