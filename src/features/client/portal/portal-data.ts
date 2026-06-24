@@ -175,6 +175,8 @@ function mapApprovalRowToPortalApproval(row: {
   title: string;
   description: string | null;
   status: ClientApprovalStatus;
+  projectName: string;
+  milestoneName: string | null;
   responseNote: string | null;
   requestedAt: Date | string;
   respondedAt: Date | string | null;
@@ -185,6 +187,8 @@ function mapApprovalRowToPortalApproval(row: {
     description:
       row.description ?? "Review this milestone and share your decision here.",
     status: row.status,
+    projectName: row.projectName,
+    milestoneName: row.milestoneName,
     responseNote: row.responseNote ?? undefined,
     requestedAt: toIsoString(row.requestedAt),
     respondedAt: row.respondedAt ? toIsoString(row.respondedAt) : null,
@@ -271,7 +275,7 @@ async function buildClientPortalProject(
     projectPayments,
     projectFilesList,
     projectFeedback,
-    [latestApproval],
+    projectApprovals,
   ] = await Promise.all([
     db
       .select({
@@ -373,14 +377,17 @@ async function buildClientPortalProject(
         title: approvals.title,
         description: approvals.description,
         status: approvals.status,
+        projectName: projects.name,
+        milestoneName: milestones.title,
         responseNote: approvals.responseNote,
         requestedAt: approvals.requestedAt,
         respondedAt: approvals.respondedAt,
       })
       .from(approvals)
+      .innerJoin(projects, eq(approvals.projectId, projects.id))
+      .leftJoin(milestones, eq(approvals.milestoneId, milestones.id))
       .where(eq(approvals.projectId, assignment.projectId))
-      .orderBy(desc(approvals.requestedAt))
-      .limit(1),
+      .orderBy(desc(approvals.requestedAt)),
   ]);
 
   const mappedMilestones = projectMilestones.map((milestone) => ({
@@ -442,6 +449,23 @@ async function buildClientPortalProject(
     }),
   );
 
+  const mappedApprovals = projectApprovals
+    .map(mapApprovalRowToPortalApproval)
+    .sort((left, right) => {
+      if (left.status === "pending" && right.status !== "pending") {
+        return -1;
+      }
+
+      if (left.status !== "pending" && right.status === "pending") {
+        return 1;
+      }
+
+      return (
+        new Date(right.requestedAt).getTime() -
+        new Date(left.requestedAt).getTime()
+      );
+    });
+
   const totalAmountCents = mappedPayments.reduce(
     (sum, payment) => sum + payment.amountCents,
     0,
@@ -486,9 +510,8 @@ async function buildClientPortalProject(
     files: mappedFiles,
     payments: mappedPayments,
     feedback: mappedFeedback,
-    approval: latestApproval
-      ? mapApprovalRowToPortalApproval(latestApproval)
-      : null,
+    approvals: mappedApprovals,
+    approval: mappedApprovals[0] ?? null,
   };
 }
 
@@ -579,6 +602,7 @@ export async function addClientFeedback(projectId: string, message: string) {
 
 export async function respondToClientApproval(input: {
   projectId: string;
+  approvalId: string;
   status: Extract<ClientApprovalStatus, "approved" | "changes_requested">;
   responseNote?: string;
 }) {
@@ -592,43 +616,79 @@ export async function respondToClientApproval(input: {
     return null;
   }
 
-  const [latestApproval] = await db
+  const [pendingApproval] = await db
     .select({
       id: approvals.id,
+      milestoneId: approvals.milestoneId,
+      milestoneName: milestones.title,
     })
     .from(approvals)
-    .where(eq(approvals.projectId, assignment.projectId))
-    .orderBy(desc(approvals.requestedAt))
+    .leftJoin(milestones, eq(approvals.milestoneId, milestones.id))
+    .where(
+      and(
+        eq(approvals.id, input.approvalId),
+        eq(approvals.projectId, assignment.projectId),
+        eq(approvals.status, "pending"),
+      ),
+    )
     .limit(1);
 
-  if (!latestApproval) {
+  if (!pendingApproval) {
     return null;
   }
 
-  const [updatedApproval] = await db
-    .update(approvals)
-    .set({
-      status: input.status,
-      responseNote: input.responseNote ?? null,
-      respondedBy: access.profile.id,
-      respondedAt: new Date(),
-      updatedAt: new Date(),
-    })
-    .where(
-      and(
-        eq(approvals.id, latestApproval.id),
-        eq(approvals.projectId, assignment.projectId),
-      ),
-    )
-    .returning({
-      id: approvals.id,
-      title: approvals.title,
-      description: approvals.description,
-      status: approvals.status,
-      responseNote: approvals.responseNote,
-      requestedAt: approvals.requestedAt,
-      respondedAt: approvals.respondedAt,
-    });
+  const updatedApproval = await db.transaction(async (tx) => {
+    const [approval] = await tx
+      .update(approvals)
+      .set({
+        status: input.status,
+        responseNote: input.responseNote ?? null,
+        respondedBy: access.profile.id,
+        respondedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(approvals.id, pendingApproval.id),
+          eq(approvals.projectId, assignment.projectId),
+          eq(approvals.status, "pending"),
+        ),
+      )
+      .returning({
+        id: approvals.id,
+        title: approvals.title,
+        description: approvals.description,
+        status: approvals.status,
+        responseNote: approvals.responseNote,
+        requestedAt: approvals.requestedAt,
+        respondedAt: approvals.respondedAt,
+      });
+
+    if (!approval) {
+      return null;
+    }
+
+    if (input.status === "approved" && pendingApproval.milestoneId) {
+      await tx
+        .update(milestones)
+        .set({
+          status: "approved",
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(milestones.id, pendingApproval.milestoneId),
+            eq(milestones.projectId, assignment.projectId),
+          ),
+        );
+    }
+
+    return {
+      ...approval,
+      projectName: assignment.projectName,
+      milestoneName: pendingApproval.milestoneName,
+    };
+  });
 
   if (!updatedApproval) {
     return null;

@@ -46,7 +46,7 @@ export default async function ClientProjectDetailPage({
         <div className="space-y-6">
           <ApprovalActionsCard
             projectId={project.id}
-            approval={project.approval}
+            approvals={project.approvals}
           />
         </div>
       </div>

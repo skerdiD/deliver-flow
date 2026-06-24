@@ -30,6 +30,10 @@ export function ClientDashboardProjectCard({
   ).length;
   const nextTasks = project.tasks.filter((task) => task.status !== "completed");
   const latestUpdate = project.updates[0];
+  const pendingApprovals = project.approvals.filter(
+    (approval) => approval.status === "pending",
+  );
+  const latestApproval = project.approval;
   const projectHref = `/client/project/${project.id}`;
   const filesHref = `/client/files/${project.id}`;
   const feedbackHref = `/client/feedback/${project.id}`;
@@ -93,6 +97,21 @@ export function ClientDashboardProjectCard({
                 </p>
               </div>
             </div>
+
+            <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50/70 p-3">
+              <p className="text-xs font-medium text-slate-500">
+                Approval status
+              </p>
+              <p className="mt-1 text-sm font-semibold text-slate-950">
+                {pendingApprovals.length > 0
+                  ? `${pendingApprovals.length} pending review${
+                      pendingApprovals.length === 1 ? "" : "s"
+                    }`
+                  : latestApproval
+                    ? `Latest: ${latestApproval.title}`
+                    : "No approvals requested yet"}
+              </p>
+            </div>
           </div>
 
           <div className="flex w-full flex-col gap-3 sm:min-w-64 sm:w-auto">
@@ -115,7 +134,7 @@ export function ClientDashboardProjectCard({
             <Button asChild variant="outline" className="w-full sm:w-auto">
               <Link href={projectHref}>
                 <CheckCircle2 className="mr-2 size-4" />
-                View Project
+                Review Approvals
               </Link>
             </Button>
 

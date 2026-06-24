@@ -54,6 +54,7 @@ export async function sendClientFeedbackAction(
 
 export async function approveMilestoneAction(
   projectId: string,
+  approvalId: string,
   values: ClientApprovalResponseValues,
 ): Promise<ClientPortalActionResult> {
   const parsed = clientApprovalActionSchema.safeParse({
@@ -71,6 +72,7 @@ export async function approveMilestoneAction(
   try {
     const approval = await respondToClientApproval({
       projectId,
+      approvalId,
       status: parsed.data.status,
       responseNote: parsed.data.responseNote || "Approved by client.",
     });
@@ -78,7 +80,7 @@ export async function approveMilestoneAction(
     if (!approval) {
       return {
         success: false,
-        message: "No approval request is waiting right now.",
+        message: "This approval request is no longer waiting for a response.",
       };
     }
   } catch {
@@ -100,6 +102,7 @@ export async function approveMilestoneAction(
 
 export async function requestChangesAction(
   projectId: string,
+  approvalId: string,
   values: ClientApprovalResponseValues,
 ): Promise<ClientPortalActionResult> {
   const parsed = clientApprovalActionSchema.safeParse({
@@ -114,18 +117,25 @@ export async function requestChangesAction(
     };
   }
 
+  if (!parsed.data.responseNote || parsed.data.responseNote.length < 5) {
+    return {
+      success: false,
+      message: "Please add a short note before requesting changes.",
+    };
+  }
+
   try {
     const approval = await respondToClientApproval({
       projectId,
+      approvalId,
       status: parsed.data.status,
-      responseNote:
-        parsed.data.responseNote || "Client requested changes before approval.",
+      responseNote: parsed.data.responseNote,
     });
 
     if (!approval) {
       return {
         success: false,
-        message: "No approval request is waiting right now.",
+        message: "This approval request is no longer waiting for a response.",
       };
     }
   } catch {

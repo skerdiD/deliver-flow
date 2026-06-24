@@ -81,6 +81,8 @@ export type ClientPortalApproval = {
   title: string;
   description: string;
   status: ClientApprovalStatus;
+  projectName: string;
+  milestoneName?: string | null;
   responseNote?: string;
   requestedAt: string;
   respondedAt?: string | null;
@@ -107,5 +109,6 @@ export type ClientPortalProject = {
   files: ClientPortalFile[];
   payments: ClientPortalPayment[];
   feedback: ClientPortalFeedback[];
+  approvals: ClientPortalApproval[];
   approval: ClientPortalApproval | null;
 };

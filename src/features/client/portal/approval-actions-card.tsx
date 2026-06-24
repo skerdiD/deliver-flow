@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircle2, Loader2, RotateCcw } from "lucide-react";
+import { CheckCircle2, Clock3, Loader2, RotateCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { useForm } from "react-hook-form";
@@ -31,45 +31,85 @@ import { formatShortDate } from "@/lib/format";
 
 type ApprovalActionsCardProps = {
   projectId: string;
-  approval: ClientPortalApproval | null;
+  approvals: ClientPortalApproval[];
 };
 
 export function ApprovalActionsCard({
   projectId,
-  approval,
+  approvals,
 }: ApprovalActionsCardProps) {
+  const pendingCount = approvals.filter(
+    (approval) => approval.status === "pending",
+  ).length;
+
+  return (
+    <Card className="rounded-lg border-slate-200 shadow-sm">
+      <CardHeader>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <CardTitle>Approval requests</CardTitle>
+            <p className="mt-2 text-sm text-slate-500">
+              Review deliverables, approve completed work, or request changes
+              with a clear note.
+            </p>
+          </div>
+
+          <div className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700">
+            <Clock3 className="size-4 text-slate-500" />
+            {pendingCount} pending
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent className="space-y-4">
+        {approvals.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50/70 px-4 py-8 text-center">
+            <p className="font-semibold text-slate-950">
+              No approvals requested yet
+            </p>
+            <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-600">
+              Approval requests will appear here when your freelancer sends work
+              for review.
+            </p>
+          </div>
+        ) : (
+          approvals.map((approval) => (
+            <ApprovalRequestItem
+              key={approval.id}
+              projectId={projectId}
+              approval={approval}
+            />
+          ))
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function ApprovalRequestItem({
+  projectId,
+  approval,
+}: {
+  projectId: string;
+  approval: ClientPortalApproval;
+}) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const isWaitingForResponse = approval.status === "pending";
   const form = useForm<ClientApprovalResponseValues>({
     resolver: zodResolver(clientApprovalResponseSchema),
     defaultValues: {
-      responseNote: approval?.responseNote ?? "",
+      responseNote: approval.responseNote ?? "",
     },
   });
 
-  if (!approval) {
-    return (
-      <Card className="rounded-lg border-slate-200 shadow-sm">
-        <CardHeader>
-          <CardTitle>Approval request</CardTitle>
-          <p className="text-sm text-slate-500">
-            No approval request is waiting right now.
-          </p>
-        </CardHeader>
-
-        <CardContent>
-          <p className="text-sm leading-6 text-slate-600">
-            The next approval step will show up here when your freelancer sends
-            it for review.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
   function handleApprove(values: ClientApprovalResponseValues) {
     startTransition(async () => {
-      const result = await approveMilestoneAction(projectId, values);
+      const result = await approveMilestoneAction(
+        projectId,
+        approval.id,
+        values,
+      );
 
       if (!result.success) {
         form.setError("root", { message: result.message });
@@ -82,7 +122,11 @@ export function ApprovalActionsCard({
 
   function handleRequestChanges(values: ClientApprovalResponseValues) {
     startTransition(async () => {
-      const result = await requestChangesAction(projectId, values);
+      const result = await requestChangesAction(
+        projectId,
+        approval.id,
+        values,
+      );
 
       if (!result.success) {
         form.setError("root", { message: result.message });
@@ -94,31 +138,44 @@ export function ApprovalActionsCard({
   }
 
   return (
-    <Card className="rounded-lg border-slate-200 shadow-sm">
-      <CardHeader>
-        <CardTitle>Approval request</CardTitle>
-        <p className="text-sm text-slate-500">
-          Review this step and choose whether it is ready or needs changes.
-        </p>
-      </CardHeader>
-
-      <CardContent>
-        <div className="rounded-lg border border-slate-200 p-4">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <p className="font-semibold text-slate-950">{approval.title}</p>
-              <p className="mt-2 text-sm leading-6 text-slate-600">
-                {approval.description}
-              </p>
-              <p className="mt-3 text-xs text-slate-500">
-                Requested {formatShortDate(approval.requestedAt)}
-              </p>
-            </div>
-
+    <div className="rounded-lg border border-slate-200 bg-white p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
             <ClientApprovalStatusBadge status={approval.status} />
+            {approval.milestoneName ? (
+              <span className="rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+                {approval.milestoneName}
+              </span>
+            ) : null}
           </div>
+
+          <p className="mt-3 font-semibold text-slate-950">
+            {approval.title}
+          </p>
+          <p className="mt-2 text-sm leading-6 text-slate-600">
+            {approval.description}
+          </p>
         </div>
 
+        <div className="text-left text-xs leading-5 text-slate-500 sm:min-w-32 sm:text-right">
+          <p>Requested {formatShortDate(approval.requestedAt)}</p>
+          {approval.respondedAt ? (
+            <p>Responded {formatShortDate(approval.respondedAt)}</p>
+          ) : null}
+        </div>
+      </div>
+
+      {!isWaitingForResponse ? (
+        <div className="mt-4 rounded-lg bg-slate-50 p-3">
+          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+            Client response
+          </p>
+          <p className="mt-2 text-sm leading-6 text-slate-600">
+            {approval.responseNote ?? "No response note added."}
+          </p>
+        </div>
+      ) : (
         <Form {...form}>
           <form className="mt-5 space-y-4">
             {form.formState.errors.root?.message ? (
@@ -132,11 +189,11 @@ export function ApprovalActionsCard({
               name="responseNote"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Optional note</FormLabel>
+                  <FormLabel>Response note</FormLabel>
                   <FormControl>
                     <Textarea
                       className="min-h-28"
-                      placeholder="Add a short note before approving or requesting changes."
+                      placeholder="Add a short note. Required when requesting changes."
                       disabled={isPending}
                       {...field}
                     />
@@ -149,7 +206,7 @@ export function ApprovalActionsCard({
             <div className="flex flex-col gap-3 sm:flex-row">
               <Button
                 type="button"
-                disabled={isPending || approval.status === "approved"}
+                disabled={isPending}
                 onClick={form.handleSubmit(handleApprove)}
               >
                 {isPending ? (
@@ -157,7 +214,7 @@ export function ApprovalActionsCard({
                 ) : (
                   <CheckCircle2 className="mr-2 size-4" />
                 )}
-                Approve Milestone
+                Approve
               </Button>
 
               <Button
@@ -172,7 +229,7 @@ export function ApprovalActionsCard({
             </div>
           </form>
         </Form>
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
 }
