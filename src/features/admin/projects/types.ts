@@ -13,6 +13,7 @@ export type AdminMilestoneStatus =
   | "not_started"
   | "in_progress"
   | "waiting_approval"
+  | "approved"
   | "completed";
 
 export type AdminApprovalStatus =
@@ -35,6 +36,8 @@ export type AdminProjectTask = {
   description: string;
   status: AdminTaskStatus;
   dueDate: string;
+  priority?: "low" | "medium" | "high";
+  isVisibleToClient?: boolean;
 };
 
 export type AdminProjectMilestone = {
@@ -43,6 +46,8 @@ export type AdminProjectMilestone = {
   description: string;
   status: AdminMilestoneStatus;
   dueDate: string;
+  position?: number;
+  approvalStatus?: AdminApprovalStatus | null;
 };
 
 export type AdminProjectUpdate = {
@@ -50,6 +55,7 @@ export type AdminProjectUpdate = {
   title: string;
   body: string;
   createdAt: string;
+  isVisibleToClient?: boolean;
 };
 
 export type AdminProjectFeedback = {
@@ -65,7 +71,32 @@ export type AdminProjectApproval = {
   title: string;
   status: AdminApprovalStatus;
   note: string;
+  milestoneTitle?: string | null;
+  responseNote?: string | null;
   requestedAt: string;
+  respondedAt?: string | null;
+};
+
+export type AdminProjectFile = {
+  id: string;
+  fileName: string;
+  fileType: string | null;
+  fileSize: number | null;
+  category: string;
+  bucketName: string;
+  storagePath: string;
+  isVisibleToClient: boolean;
+  createdAt: string;
+};
+
+export type AdminProjectPayment = {
+  id: string;
+  amountCents: number;
+  currency: string;
+  status: AdminPaymentStatus;
+  dueDate: string | null;
+  paidAt: string | null;
+  notes: string | null;
 };
 
 export type AdminProject = {
@@ -84,7 +115,10 @@ export type AdminProject = {
   milestones: AdminProjectMilestone[];
   tasks: AdminProjectTask[];
   updates: AdminProjectUpdate[];
+  files?: AdminProjectFile[];
+  payments?: AdminProjectPayment[];
   feedback: AdminProjectFeedback[];
+  approvals?: AdminProjectApproval[];
   approval: AdminProjectApproval;
   createdAt: string;
 };

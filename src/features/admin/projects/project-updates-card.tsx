@@ -12,6 +12,7 @@ import {
   type UpdateFormValues,
 } from "@/features/admin/projects/project-validation";
 import type { AdminProjectUpdate } from "@/features/admin/projects/types";
+import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -140,7 +141,19 @@ export function ProjectUpdatesCard({
               className="rounded-lg border border-slate-200 p-4"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="font-semibold text-slate-950">{update.title}</p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="font-semibold text-slate-950">{update.title}</p>
+                  <StatusBadge
+                    label={
+                      update.isVisibleToClient === false
+                        ? "Internal only"
+                        : "Client-visible"
+                    }
+                    tone={
+                      update.isVisibleToClient === false ? "slate" : "blue"
+                    }
+                  />
+                </div>
                 <p className="text-xs text-slate-500">
                   {formatShortDate(update.createdAt)}
                 </p>

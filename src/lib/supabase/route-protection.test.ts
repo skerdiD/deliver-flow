@@ -122,11 +122,36 @@ describe("route protection policy", () => {
 
   it("recognizes protected route prefixes and supported roles", () => {
     expect(isProtectedRoute("/admin/dashboard")).toBe(true);
+    expect(isProtectedRoute("/admin/projects/project_123")).toBe(true);
     expect(isProtectedRoute("/client/project")).toBe(true);
+    expect(isProtectedRoute("/client/project/project_123")).toBe(true);
     expect(isProtectedRoute("/login")).toBe(false);
+    expect(isProtectedRoute("/api/client/files/file_123/download")).toBe(false);
     expect(isSupportedRole("admin")).toBe(true);
     expect(isSupportedRole("client")).toBe(true);
     expect(isSupportedRole("owner")).toBe(false);
+  });
+
+  it("protects dynamic admin and client detail routes by role", () => {
+    expect(
+      getRouteAccessDecision("/admin/projects/project_123", "", {
+        status: "authenticated",
+        role: "client",
+      }),
+    ).toEqual({
+        type: "redirect",
+        destination: routes.client.dashboard,
+      });
+
+    expect(
+      getRouteAccessDecision("/client/project/project_123", "", {
+        status: "authenticated",
+        role: "admin",
+      }),
+    ).toEqual({
+        type: "redirect",
+        destination: routes.admin.dashboard,
+      });
   });
 
   it("maps roles to their dashboard redirect targets", () => {

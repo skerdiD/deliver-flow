@@ -83,7 +83,19 @@ export function ProjectMilestonesCard({
 
       <CardContent className="space-y-5">
         <div className="space-y-3">
-          {milestones.map((milestone) => (
+          {milestones.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-slate-300 p-6 text-center">
+              <Flag className="mx-auto size-6 text-slate-400" />
+              <p className="mt-3 text-sm font-medium text-slate-950">
+                No milestones yet
+              </p>
+              <p className="mt-1 text-sm text-slate-500">
+                Add the first delivery step so progress is easier to manage.
+              </p>
+            </div>
+          ) : null}
+
+          {milestones.map((milestone, index) => (
             <div
               key={milestone.id}
               className="rounded-lg border border-slate-200 p-4"
@@ -100,9 +112,15 @@ export function ProjectMilestonesCard({
                         {milestone.title}
                       </p>
                       <StatusBadge
+                        label={`Step ${milestone.position ?? index + 1}`}
+                        tone="slate"
+                      />
+                      <StatusBadge
                         label={
                           milestone.status === "completed"
                             ? "Completed"
+                            : milestone.status === "approved"
+                              ? "Approved"
                             : milestone.status === "waiting_approval"
                               ? "Waiting approval"
                               : milestone.status === "in_progress"
@@ -112,6 +130,8 @@ export function ProjectMilestonesCard({
                         tone={
                           milestone.status === "completed"
                             ? "green"
+                            : milestone.status === "approved"
+                              ? "green"
                             : milestone.status === "waiting_approval"
                               ? "yellow"
                               : milestone.status === "in_progress"
@@ -119,6 +139,14 @@ export function ProjectMilestonesCard({
                                 : "slate"
                         }
                       />
+                      {milestone.approvalStatus ? (
+                        <StatusBadge
+                          label={`Approval: ${getApprovalLabel(
+                            milestone.approvalStatus,
+                          )}`}
+                          tone={getApprovalTone(milestone.approvalStatus)}
+                        />
+                      ) : null}
                     </div>
 
                     <p className="mt-2 text-sm leading-6 text-slate-600">
@@ -131,7 +159,8 @@ export function ProjectMilestonesCard({
                   </div>
                 </div>
 
-                {milestone.status !== "completed" ? (
+                {milestone.status !== "completed" &&
+                milestone.status !== "approved" ? (
                   <Button
                     variant="outline"
                     className="shrink-0"
@@ -222,4 +251,32 @@ export function ProjectMilestonesCard({
       </CardContent>
     </Card>
   );
+}
+
+function getApprovalLabel(
+  status: NonNullable<AdminProjectMilestone["approvalStatus"]>,
+) {
+  if (status === "approved") {
+    return "Approved";
+  }
+
+  if (status === "changes_requested") {
+    return "Changes requested";
+  }
+
+  return "Pending";
+}
+
+function getApprovalTone(
+  status: NonNullable<AdminProjectMilestone["approvalStatus"]>,
+): "green" | "yellow" | "purple" {
+  if (status === "approved") {
+    return "green";
+  }
+
+  if (status === "changes_requested") {
+    return "yellow";
+  }
+
+  return "purple";
 }

@@ -80,6 +80,18 @@ export function ProjectTasksCard({ projectId, tasks }: ProjectTasksCardProps) {
 
       <CardContent className="space-y-5">
         <div className="space-y-3">
+          {tasks.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-slate-300 p-6 text-center">
+              <Plus className="mx-auto size-6 text-slate-400" />
+              <p className="mt-3 text-sm font-medium text-slate-950">
+                No tasks yet
+              </p>
+              <p className="mt-1 text-sm text-slate-500">
+                Add tasks to break delivery into trackable work.
+              </p>
+            </div>
+          ) : null}
+
           {tasks.map((task) => (
             <div
               key={task.id}
@@ -103,6 +115,22 @@ export function ProjectTasksCard({ projectId, tasks }: ProjectTasksCardProps) {
                           : task.status === "in_progress"
                             ? "blue"
                             : "slate"
+                      }
+                    />
+                    {task.priority ? (
+                      <StatusBadge
+                        label={`${capitalize(task.priority)} priority`}
+                        tone={getPriorityTone(task.priority)}
+                      />
+                    ) : null}
+                    <StatusBadge
+                      label={
+                        task.isVisibleToClient === false
+                          ? "Internal only"
+                          : "Client-visible"
+                      }
+                      tone={
+                        task.isVisibleToClient === false ? "slate" : "blue"
                       }
                     />
                   </div>
@@ -213,4 +241,20 @@ export function ProjectTasksCard({ projectId, tasks }: ProjectTasksCardProps) {
       </CardContent>
     </Card>
   );
+}
+
+function capitalize(value: string) {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function getPriorityTone(priority: NonNullable<AdminProjectTask["priority"]>) {
+  if (priority === "high") {
+    return "red";
+  }
+
+  if (priority === "medium") {
+    return "yellow";
+  }
+
+  return "slate";
 }

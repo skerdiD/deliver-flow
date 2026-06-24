@@ -98,8 +98,12 @@ let projectsStore: AdminProject[] = [
       id: "approval_agency_1",
       title: "Agency website design review",
       status: "changes_requested",
+      milestoneTitle: "Final design review",
       note: "Client wants the CTA section to be stronger before final approval.",
+      responseNote:
+        "Please make the call-to-action section more direct before final approval.",
       requestedAt: "2026-06-06T15:30:00.000Z",
+      respondedAt: "2026-06-07T09:15:00.000Z",
     },
   },
   {
@@ -191,6 +195,7 @@ let projectsStore: AdminProject[] = [
       id: "approval_saas_1",
       title: "Frontend development milestone",
       status: "pending",
+      milestoneTitle: "Frontend dashboard screens",
       note: "Client needs to review the latest dashboard screens.",
       requestedAt: "2026-06-08T10:15:00.000Z",
     },
@@ -257,6 +262,7 @@ let projectsStore: AdminProject[] = [
       id: "approval_portal_1",
       title: "Authentication flow review",
       status: "pending",
+      milestoneTitle: "Authentication and client access",
       note: "Waiting for client review after the next demo.",
       requestedAt: "2026-06-07T11:00:00.000Z",
     },
@@ -264,11 +270,13 @@ let projectsStore: AdminProject[] = [
 ];
 
 export async function getAdminProjects() {
-  return projectsStore;
+  return projectsStore.map(normalizeAdminProject);
 }
 
 export async function getAdminProjectById(id: string) {
-  return projectsStore.find((project) => project.id === id) ?? null;
+  const project = projectsStore.find((item) => item.id === id);
+
+  return project ? normalizeAdminProject(project) : null;
 }
 
 export async function getProjectClientOptions() {
@@ -316,9 +324,13 @@ export async function createAdminProject(input: {
         title: "Project created",
         body: "The project workspace is ready. Add milestones, tasks, and updates as delivery starts.",
         createdAt: new Date().toISOString(),
+        isVisibleToClient: true,
       },
     ],
+    files: [],
+    payments: [],
     feedback: [],
+    approvals: [],
     approval: {
       id: `approval_${Date.now()}`,
       title: "First client review",
@@ -331,6 +343,40 @@ export async function createAdminProject(input: {
   projectsStore = [project, ...projectsStore];
 
   return project;
+}
+
+function normalizeAdminProject(project: AdminProject): AdminProject {
+  const approvals =
+    project.approvals ??
+    (project.approval.note === "No approval requested yet."
+      ? []
+      : [project.approval]);
+
+  return {
+    ...project,
+    milestones: project.milestones.map((milestone, index) => ({
+      ...milestone,
+      position: milestone.position ?? index + 1,
+      approvalStatus:
+        milestone.approvalStatus ??
+        approvals.find(
+          (approval) => approval.milestoneTitle === milestone.title,
+        )?.status ??
+        null,
+    })),
+    tasks: project.tasks.map((task) => ({
+      ...task,
+      priority: task.priority ?? "medium",
+      isVisibleToClient: task.isVisibleToClient ?? true,
+    })),
+    updates: project.updates.map((update) => ({
+      ...update,
+      isVisibleToClient: update.isVisibleToClient ?? true,
+    })),
+    files: project.files ?? [],
+    payments: project.payments ?? [],
+    approvals,
+  };
 }
 
 export async function updateAdminProject(

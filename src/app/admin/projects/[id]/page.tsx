@@ -5,9 +5,12 @@ import { notFound } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { ApprovalStatusCard } from "@/features/admin/projects/approval-status-card";
+import { ProjectDeliveryOverview } from "@/features/admin/projects/project-delivery-overview";
 import { ProjectDetailHeader } from "@/features/admin/projects/project-detail-header";
 import { ProjectFeedbackPreview } from "@/features/admin/projects/project-feedback-preview";
+import { ProjectFilesCard } from "@/features/admin/projects/project-files-card";
 import { ProjectMilestonesCard } from "@/features/admin/projects/project-milestones-card";
+import { ProjectPaymentsCard } from "@/features/admin/projects/project-payments-card";
 import { ProjectProgressControl } from "@/features/admin/projects/project-progress-control";
 import { ProjectTasksCard } from "@/features/admin/projects/project-tasks-card";
 import { ProjectUpdatesCard } from "@/features/admin/projects/project-updates-card";
@@ -33,6 +36,8 @@ export default async function ProjectDetailPage({
     notFound();
   }
 
+  const approvals = project.approvals ?? [project.approval].filter(Boolean);
+
   return (
     <div className="space-y-6">
       <Button variant="outline" asChild className="w-full sm:w-auto">
@@ -43,6 +48,8 @@ export default async function ProjectDetailPage({
       </Button>
 
       <ProjectDetailHeader project={project} />
+
+      <ProjectDeliveryOverview project={project} />
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.85fr)]">
         <div className="space-y-6">
@@ -57,6 +64,10 @@ export default async function ProjectDetailPage({
             projectId={project.id}
             updates={project.updates}
           />
+
+          <ProjectFilesCard files={project.files ?? []} />
+
+          <ProjectFeedbackPreview feedback={project.feedback} />
         </div>
 
         <div className="space-y-6">
@@ -66,9 +77,9 @@ export default async function ProjectDetailPage({
             status={project.status}
           />
 
-          <ApprovalStatusCard approval={project.approval} />
+          <ApprovalStatusCard approvals={approvals} />
 
-          <ProjectFeedbackPreview feedback={project.feedback} />
+          <ProjectPaymentsCard payments={project.payments ?? []} />
         </div>
       </div>
     </div>

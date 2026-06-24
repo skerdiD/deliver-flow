@@ -1,5 +1,6 @@
 import { and, eq, ne } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 import { db } from "@/db";
 import {
@@ -12,9 +13,22 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getCurrentProfile } from "@/lib/supabase/auth";
 
 const SIGNED_URL_EXPIRES_IN_SECONDS = 60;
+const fileDownloadParamsSchema = z.object({
+  fileId: z.string().uuid(),
+});
+const noStoreHeaders = {
+  "Cache-Control": "no-store, max-age=0",
+  "Referrer-Policy": "no-referrer",
+};
 
 function jsonError(message: string, status: number) {
-  return NextResponse.json({ error: message }, { status });
+  return NextResponse.json(
+    { error: message },
+    {
+      status,
+      headers: noStoreHeaders,
+    },
+  );
 }
 
 export async function GET(
@@ -32,6 +46,11 @@ export async function GET(
   }
 
   const { fileId } = await params;
+  const parsed = fileDownloadParamsSchema.safeParse({ fileId });
+
+  if (!parsed.success) {
+    return jsonError("File not found.", 404);
+  }
 
   const [file] = await db
     .select({
@@ -48,7 +67,7 @@ export async function GET(
     .innerJoin(clients, eq(projectAssignments.clientId, clients.id))
     .where(
       and(
-        eq(projectFiles.id, fileId),
+        eq(projectFiles.id, parsed.data.fileId),
         eq(projectFiles.isVisibleToClient, true),
         ne(projects.status, "archived"),
         eq(clients.profileId, profile.id),
@@ -72,5 +91,8 @@ export async function GET(
     return jsonError("File download is temporarily unavailable.", 502);
   }
 
-  return NextResponse.redirect(data.signedUrl, 302);
+  return NextResponse.redirect(data.signedUrl, {
+    status: 302,
+    headers: noStoreHeaders,
+  });
 }
