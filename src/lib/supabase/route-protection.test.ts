@@ -120,6 +120,20 @@ describe("route protection policy", () => {
       });
   });
 
+  it("allows invalid account states to view login error pages without loops", () => {
+    expect(
+      getRouteAccessDecision(routes.auth.login, "?error=profile_missing", {
+        status: "missing_profile",
+      }),
+    ).toEqual({ type: "allow" });
+
+    expect(
+      getRouteAccessDecision(routes.auth.login, "?error=client_missing", {
+        status: "missing_client",
+      }),
+    ).toEqual({ type: "allow" });
+  });
+
   it("recognizes protected route prefixes and supported roles", () => {
     expect(isProtectedRoute("/admin/dashboard")).toBe(true);
     expect(isProtectedRoute("/admin/projects/project_123")).toBe(true);

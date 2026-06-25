@@ -9,6 +9,7 @@ import {
   projectFiles,
   projects,
 } from "@/db/schema";
+import { getFileDownloadAccessDecision } from "@/app/api/client/files/[fileId]/download/access-policy";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getCurrentProfile } from "@/lib/supabase/auth";
 
@@ -38,17 +39,45 @@ export async function GET(
   const profile = await getCurrentProfile();
 
   if (!profile) {
+    const decision = getFileDownloadAccessDecision({
+      isAuthenticated: false,
+      fileIdIsValid: false,
+      fileIsAuthorized: false,
+    });
+
+    if (decision.type === "deny") {
+      return jsonError(decision.message, decision.status);
+    }
+
     return jsonError("Authentication required.", 401);
   }
 
-  if (profile.role !== "client") {
-    return jsonError("Client access required.", 403);
+  const roleDecision = getFileDownloadAccessDecision({
+    isAuthenticated: true,
+    role: profile.role,
+    fileIdIsValid: true,
+    fileIsAuthorized: true,
+  });
+
+  if (roleDecision.type === "deny") {
+    return jsonError(roleDecision.message, roleDecision.status);
   }
 
   const { fileId } = await params;
   const parsed = fileDownloadParamsSchema.safeParse({ fileId });
 
   if (!parsed.success) {
+    const fileIdDecision = getFileDownloadAccessDecision({
+      isAuthenticated: true,
+      role: profile.role,
+      fileIdIsValid: false,
+      fileIsAuthorized: true,
+    });
+
+    if (fileIdDecision.type === "deny") {
+      return jsonError(fileIdDecision.message, fileIdDecision.status);
+    }
+
     return jsonError("File not found.", 404);
   }
 
@@ -77,7 +106,16 @@ export async function GET(
     .limit(1);
 
   if (!file) {
-    return jsonError("File not found.", 404);
+    const fileDecision = getFileDownloadAccessDecision({
+      isAuthenticated: true,
+      role: profile.role,
+      fileIdIsValid: true,
+      fileIsAuthorized: false,
+    });
+
+    if (fileDecision.type === "deny") {
+      return jsonError(fileDecision.message, fileDecision.status);
+    }
   }
 
   const supabase = createSupabaseAdminClient();

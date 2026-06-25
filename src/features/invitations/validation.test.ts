@@ -4,6 +4,7 @@ import {
   acceptInviteSchema,
   acceptSignedInInviteSchema,
 } from "@/features/invitations/validation";
+import { inviteClientSchema } from "@/features/admin/clients/invite-validation";
 
 describe("invite validation schemas", () => {
   it("accepts URL-safe invite tokens", () => {
@@ -63,5 +64,38 @@ describe("invite validation schemas", () => {
         token: "short",
       }).success,
     ).toBe(false);
+  });
+
+  it("validates admin client invite fields and normalizes email", () => {
+    const result = inviteClientSchema.safeParse({
+      email: "  CLIENT@Example.COM ",
+      name: "Sarah Johnson",
+      company: "Nova Agency",
+      expiresInDays: "7",
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.data?.email).toBe("client@example.com");
+    expect(result.data?.expiresInDays).toBe(7);
+  });
+
+  it("rejects empty invite names, invalid emails, and unsafe expiry windows", () => {
+    const result = inviteClientSchema.safeParse({
+      email: "not-an-email",
+      name: "",
+      company: "",
+      expiresInDays: 60,
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error?.flatten().fieldErrors.email).toContain(
+      "Enter a valid email.",
+    );
+    expect(result.error?.flatten().fieldErrors.name).toContain(
+      "Client name is required.",
+    );
+    expect(result.error?.flatten().fieldErrors.expiresInDays).toContain(
+      "Invite cannot last more than 30 days.",
+    );
   });
 });
