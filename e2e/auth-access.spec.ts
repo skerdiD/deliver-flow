@@ -12,13 +12,42 @@ async function signIn(page: Page, email: string, password: string) {
   await page.getByRole("button", { name: "Sign in" }).click();
 }
 
-test("logged-out user cannot access /admin/dashboard", async ({ page }) => {
-  await page.goto("/admin/dashboard");
+test("login page loads with the sign-in form", async ({ page }) => {
+  await page.goto("/login");
 
-  await expect(page).toHaveURL(/\/login\?next=%2Fadmin%2Fdashboard/);
   await expect(
     page.getByRole("heading", { name: "Welcome back" }),
   ).toBeVisible();
+  await expect(page.getByLabel("Email address")).toBeVisible();
+  await expect(page.getByLabel("Password")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
+});
+
+test("logged-out user cannot access /admin/dashboard", async ({ page }) => {
+  await page.goto("/admin/dashboard");
+
+  await expect(page).toHaveURL(/\/login(?:\?|$)/);
+  await expect(
+    page.getByRole("heading", { name: "Welcome back" }),
+  ).toBeVisible();
+});
+
+test("logged-out user cannot access /client/dashboard", async ({ page }) => {
+  await page.goto("/client/dashboard");
+
+  await expect(page).toHaveURL(/\/login(?:\?|$)/);
+  await expect(
+    page.getByRole("heading", { name: "Welcome back" }),
+  ).toBeVisible();
+});
+
+test("invalid invite route fails safely", async ({ page }) => {
+  await page.goto("/invite/not-a-valid-token");
+
+  await expect(
+    page.getByRole("heading", { name: "Invalid invite" }),
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: /back to login/i })).toBeVisible();
 });
 
 test.describe("authenticated route access", () => {
