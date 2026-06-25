@@ -1,35 +1,40 @@
-import { Plus } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
 import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
-import { getAdminProjects } from "@/features/admin/projects/projects-data";
-import { ProjectsTable } from "@/features/admin/projects/projects-table";
+import { createProjectAction } from "@/features/admin/projects/actions";
+import { ProjectForm } from "@/features/admin/projects/project-form";
+import { getProjectClientOptions } from "@/features/admin/projects/projects-data";
 
 export const metadata: Metadata = {
-  title: "Projects",
+  title: "New Project",
 };
 
-export default async function AdminProjectsPage() {
-  const projects = await getAdminProjects();
+export default async function NewProjectPage() {
+  const clients = await getProjectClientOptions();
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        eyebrow="Projects"
-        title="Manage delivery work"
-        description="Create projects, assign clients, track progress, and keep delivery decisions in one place."
-      >
-        <Button asChild>
-          <Link href="/admin/projects/new">
-            <Plus className="mr-2 size-4" />
-            New project
-          </Link>
-        </Button>
-      </PageHeader>
+      <Button variant="outline" asChild>
+        <Link href="/admin/projects">
+          <ArrowLeft className="mr-2 size-4" />
+          Back to projects
+        </Link>
+      </Button>
 
-      <ProjectsTable projects={projects} />
+      <PageHeader
+        eyebrow="New project"
+        title="Create a delivery workspace"
+        description="Set up the client, timeline, budget, and status details before adding tasks, milestones, files, and updates."
+      />
+
+      <ProjectForm
+        mode="create"
+        clients={clients}
+        submitAction={createProjectAction}
+      />
     </div>
   );
 }
