@@ -98,8 +98,8 @@ export async function acceptClientInvite(
 
   if (invite.status === "accepted") {
     return {
-      success: true,
-      message: "Invite was already accepted.",
+      success: false,
+      message: "This invite has already been used.",
     };
   }
 
@@ -108,7 +108,7 @@ export async function acceptClientInvite(
 
     return {
       success: false,
-      message: "Invite link has expired. Ask your project owner for a new one.",
+      message: "This invite has expired. Ask your project owner for a new one.",
     };
   }
 
@@ -167,6 +167,42 @@ export async function acceptClientInvite(
     };
   }
 
+  const invitedClient = invite.clientId
+    ? (
+        await db
+          .select({
+            id: clients.id,
+            email: clients.email,
+            contactName: clients.contactName,
+            profileId: clients.profileId,
+          })
+          .from(clients)
+          .where(eq(clients.id, invite.clientId))
+          .limit(1)
+      )[0]
+    : null;
+
+  if (invite.clientId && !invitedClient) {
+    return {
+      success: false,
+      message: "Invite is no longer connected to a valid client record.",
+    };
+  }
+
+  if (invitedClient && normalizeEmail(invitedClient.email) !== invite.email) {
+    return {
+      success: false,
+      message: "Invite is no longer connected to a valid client record.",
+    };
+  }
+
+  if (invitedClient?.profileId && invitedClient.profileId !== user.id) {
+    return {
+      success: false,
+      message: "This client already has portal access. Sign in instead.",
+    };
+  }
+
   const clientId =
     invite.clientId ??
     (
@@ -189,46 +225,75 @@ export async function acceptClientInvite(
     };
   }
 
-  await db
-    .insert(profiles)
-    .values({
-      id: user.id,
-      email: userEmail,
-      fullName: user.user_metadata?.full_name?.toString() ?? null,
-      avatarUrl: user.user_metadata?.avatar_url?.toString() ?? null,
-      role: "client",
-    })
-    .onConflictDoUpdate({
-      target: profiles.id,
-      set: {
+  const accepted = await db.transaction(async (tx) => {
+    await tx
+      .insert(profiles)
+      .values({
+        id: user.id,
         email: userEmail,
+        fullName: user.user_metadata?.full_name?.toString() ?? null,
+        avatarUrl: user.user_metadata?.avatar_url?.toString() ?? null,
         role: "client",
+      })
+      .onConflictDoUpdate({
+        target: profiles.id,
+        set: {
+          email: userEmail,
+          role: "client",
+          updatedAt: new Date(),
+        },
+      });
+
+    const [updatedClient] = await tx
+      .update(clients)
+      .set({
+        profileId: user.id,
+        status: "active",
         updatedAt: new Date(),
-      },
-    });
+      })
+      .where(
+        and(
+          eq(clients.id, clientId),
+          eq(clients.email, invite.email),
+          or(isNull(clients.profileId), eq(clients.profileId, user.id)),
+        ),
+      )
+      .returning({ id: clients.id });
 
-  await db
-    .update(clients)
-    .set({
-      profileId: user.id,
-      status: "active",
-      updatedAt: new Date(),
-    })
-    .where(eq(clients.id, clientId));
+    if (!updatedClient) {
+      return false;
+    }
 
-  await db
-    .update(clientInvitations)
-    .set({
-      status: "accepted",
-      acceptedBy: user.id,
-      acceptedAt: new Date(),
-      updatedAt: new Date(),
-    })
-    .where(eq(clientInvitations.id, invite.id));
+    const [acceptedInvite] = await tx
+      .update(clientInvitations)
+      .set({
+        status: "accepted",
+        acceptedBy: user.id,
+        acceptedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(clientInvitations.id, invite.id),
+          eq(clientInvitations.status, "pending"),
+        ),
+      )
+      .returning({ id: clientInvitations.id });
+
+    return Boolean(acceptedInvite);
+  });
+
+  if (!accepted) {
+    return {
+      success: false,
+      message: "This invite could not be accepted. Ask your project owner for a new invite.",
+    };
+  }
 
   return {
     success: true,
-    message: "Invite accepted.",
+    message: "Your account is ready. You can now open your portal.",
+    email: userEmail,
   };
 }
 
@@ -396,7 +461,7 @@ export async function acceptClientInviteWithPassword(input: {
 
   return {
     success: true,
-    message: "Your account is ready. You can now log in.",
+    message: "Your account is ready. You can now open your portal.",
     email: invite.email,
   };
 }

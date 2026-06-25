@@ -23,3 +23,7 @@ export const acceptInviteSchema = z.object({
   message: "Passwords do not match.",
   path: ["confirmPassword"],
 });
+
+export const acceptSignedInInviteSchema = z.object({
+  token: inviteTokenSchema,
+});

@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   acceptInviteAction,
+  acceptSignedInInviteAction,
   type AcceptInviteActionState,
 } from "@/features/invitations/actions";
 import { routes } from "@/config/routes";
@@ -42,6 +43,8 @@ export function AcceptInviteCard({
     acceptInviteAction,
     initialState,
   );
+  const [signedInState, signedInFormAction, isSignedInPending] =
+    useActionState(acceptSignedInInviteAction, initialState);
   const [password, setPassword] = useState("");
   const [signInError, setSignInError] = useState("");
 
@@ -80,6 +83,18 @@ export function AcceptInviteCard({
       });
   }, [password, router, state.email, state.success]);
 
+  useEffect(() => {
+    if (!signedInState.success) {
+      return;
+    }
+
+    router.push("/client/dashboard");
+    router.refresh();
+  }, [router, signedInState.success]);
+
+  const statusMessage = signInError || signedInState.message || state.message;
+  const statusIsSuccess = signedInState.success || state.success;
+
   return (
     <Card className="w-full max-w-md rounded-xl border-slate-200 shadow-sm">
       <CardHeader>
@@ -95,19 +110,29 @@ export function AcceptInviteCard({
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {authenticatedEmail ? (
+        {authenticatedEmail && !emailMatches ? (
           <Alert variant={emailMatches ? "default" : "destructive"}>
             <AlertCircle className="size-4" />
             <AlertDescription>
-              You are signed in as {authenticatedEmail}. Sign out before using
-              this invite to create a new client account.
+              You are signed in as {authenticatedEmail}. Sign in with the
+              invited email to continue.
             </AlertDescription>
           </Alert>
         ) : null}
 
-        {state.message || signInError ? (
-          <Alert variant={state.success ? "default" : "destructive"}>
-            <AlertDescription>{signInError || state.message}</AlertDescription>
+        {authenticatedEmail && emailMatches ? (
+          <Alert>
+            <CheckCircle2 className="size-4" />
+            <AlertDescription>
+              You are signed in with the invited email. Accept the invite to
+              open your portal.
+            </AlertDescription>
+          </Alert>
+        ) : null}
+
+        {statusMessage ? (
+          <Alert variant={statusIsSuccess ? "default" : "destructive"}>
+            <AlertDescription>{statusMessage}</AlertDescription>
           </Alert>
         ) : null}
 
@@ -161,6 +186,22 @@ export function AcceptInviteCard({
                 <CheckCircle2 className="size-4" />
               )}
               Create account
+            </Button>
+          </form>
+        ) : emailMatches ? (
+          <form action={signedInFormAction}>
+            <input type="hidden" name="token" value={token} />
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isSignedInPending || signedInState.success}
+            >
+              {isSignedInPending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <CheckCircle2 className="size-4" />
+              )}
+              Accept invite
             </Button>
           </form>
         ) : (

@@ -2,8 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 
-import { acceptClientInviteWithPassword } from "@/features/invitations/invite-data";
-import { acceptInviteSchema } from "@/features/invitations/validation";
+import {
+  acceptClientInvite,
+  acceptClientInviteWithPassword,
+} from "@/features/invitations/invite-data";
+import {
+  acceptInviteSchema,
+  acceptSignedInInviteSchema,
+} from "@/features/invitations/validation";
 
 export type AcceptInviteActionState = {
   success: boolean;
@@ -42,6 +48,31 @@ export async function acceptInviteAction(
     token: parsed.data.token,
     password: parsed.data.password,
   });
+
+  if (result.success) {
+    revalidatePath("/client/dashboard");
+    revalidatePath("/admin/clients");
+  }
+
+  return result;
+}
+
+export async function acceptSignedInInviteAction(
+  _previousState: AcceptInviteActionState,
+  formData: FormData,
+): Promise<AcceptInviteActionState> {
+  const parsed = acceptSignedInInviteSchema.safeParse({
+    token: formData.get("token"),
+  });
+
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: "Invite link is invalid.",
+    };
+  }
+
+  const result = await acceptClientInvite(parsed.data.token);
 
   if (result.success) {
     revalidatePath("/client/dashboard");
