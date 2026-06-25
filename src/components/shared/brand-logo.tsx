@@ -19,7 +19,7 @@ export function BrandLogo({
     <div className={cn("flex items-center gap-3", className)}>
       <div
         className={cn(
-          "grid size-9 shrink-0 place-items-center rounded-lg bg-slate-950 shadow-sm ring-1 ring-slate-900/10",
+          "grid size-9 shrink-0 place-items-center rounded-lg bg-white shadow-sm ring-1 ring-slate-200",
           iconClassName,
         )}
       >
@@ -29,7 +29,7 @@ export function BrandLogo({
           width={28}
           height={28}
           priority
-          className="size-7"
+          className="size-8"
         />
       </div>
 

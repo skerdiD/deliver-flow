@@ -12,7 +12,7 @@ export function AuthShell({ title, description, children }: AuthShellProps) {
       <section className="w-full max-w-md">
         <BrandLogo
           className="mb-8 justify-center"
-          iconClassName="size-10 bg-slate-950"
+          iconClassName="size-10"
           subtitle="Private client workspace"
         />
 
