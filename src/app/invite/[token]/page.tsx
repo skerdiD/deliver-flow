@@ -35,8 +35,8 @@ export default async function InvitePage({ params }: InvitePageProps) {
   if (preview.status === "expired") {
     return (
       <InviteStateCard
-        title="Invite expired"
-        description={`The invite for ${preview.email} has expired. Ask your project owner for a new invite.`}
+        title="This invite has expired"
+        description="Ask your project owner for a new invite."
       />
     );
   }
@@ -44,8 +44,8 @@ export default async function InvitePage({ params }: InvitePageProps) {
   if (preview.status === "accepted") {
     return (
       <InviteStateCard
-        title="Invite already accepted"
-        description={`The invite for ${preview.email} has already been accepted.`}
+        title="This invite has already been used"
+        description="You can log in with the account created from this invite."
         actionLabel="Go to login"
       />
     );

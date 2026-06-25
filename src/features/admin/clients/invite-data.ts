@@ -1,13 +1,12 @@
 import "server-only";
 
-import { and, desc, eq, lte } from "drizzle-orm";
+import { and, desc, eq, gt, lte } from "drizzle-orm";
 
 import { db } from "@/db";
 import { clientInvitations, clients } from "@/db/schema";
 import { createInviteToken, hashInviteToken } from "@/features/invitations/token";
 import { routes } from "@/config/routes";
 import { getAppBaseUrl } from "@/lib/app-url";
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Profile } from "@/types/database";
 
 export type AdminClientInvite = {
@@ -89,6 +88,24 @@ export async function createClientInvite(
 
   await expirePendingClientInvites();
 
+  const [pendingInvite] = await db
+    .select({ id: clientInvitations.id })
+    .from(clientInvitations)
+    .where(
+      and(
+        eq(clientInvitations.email, email),
+        eq(clientInvitations.status, "pending"),
+        gt(clientInvitations.expiresAt, now),
+      ),
+    )
+    .limit(1);
+
+  if (pendingInvite) {
+    throw new Error(
+      "A pending invite already exists for this email. Wait for it to expire before creating another.",
+    );
+  }
+
   const [existingClient] = await db
     .select({
       id: clients.id,
@@ -99,73 +116,82 @@ export async function createClientInvite(
     .where(eq(clients.email, email))
     .limit(1);
 
-  if (existingClient?.profileId && existingClient.status === "active") {
-    throw new Error("Client already has active portal access.");
+  if (existingClient?.profileId) {
+    throw new Error(
+      "This client already has portal access. Update the client instead of sending a new invite.",
+    );
   }
 
-  const clientId =
-    existingClient?.id ??
-    (
-      await db
-        .insert(clients)
-        .values({
-          email,
+  const clientId = await db.transaction(async (tx) => {
+    const preparedClientId =
+      existingClient?.id ??
+      (
+        await tx
+          .insert(clients)
+          .values({
+            email,
+            contactName: input.name,
+            companyName: input.company?.trim() || "Independent client",
+            status: "inactive",
+            createdBy: inviter.id,
+          })
+          .returning({ id: clients.id })
+      )[0]?.id;
+
+    if (!preparedClientId) {
+      throw new Error("Client record could not be prepared.");
+    }
+
+    if (existingClient) {
+      await tx
+        .update(clients)
+        .set({
           contactName: input.name,
           companyName: input.company?.trim() || "Independent client",
           status: "inactive",
-          createdBy: inviter.id,
+          updatedAt: now,
         })
-        .returning({ id: clients.id })
-    )[0]?.id;
+        .where(eq(clients.id, preparedClientId));
+    }
 
-  if (!clientId) {
-    throw new Error("Client record could not be prepared.");
-  }
-
-  if (existingClient) {
-    await db
-      .update(clients)
+    await tx
+      .update(clientInvitations)
       .set({
-        contactName: input.name,
-        companyName: input.company?.trim() || "Independent client",
-        status: "inactive",
+        status: "expired",
         updatedAt: now,
       })
-      .where(eq(clients.id, clientId));
-  }
+      .where(
+        and(
+          eq(clientInvitations.email, email),
+          eq(clientInvitations.status, "pending"),
+        ),
+      );
 
-  await db
-    .update(clientInvitations)
-    .set({
-      status: "expired",
-      updatedAt: now,
-    })
-    .where(
-      and(
-        eq(clientInvitations.email, email),
-        eq(clientInvitations.status, "pending"),
-      ),
-    );
+    const token = createInviteToken();
+    const tokenHash = hashInviteToken(token);
 
-  const token = createInviteToken();
-  const tokenHash = hashInviteToken(token);
+    await tx.insert(clientInvitations).values({
+      email,
+      clientId: preparedClientId,
+      tokenHash,
+      status: "pending",
+      invitedBy: inviter.id,
+      expiresAt,
+    });
 
-  await db.insert(clientInvitations).values({
-    email,
-    clientId,
-    tokenHash,
-    status: "pending",
-    invitedBy: inviter.id,
-    expiresAt,
+    return {
+      id: preparedClientId,
+      token,
+    };
   });
 
-  const inviteLink = `${await getAppBaseUrl()}${routes.invite.accept(token)}`;
-  const emailDeliveryError = await sendSupabaseInviteEmail(email, inviteLink);
+  const inviteLink = `${await getAppBaseUrl()}${routes.invite.accept(clientId.token)}`;
 
   return {
     inviteLink,
-    emailSent: !emailDeliveryError,
-    emailDeliveryError,
+    emailSent: false,
+    emailDeliveryError:
+      "Automatic invite email is not configured. Copy this secure link and send it to the client.",
   };
 }
 
@@ -182,24 +208,4 @@ async function expirePendingClientInvites() {
         lte(clientInvitations.expiresAt, new Date()),
       ),
     );
-}
-
-async function sendSupabaseInviteEmail(email: string, inviteLink: string) {
-  try {
-    const supabase = createSupabaseAdminClient();
-    const { error } = await supabase.auth.admin.inviteUserByEmail(email, {
-      redirectTo: inviteLink,
-      data: {
-        invited_via: "deliverflow",
-      },
-    });
-
-    return error?.message;
-  } catch (error) {
-    if (error instanceof Error) {
-      return error.message;
-    }
-
-    return "Invite email could not be sent.";
-  }
 }

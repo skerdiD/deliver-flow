@@ -1,11 +1,12 @@
 import "server-only";
 
-import { and, eq, ne } from "drizzle-orm";
+import { and, eq, isNull, ne, or } from "drizzle-orm";
 
 import { db } from "@/db";
 import { clientInvitations, clients, profiles } from "@/db/schema";
 import { hashInviteToken } from "@/features/invitations/token";
 import { getCurrentUser } from "@/lib/supabase/auth";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export type InvitePreview =
   | { status: "invalid" }
@@ -22,6 +23,7 @@ export type InvitePreview =
 export type AcceptInviteResult = {
   success: boolean;
   message: string;
+  email?: string;
 };
 
 function normalizeEmail(email: string) {
@@ -227,6 +229,175 @@ export async function acceptClientInvite(
   return {
     success: true,
     message: "Invite accepted.",
+  };
+}
+
+export async function acceptClientInviteWithPassword(input: {
+  token: string;
+  password: string;
+}): Promise<AcceptInviteResult> {
+  const invite = await getInviteByToken(input.token);
+
+  if (!invite) {
+    return {
+      success: false,
+      message: "Invite link is invalid.",
+    };
+  }
+
+  if (invite.status === "accepted") {
+    return {
+      success: false,
+      message: "This invite has already been used.",
+    };
+  }
+
+  if (invite.status === "expired" || new Date(invite.expiresAt) <= new Date()) {
+    await markInviteExpired(invite.id);
+
+    return {
+      success: false,
+      message: "This invite has expired. Ask your project owner for a new one.",
+    };
+  }
+
+  if (!invite.clientId) {
+    return {
+      success: false,
+      message: "Invite is missing its client record. Ask your project owner for a new invite.",
+    };
+  }
+
+  const [invitedClient] = await db
+    .select({
+      id: clients.id,
+      email: clients.email,
+      contactName: clients.contactName,
+      profileId: clients.profileId,
+    })
+    .from(clients)
+    .where(eq(clients.id, invite.clientId))
+    .limit(1);
+
+  if (!invitedClient || normalizeEmail(invitedClient.email) !== invite.email) {
+    return {
+      success: false,
+      message: "Invite is no longer connected to a valid client record.",
+    };
+  }
+
+  if (invitedClient.profileId) {
+    return {
+      success: false,
+      message: "This client already has portal access. Sign in instead.",
+    };
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase.auth.admin.createUser({
+    email: invite.email,
+    password: input.password,
+    email_confirm: true,
+    user_metadata: {
+      full_name: invitedClient.contactName,
+      invited_via: "deliverflow",
+    },
+  });
+
+  if (error || !data.user) {
+    return {
+      success: false,
+      message:
+        "We could not create this account. If you already have an account, sign in with the invited email and reopen the invite.",
+    };
+  }
+
+  const userId = data.user.id;
+
+  try {
+    await db.transaction(async (tx) => {
+      const [existingProfileById] = await tx
+        .select({ id: profiles.id, role: profiles.role })
+        .from(profiles)
+        .where(eq(profiles.id, userId))
+        .limit(1);
+
+      if (existingProfileById) {
+        throw new Error("profile_exists");
+      }
+
+      const [existingProfileByEmail] = await tx
+        .select({ id: profiles.id })
+        .from(profiles)
+        .where(eq(profiles.email, invite.email))
+        .limit(1);
+
+      if (existingProfileByEmail) {
+        throw new Error("profile_exists");
+      }
+
+      await tx.insert(profiles).values({
+        id: userId,
+        email: invite.email,
+        fullName: invitedClient.contactName,
+        avatarUrl: null,
+        role: "client",
+      });
+
+      const [updatedClient] = await tx
+        .update(clients)
+        .set({
+          profileId: userId,
+          status: "active",
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(clients.id, invitedClient.id),
+            eq(clients.email, invite.email),
+            or(isNull(clients.profileId), eq(clients.profileId, userId)),
+          ),
+        )
+        .returning({ id: clients.id });
+
+      if (!updatedClient) {
+        throw new Error("client_link_failed");
+      }
+
+      const [acceptedInvite] = await tx
+        .update(clientInvitations)
+        .set({
+          status: "accepted",
+          acceptedBy: userId,
+          acceptedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(clientInvitations.id, invite.id),
+            eq(clientInvitations.status, "pending"),
+          ),
+        )
+        .returning({ id: clientInvitations.id });
+
+      if (!acceptedInvite) {
+        throw new Error("invite_not_pending");
+      }
+    });
+  } catch {
+    await supabase.auth.admin.deleteUser(userId);
+
+    return {
+      success: false,
+      message:
+        "We could not finish setting up this account. Please ask your project owner for a new invite.",
+    };
+  }
+
+  return {
+    success: true,
+    message: "Your account is ready. You can now log in.",
+    email: invite.email,
   };
 }
 

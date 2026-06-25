@@ -1,13 +1,15 @@
 "use client";
 
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   acceptInviteAction,
   type AcceptInviteActionState,
@@ -40,6 +42,8 @@ export function AcceptInviteCard({
     acceptInviteAction,
     initialState,
   );
+  const [password, setPassword] = useState("");
+  const [signInError, setSignInError] = useState("");
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
@@ -52,63 +56,117 @@ export function AcceptInviteCard({
   }, [authenticatedEmail, router]);
 
   useEffect(() => {
-    if (state.success) {
-      router.push("/client/dashboard");
-      router.refresh();
+    if (!state.success || !state.email) {
+      return;
     }
-  }, [router, state.success]);
+
+    const supabase = createSupabaseBrowserClient();
+
+    supabase.auth
+      .signInWithPassword({
+        email: state.email,
+        password,
+      })
+      .then(({ error }) => {
+        if (error) {
+          setSignInError(
+            "Your account is ready. Sign in with the password you just created.",
+          );
+          return;
+        }
+
+        router.push("/client/dashboard");
+        router.refresh();
+      });
+  }, [password, router, state.email, state.success]);
 
   return (
     <Card className="w-full max-w-md rounded-xl border-slate-200 shadow-sm">
       <CardHeader>
-        <CardTitle>Accept your DeliverFlow invite</CardTitle>
+        <CardTitle>Create your client account</CardTitle>
         <p className="text-sm leading-6 text-slate-600">
-          This invite is for <span className="font-medium">{email}</span> and
-          expires on {new Date(expiresAt).toLocaleDateString()}.
+          This secure invite is for{" "}
+          <span className="font-medium">{email}</span>. Set your password to
+          access your portal.
+        </p>
+        <p className="text-xs text-slate-500">
+          Expires {new Date(expiresAt).toLocaleDateString()}.
         </p>
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {!authenticatedEmail ? (
-          <Alert>
+        {authenticatedEmail ? (
+          <Alert variant={emailMatches ? "default" : "destructive"}>
+            <AlertCircle className="size-4" />
             <AlertDescription>
-              Sign in with the invited email before accepting this invite.
+              You are signed in as {authenticatedEmail}. Sign out before using
+              this invite to create a new client account.
             </AlertDescription>
           </Alert>
         ) : null}
 
-        {authenticatedEmail && !emailMatches ? (
-          <Alert variant="destructive">
-            <AlertDescription>
-              You are signed in as {authenticatedEmail}. This invite belongs to
-              {" "}
-              {email}.
-            </AlertDescription>
-          </Alert>
-        ) : null}
-
-        {state.message ? (
+        {state.message || signInError ? (
           <Alert variant={state.success ? "default" : "destructive"}>
-            <AlertDescription>{state.message}</AlertDescription>
+            <AlertDescription>{signInError || state.message}</AlertDescription>
           </Alert>
         ) : null}
 
-        {authenticatedEmail && emailMatches ? (
-          <form action={formAction}>
+        {!authenticatedEmail ? (
+          <form action={formAction} className="space-y-4">
             <input type="hidden" name="token" value={token} />
+
+            <div className="space-y-2">
+              <Label htmlFor="invite-password">Password</Label>
+              <Input
+                id="invite-password"
+                name="password"
+                type="password"
+                autoComplete="new-password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                disabled={isPending || state.success}
+              />
+              {state.fieldErrors?.password ? (
+                <p className="text-sm text-red-600">
+                  {state.fieldErrors.password}
+                </p>
+              ) : (
+                <p className="text-xs leading-5 text-slate-500">
+                  Use at least 10 characters with uppercase, lowercase, and a
+                  number.
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="invite-confirm-password">Confirm password</Label>
+              <Input
+                id="invite-confirm-password"
+                name="confirmPassword"
+                type="password"
+                autoComplete="new-password"
+                disabled={isPending || state.success}
+              />
+              {state.fieldErrors?.confirmPassword ? (
+                <p className="text-sm text-red-600">
+                  {state.fieldErrors.confirmPassword}
+                </p>
+              ) : null}
+            </div>
+
             <Button type="submit" className="w-full" disabled={isPending}>
               {isPending ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
                 <CheckCircle2 className="size-4" />
               )}
-              Accept invite
+              Create account
             </Button>
           </form>
         ) : (
-          <Button asChild className="w-full">
-            <Link href={`${routes.auth.login}?next=${routes.invite.accept(token)}`}>
-              Sign in to continue
+          <Button asChild className="w-full" variant="outline">
+            <Link href={routes.auth.login}>
+              Go to login
             </Link>
           </Button>
         )}

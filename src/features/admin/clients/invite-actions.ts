@@ -48,8 +48,8 @@ export async function inviteClientAction(
     return {
       success: true,
       message: invite.emailSent
-        ? "Invite created and email sent."
-        : "Invite created. Copy the link to send it manually.",
+        ? "Invite sent."
+        : "Invite created. Copy the secure link and send it to the client.",
       invite,
     };
   } catch (error) {

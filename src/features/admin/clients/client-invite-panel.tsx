@@ -80,8 +80,8 @@ export function ClientInvitePanel({ invites }: ClientInvitePanelProps) {
       <CardHeader className="gap-2">
         <CardTitle>Invite client access</CardTitle>
         <p className="text-sm text-slate-500">
-          Create a secure invite link, prepare the client record, and keep
-          portal access closed until the invite is accepted.
+          Send a secure invite so the client can set their password and access
+          their portal.
         </p>
       </CardHeader>
 
@@ -97,6 +97,9 @@ export function ClientInvitePanel({ invites }: ClientInvitePanelProps) {
               placeholder="client@example.com"
               disabled={isPending}
             />
+            {result?.fieldErrors?.email ? (
+              <p className="text-sm text-red-600">{result.fieldErrors.email}</p>
+            ) : null}
           </div>
 
           <div className="space-y-2">
@@ -108,6 +111,9 @@ export function ClientInvitePanel({ invites }: ClientInvitePanelProps) {
               placeholder="Sarah Johnson"
               disabled={isPending}
             />
+            {result?.fieldErrors?.name ? (
+              <p className="text-sm text-red-600">{result.fieldErrors.name}</p>
+            ) : null}
           </div>
 
           <div className="space-y-2">
@@ -119,6 +125,11 @@ export function ClientInvitePanel({ invites }: ClientInvitePanelProps) {
               placeholder="Nova Agency"
               disabled={isPending}
             />
+            {result?.fieldErrors?.company ? (
+              <p className="text-sm text-red-600">
+                {result.fieldErrors.company}
+              </p>
+            ) : null}
           </div>
 
           <div className="space-y-2">
@@ -138,6 +149,11 @@ export function ClientInvitePanel({ invites }: ClientInvitePanelProps) {
                 <SelectItem value="30">30 days</SelectItem>
               </SelectContent>
             </Select>
+            {result?.fieldErrors?.expiresInDays ? (
+              <p className="text-sm text-red-600">
+                {result.fieldErrors.expiresInDays}
+              </p>
+            ) : null}
           </div>
 
           <div className="flex items-end">
@@ -183,7 +199,7 @@ export function ClientInvitePanel({ invites }: ClientInvitePanelProps) {
             ) : null}
             {result.invite?.emailDeliveryError ? (
               <p className="mt-2 text-xs text-blue-800">
-                Email fallback: {result.invite.emailDeliveryError}
+                {result.invite.emailDeliveryError}
               </p>
             ) : null}
           </div>
