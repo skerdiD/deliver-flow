@@ -13,11 +13,11 @@ export function ClientPortalLayout({
   children,
 }: ClientPortalLayoutProps) {
   return (
-    <div className="min-h-screen overflow-x-hidden bg-slate-50 text-slate-950">
-      <div className="flex min-h-screen">
+    <div className="min-h-screen overflow-x-hidden bg-slate-50 text-slate-950 lg:h-screen lg:overflow-hidden">
+      <div className="flex min-h-screen lg:h-screen">
         <ClientSidebar />
 
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 lg:flex lg:h-screen lg:flex-col lg:overflow-hidden">
           <MobileSidebar type="client" />
 
           <AppTopbar
@@ -27,8 +27,10 @@ export function ClientPortalLayout({
             userRoleLabel="Client"
           />
 
-          <main className="mx-auto w-full max-w-[1280px] px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
-            {children}
+          <main className="lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
+            <div className="mx-auto w-full max-w-[1280px] px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+              {children}
+            </div>
           </main>
         </div>
       </div>
