@@ -1,5 +1,6 @@
 import "server-only";
 
+import * as Sentry from "@sentry/nextjs";
 import { and, eq, isNull, ne, or } from "drizzle-orm";
 
 import { db } from "@/db";
@@ -449,7 +450,17 @@ export async function acceptClientInviteWithPassword(input: {
         throw new Error("invite_not_pending");
       }
     });
-  } catch {
+  } catch (error) {
+    Sentry.captureException(error, {
+      tags: {
+        feature: "client-invite",
+        operation: "accept-invite-transaction",
+      },
+      extra: {
+        inviteStatus: invite.status,
+      },
+    });
+
     await supabase.auth.admin.deleteUser(userId);
 
     return {

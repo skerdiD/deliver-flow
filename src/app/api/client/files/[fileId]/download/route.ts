@@ -1,5 +1,6 @@
 import { and, eq, ne } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import * as Sentry from "@sentry/nextjs";
 import { z } from "zod";
 
 import { db } from "@/db";
@@ -126,6 +127,17 @@ export async function GET(
     });
 
   if (error || !data?.signedUrl) {
+    Sentry.captureException(error ?? new Error("Signed URL missing"), {
+      tags: {
+        feature: "client-file-download",
+        operation: "create-signed-url",
+      },
+      extra: {
+        bucketName: file.bucketName,
+        fileType: file.fileName.split(".").pop() ?? "unknown",
+      },
+    });
+
     return jsonError("File download is temporarily unavailable.", 502);
   }
 
