@@ -8,7 +8,9 @@ import {
 } from "@/features/client/portal/portal-data";
 import {
   clientApprovalActionSchema,
+  clientApprovalIdSchema,
   clientFeedbackSchema,
+  clientProjectIdSchema,
   type ClientApprovalResponseValues,
   type ClientFeedbackValues,
 } from "@/features/client/portal/portal-validation";
@@ -22,6 +24,15 @@ export async function sendClientFeedbackAction(
   projectId: string,
   values: ClientFeedbackValues,
 ): Promise<ClientPortalActionResult> {
+  const projectIdParsed = clientProjectIdSchema.safeParse(projectId);
+
+  if (!projectIdParsed.success) {
+    return {
+      success: false,
+      message: "You do not have access to this project.",
+    };
+  }
+
   const parsed = clientFeedbackSchema.safeParse(values);
 
   if (!parsed.success) {
@@ -32,7 +43,7 @@ export async function sendClientFeedbackAction(
   }
 
   try {
-    await addClientFeedback(projectId, parsed.data.message);
+    await addClientFeedback(projectIdParsed.data, parsed.data.message);
   } catch {
     return {
       success: false,
@@ -42,9 +53,9 @@ export async function sendClientFeedbackAction(
 
   revalidatePath("/client/dashboard");
   revalidatePath("/client/project");
-  revalidatePath(`/client/project/${projectId}`);
+  revalidatePath(`/client/project/${projectIdParsed.data}`);
   revalidatePath("/client/feedback");
-  revalidatePath(`/client/feedback/${projectId}`);
+  revalidatePath(`/client/feedback/${projectIdParsed.data}`);
 
   return {
     success: true,
@@ -57,6 +68,16 @@ export async function approveMilestoneAction(
   approvalId: string,
   values: ClientApprovalResponseValues,
 ): Promise<ClientPortalActionResult> {
+  const projectIdParsed = clientProjectIdSchema.safeParse(projectId);
+  const approvalIdParsed = clientApprovalIdSchema.safeParse(approvalId);
+
+  if (!projectIdParsed.success || !approvalIdParsed.success) {
+    return {
+      success: false,
+      message: "Approval request is invalid.",
+    };
+  }
+
   const parsed = clientApprovalActionSchema.safeParse({
     ...values,
     status: "approved",
@@ -71,8 +92,8 @@ export async function approveMilestoneAction(
 
   try {
     const approval = await respondToClientApproval({
-      projectId,
-      approvalId,
+      projectId: projectIdParsed.data,
+      approvalId: approvalIdParsed.data,
       status: parsed.data.status,
       responseNote: parsed.data.responseNote || "Approved by client.",
     });
@@ -92,7 +113,7 @@ export async function approveMilestoneAction(
 
   revalidatePath("/client/dashboard");
   revalidatePath("/client/project");
-  revalidatePath(`/client/project/${projectId}`);
+  revalidatePath(`/client/project/${projectIdParsed.data}`);
 
   return {
     success: true,
@@ -105,6 +126,16 @@ export async function requestChangesAction(
   approvalId: string,
   values: ClientApprovalResponseValues,
 ): Promise<ClientPortalActionResult> {
+  const projectIdParsed = clientProjectIdSchema.safeParse(projectId);
+  const approvalIdParsed = clientApprovalIdSchema.safeParse(approvalId);
+
+  if (!projectIdParsed.success || !approvalIdParsed.success) {
+    return {
+      success: false,
+      message: "Approval request is invalid.",
+    };
+  }
+
   const parsed = clientApprovalActionSchema.safeParse({
     ...values,
     status: "changes_requested",
@@ -126,8 +157,8 @@ export async function requestChangesAction(
 
   try {
     const approval = await respondToClientApproval({
-      projectId,
-      approvalId,
+      projectId: projectIdParsed.data,
+      approvalId: approvalIdParsed.data,
       status: parsed.data.status,
       responseNote: parsed.data.responseNote,
     });
@@ -147,7 +178,7 @@ export async function requestChangesAction(
 
   revalidatePath("/client/dashboard");
   revalidatePath("/client/project");
-  revalidatePath(`/client/project/${projectId}`);
+  revalidatePath(`/client/project/${projectIdParsed.data}`);
 
   return {
     success: true,

@@ -27,6 +27,7 @@ import type {
   ClientPortalTask,
   ClientPortalUpdate,
 } from "@/features/client/portal/types";
+import { clientProjectIdSchema } from "@/features/client/portal/portal-validation";
 import { requireRole } from "@/lib/supabase/auth";
 import type { Profile, ProjectStatus } from "@/types/database";
 
@@ -236,6 +237,12 @@ async function getClientPortalAssignmentById(
   profileId: string,
   projectId: string,
 ): Promise<ClientPortalAssignment | null> {
+  const parsedProjectId = clientProjectIdSchema.safeParse(projectId);
+
+  if (!parsedProjectId.success) {
+    return null;
+  }
+
   const [assignment] = await db
     .select({
       clientId: clients.id,
@@ -256,7 +263,7 @@ async function getClientPortalAssignmentById(
     .where(
       and(
         eq(clients.profileId, profileId),
-        eq(projects.id, projectId),
+        eq(projects.id, parsedProjectId.data),
         ne(projects.status, "archived"),
       ),
     )

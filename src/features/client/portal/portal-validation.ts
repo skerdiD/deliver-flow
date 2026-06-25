@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+export const clientProjectIdSchema = z.string().uuid("Project id is invalid.");
+export const clientApprovalIdSchema = z
+  .string()
+  .uuid("Approval id is invalid.");
+
 export const clientApprovalStatusValues = [
   "approved",
   "changes_requested",
