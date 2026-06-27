@@ -7,6 +7,12 @@ import { useState } from "react";
 
 import { BrandLogo } from "@/components/shared/brand-logo";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 type NavigationItem = {
@@ -36,105 +42,147 @@ export function DashboardSidebar({
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
-    <aside
-      className={cn(
-        "dashboard-sidebar-shell h-screen shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-white transition-[width] duration-200",
-        isCollapsed ? "w-20" : expandedWidthClass,
-      )}
-    >
-      <div
+    <TooltipProvider>
+      <aside
         className={cn(
-          "relative flex h-16 shrink-0 items-center border-b border-slate-200",
-          isCollapsed ? "justify-center px-3" : "px-6",
+          "dashboard-sidebar-shell h-screen shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-white transition-[width] duration-300 ease-in-out",
+          isCollapsed ? "w-20" : expandedWidthClass,
         )}
       >
-        <Link
-          href={homeHref}
-          aria-label="DeliverFlow workspace"
-          className={cn("min-w-0", isCollapsed && "flex justify-center")}
-        >
-          <BrandLogo subtitle={subtitle} showText={!isCollapsed} />
-        </Link>
-
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        <div
           className={cn(
-            "absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-950",
-            isCollapsed && "right-2",
+            "relative flex h-16 shrink-0 items-center border-b border-slate-200",
+            isCollapsed ? "justify-center px-3" : "px-5 pr-12",
           )}
-          onClick={() => setIsCollapsed((current) => !current)}
         >
-          {isCollapsed ? (
-            <PanelLeftOpen className="size-4" />
-          ) : (
-            <PanelLeftClose className="size-4" />
-          )}
-        </Button>
-      </div>
+          <Link
+            href={homeHref}
+            aria-label="DeliverFlow workspace"
+            className={cn(
+              "min-w-0 transition-all duration-200",
+              isCollapsed && "flex justify-center",
+            )}
+          >
+            <BrandLogo
+              subtitle={subtitle}
+              showText={!isCollapsed}
+              iconClassName={isCollapsed ? "size-10" : undefined}
+            />
+          </Link>
 
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        <nav
-          className={cn("space-y-1 px-3 py-5", isCollapsed && "px-2")}
-          aria-label={subtitle}
-        >
-          {navigation.map((item) => {
-            const Icon = item.icon;
-            const isActive =
-              pathname === item.href || pathname.startsWith(`${item.href}/`);
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className={cn(
+              "absolute top-1/2 size-8 -translate-y-1/2 rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950",
+              isCollapsed ? "-right-4" : "right-3",
+            )}
+            onClick={() => setIsCollapsed((current) => !current)}
+          >
+            {isCollapsed ? (
+              <PanelLeftOpen className="size-4" />
+            ) : (
+              <PanelLeftClose className="size-4" />
+            )}
+          </Button>
+        </div>
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-label={item.title}
-                aria-current={isActive ? "page" : undefined}
-                title={isCollapsed ? item.title : undefined}
-                className={cn(
-                  "group flex min-h-10 items-center rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/20 focus-visible:ring-offset-2",
-                  isCollapsed
-                    ? "justify-center px-2 py-2.5"
-                    : "gap-3 px-3 py-2.5",
-                  isActive
-                    ? "bg-slate-950 text-white shadow-sm"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-950",
-                )}
-              >
-                <Icon
+        <div className="flex min-h-0 flex-1 flex-col">
+          <nav
+            className={cn(
+              "flex-1 py-4",
+              isCollapsed ? "flex flex-col items-center gap-1.5 px-0" : "space-y-1 px-3",
+            )}
+            aria-label={subtitle}
+          >
+            {navigation.map((item) => {
+              const Icon = item.icon;
+              const isActive =
+                pathname === item.href || pathname.startsWith(`${item.href}/`);
+              const link = (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-label={item.title}
+                  aria-current={isActive ? "page" : undefined}
                   className={cn(
-                    "size-4 shrink-0",
+                    "group flex items-center text-sm font-medium transition-all duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/20 focus-visible:ring-offset-2",
+                    isCollapsed
+                      ? "size-12 justify-center rounded-2xl"
+                      : "min-h-10 gap-3 rounded-xl px-3 py-2.5",
                     isActive
-                      ? "text-white"
-                      : "text-slate-400 group-hover:text-slate-700",
+                      ? "bg-slate-950 text-white shadow-sm"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-950",
                   )}
-                />
+                >
+                  <Icon
+                    className={cn(
+                      "shrink-0 transition-colors duration-200",
+                      isCollapsed ? "size-5" : "size-4",
+                      isActive
+                        ? "text-white"
+                        : "text-slate-400 group-hover:text-slate-700",
+                    )}
+                  />
 
-                {isCollapsed ? (
-                  <span className="sr-only">
-                    {item.title}
-                    {isActive ? " current page" : ""}
-                  </span>
-                ) : (
-                  <span className="truncate">{item.title}</span>
-                )}
-              </Link>
-            );
-          })}
-        </nav>
+                  {isCollapsed ? (
+                    <span className="sr-only">
+                      {item.title}
+                      {isActive ? " current page" : ""}
+                    </span>
+                  ) : (
+                    <span className="truncate">{item.title}</span>
+                  )}
+                </Link>
+              );
 
-        {!isCollapsed ? (
-          <div className="mx-4 mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
-            <p className="text-sm font-semibold text-slate-950">
-              {footerTitle}
-            </p>
-            <p className="mt-2 text-sm leading-5 text-slate-600">
-              {footerDescription}
-            </p>
+              if (!isCollapsed) {
+                return link;
+              }
+
+              return (
+                <Tooltip key={item.href}>
+                  <TooltipTrigger asChild>{link}</TooltipTrigger>
+                  <TooltipContent side="right">{item.title}</TooltipContent>
+                </Tooltip>
+              );
+            })}
+          </nav>
+
+          <div
+            className={cn(
+              "border-t border-slate-200",
+              isCollapsed ? "flex justify-center px-3 py-4" : "px-4 py-4",
+            )}
+          >
+            {isCollapsed ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div
+                    tabIndex={0}
+                    aria-label={footerTitle}
+                    className="grid size-10 place-items-center rounded-2xl border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-500 transition-colors duration-200 hover:border-slate-300 hover:bg-white hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/20 focus-visible:ring-offset-2"
+                  >
+                    DF
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="right">{footerTitle}</TooltipContent>
+              </Tooltip>
+            ) : (
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                <p className="text-sm font-semibold text-slate-950">
+                  {footerTitle}
+                </p>
+                <p className="mt-2 text-sm leading-5 text-slate-600">
+                  {footerDescription}
+                </p>
+              </div>
+            )}
           </div>
-        ) : null}
-      </div>
-    </aside>
+        </div>
+      </aside>
+    </TooltipProvider>
   );
 }
