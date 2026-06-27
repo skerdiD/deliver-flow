@@ -76,8 +76,8 @@ export function DashboardSidebar({
             size="icon-sm"
             aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             className={cn(
-              "absolute top-1/2 size-8 -translate-y-1/2 rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950",
-              isCollapsed ? "-right-4" : "right-3",
+              "absolute top-1/2 z-20 size-8 -translate-y-1/2 rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950",
+              isCollapsed ? "right-2" : "right-3",
             )}
             onClick={() => setIsCollapsed((current) => !current)}
           >
@@ -154,32 +154,17 @@ export function DashboardSidebar({
           <div
             className={cn(
               "border-t border-slate-200",
-              isCollapsed ? "flex justify-center px-3 py-4" : "px-4 py-4",
+              isCollapsed ? "hidden" : "px-4 py-4",
             )}
           >
-            {isCollapsed ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div
-                    tabIndex={0}
-                    aria-label={footerTitle}
-                    className="grid size-10 place-items-center rounded-2xl border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-500 transition-colors duration-200 hover:border-slate-300 hover:bg-white hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/20 focus-visible:ring-offset-2"
-                  >
-                    DF
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="right">{footerTitle}</TooltipContent>
-              </Tooltip>
-            ) : (
-              <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                <p className="text-sm font-semibold text-slate-950">
-                  {footerTitle}
-                </p>
-                <p className="mt-2 text-sm leading-5 text-slate-600">
-                  {footerDescription}
-                </p>
-              </div>
-            )}
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <p className="text-sm font-semibold text-slate-950">
+                {footerTitle}
+              </p>
+              <p className="mt-2 text-sm leading-5 text-slate-600">
+                {footerDescription}
+              </p>
+            </div>
           </div>
         </div>
       </aside>
