@@ -1,15 +1,18 @@
 import { AdminSidebar } from "@/components/layouts/admin-sidebar";
 import { AppTopbar } from "@/components/layouts/app-topbar";
+import type { AdminQuickActionProject } from "@/components/layouts/admin-quick-actions";
 import { MobileSidebar } from "@/components/layouts/mobile-sidebar";
 import type { Profile } from "@/types/database";
 
 type AdminDashboardLayoutProps = {
   profile: Profile;
+  quickActionProjects: AdminQuickActionProject[];
   children: React.ReactNode;
 };
 
 export function AdminDashboardLayout({
   profile,
+  quickActionProjects,
   children,
 }: AdminDashboardLayoutProps) {
   return (
@@ -25,6 +28,7 @@ export function AdminDashboardLayout({
             description="Manage delivery, clients, approvals, and payments."
             userName={profile.full_name}
             userRoleLabel="Admin"
+            quickActionProjects={quickActionProjects}
           />
 
           <main className="min-h-0 flex-1 overflow-y-auto">

@@ -107,6 +107,30 @@ function normalizeFileName(fileName: string) {
   return fileName.replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/-+/g, "-");
 }
 
+function getFileExtension(fileName: string) {
+  const lastDotIndex = fileName.lastIndexOf(".");
+
+  if (lastDotIndex <= 0 || lastDotIndex === fileName.length - 1) {
+    return "";
+  }
+
+  return fileName.slice(lastDotIndex);
+}
+
+function getDisplayFileName(fileName: string, labelValue: FormDataEntryValue | null) {
+  if (typeof labelValue !== "string" || !labelValue.trim()) {
+    return fileName;
+  }
+
+  const label = labelValue.trim();
+
+  if (label.includes(".")) {
+    return label;
+  }
+
+  return `${label}${getFileExtension(fileName)}`;
+}
+
 function getActorName(profile: { full_name: string | null; email: string }) {
   return profile.full_name?.trim() || profile.email;
 }
@@ -765,6 +789,8 @@ export async function uploadProjectFileAction(
   );
   const visibleToClient = formData.get("isVisibleToClient") === "on";
   const file = formData.get("file");
+  const displayFileName =
+    file instanceof File ? getDisplayFileName(file.name, formData.get("label")) : "";
 
   if (!projectIdParsed.success) {
     return {
@@ -809,7 +835,7 @@ export async function uploadProjectFileAction(
     .values({
       projectId: projectIdParsed.data,
       uploadedBy: adminProfile.id,
-      fileName: file.name,
+      fileName: displayFileName,
       bucketName: "project-files",
       storagePath,
       fileType: file.type || "application/octet-stream",

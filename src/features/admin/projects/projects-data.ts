@@ -487,6 +487,46 @@ export async function getProjectClientOptions() {
   return rows satisfies AdminProjectClient[];
 }
 
+export async function getAdminQuickActionProjects() {
+  const [projectRows, milestoneRows] = await Promise.all([
+    db
+      .select({
+        id: projects.id,
+        name: projects.name,
+        clientCompany: clients.companyName,
+      })
+      .from(projects)
+      .innerJoin(
+        projectAssignments,
+        eq(projectAssignments.projectId, projects.id),
+      )
+      .innerJoin(clients, eq(projectAssignments.clientId, clients.id))
+      .where(inArray(projects.status, ["active", "in_progress", "waiting_feedback"]))
+      .orderBy(asc(projects.name)),
+    db
+      .select({
+        id: milestones.id,
+        projectId: milestones.projectId,
+        title: milestones.title,
+      })
+      .from(milestones)
+      .where(inArray(milestones.status, ["not_started", "in_progress", "waiting_approval"]))
+      .orderBy(asc(milestones.position), asc(milestones.createdAt)),
+  ]);
+
+  return projectRows.map((project) => ({
+    id: project.id,
+    name: project.name,
+    clientCompany: project.clientCompany,
+    milestones: milestoneRows
+      .filter((milestone) => milestone.projectId === project.id)
+      .map((milestone) => ({
+        id: milestone.id,
+        title: milestone.title,
+      })),
+  }));
+}
+
 async function replaceProjectPaymentSummary(
   projectId: string,
   input: {

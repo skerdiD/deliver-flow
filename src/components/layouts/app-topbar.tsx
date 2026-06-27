@@ -1,7 +1,10 @@
-import { Bell, Search } from "lucide-react";
+import { Search } from "lucide-react";
 
 import { LogoutButton } from "@/components/auth/logout-button";
-import { Button } from "@/components/ui/button";
+import {
+  AdminQuickActions,
+  type AdminQuickActionProject,
+} from "@/components/layouts/admin-quick-actions";
 import { Input } from "@/components/ui/input";
 
 type AppTopbarProps = {
@@ -9,6 +12,7 @@ type AppTopbarProps = {
   description?: string;
   userName?: string | null;
   userRoleLabel: string;
+  quickActionProjects?: AdminQuickActionProject[];
 };
 
 export function AppTopbar({
@@ -16,7 +20,10 @@ export function AppTopbar({
   description,
   userName,
   userRoleLabel,
+  quickActionProjects,
 }: AppTopbarProps) {
+  const showQuickActions = Boolean(quickActionProjects);
+
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
       <div className="flex min-h-16 items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
@@ -40,14 +47,9 @@ export function AppTopbar({
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          <Button
-            variant="outline"
-            size="icon"
-            className="hidden border-slate-200 bg-white/80 sm:inline-flex"
-          >
-            <Bell className="size-4" />
-            <span className="sr-only">Notifications</span>
-          </Button>
+          {showQuickActions ? (
+            <AdminQuickActions projects={quickActionProjects ?? []} />
+          ) : null}
 
           <div className="hidden text-right md:block">
             <p className="text-sm font-medium text-slate-900">

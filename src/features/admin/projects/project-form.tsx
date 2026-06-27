@@ -49,6 +49,14 @@ type ProjectFormProps = {
   submitAction: (values: ProjectFormValues) => Promise<ProjectActionResult>;
 };
 
+function getInputValue(value: unknown) {
+  if (typeof value === "string" || typeof value === "number") {
+    return value;
+  }
+
+  return "";
+}
+
 export function ProjectForm({
   mode,
   clients,
@@ -229,9 +237,7 @@ export function ProjectForm({
                         name={field.name}
                         ref={field.ref}
                         onBlur={field.onBlur}
-                        value={
-                          typeof field.value === "number" ? field.value : ""
-                        }
+                        value={getInputValue(field.value)}
                         onChange={(event) => field.onChange(event.target.value)}
                       />
                     </FormControl>
@@ -326,13 +332,13 @@ export function ProjectForm({
                       <Input
                         type="number"
                         min={0}
+                        step="0.01"
+                        inputMode="decimal"
                         placeholder="2200"
                         name={field.name}
                         ref={field.ref}
                         onBlur={field.onBlur}
-                        value={
-                          typeof field.value === "number" ? field.value : ""
-                        }
+                        value={getInputValue(field.value)}
                         onChange={(event) => field.onChange(event.target.value)}
                       />
                     </FormControl>
@@ -352,13 +358,13 @@ export function ProjectForm({
                       <Input
                         type="number"
                         min={0}
+                        step="0.01"
+                        inputMode="decimal"
                         placeholder="900"
                         name={field.name}
                         ref={field.ref}
                         onBlur={field.onBlur}
-                        value={
-                          typeof field.value === "number" ? field.value : ""
-                        }
+                        value={getInputValue(field.value)}
                         onChange={(event) => field.onChange(event.target.value)}
                       />
                     </FormControl>
