@@ -1,7 +1,7 @@
 "use client";
 
-import { clientNavigation } from "@/config/navigation";
 import { DashboardSidebar } from "@/components/layouts/dashboard-sidebar";
+import { clientNavigation } from "@/config/navigation";
 
 export function ClientSidebar() {
   return (
@@ -9,9 +9,9 @@ export function ClientSidebar() {
       homeHref="/client/dashboard"
       subtitle="Client portal"
       navigation={clientNavigation}
-      expandedWidthClass="w-64"
-      footerTitle="Project status"
-      footerDescription="Track completed work, next steps, and anything waiting for approval."
+      expandedWidthClass="w-72"
+      footerTitle="Project updates"
+      footerDescription="Track files, approvals, feedback, and progress in one place."
     />
   );
 }

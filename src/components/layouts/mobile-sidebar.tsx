@@ -25,7 +25,7 @@ export function MobileSidebar({ type }: MobileSidebarProps) {
   const navigation = type === "admin" ? adminNavigation : clientNavigation;
 
   return (
-    <div className="border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur lg:hidden">
+    <div className="dashboard-mobile-nav border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur">
       <Sheet>
         <SheetTrigger asChild>
           <Button variant="outline" className="gap-2 border-slate-200">

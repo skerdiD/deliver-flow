@@ -54,3 +54,21 @@ body {
 ::selection {
   background: hsl(221.2 83.2% 53.3% / 0.16);
 }
+
+.dashboard-sidebar-shell {
+  display: none;
+}
+
+.dashboard-mobile-nav {
+  display: block;
+}
+
+@media (min-width: 64rem) {
+  .dashboard-sidebar-shell {
+    display: flex;
+  }
+
+  .dashboard-mobile-nav {
+    display: none;
+  }
+}

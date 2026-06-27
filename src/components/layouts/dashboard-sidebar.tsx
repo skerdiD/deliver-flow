@@ -19,7 +19,7 @@ type DashboardSidebarProps = {
   homeHref: string;
   subtitle: string;
   navigation: readonly NavigationItem[];
-  expandedWidthClass: string;
+  expandedWidthClass?: string;
   footerTitle: string;
   footerDescription: string;
 };
@@ -28,7 +28,7 @@ export function DashboardSidebar({
   homeHref,
   subtitle,
   navigation,
-  expandedWidthClass,
+  expandedWidthClass = "w-72",
   footerTitle,
   footerDescription,
 }: DashboardSidebarProps) {
@@ -38,32 +38,33 @@ export function DashboardSidebar({
   return (
     <aside
       className={cn(
-        "hidden h-screen shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-white transition-[width] duration-200 ease-out lg:flex",
+        "dashboard-sidebar-shell h-screen shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-white transition-[width] duration-200",
         isCollapsed ? "w-20" : expandedWidthClass,
       )}
     >
       <div
         className={cn(
-          "flex h-16 items-center gap-3 border-b border-slate-200",
-          isCollapsed ? "justify-center px-3" : "px-4",
+          "relative flex h-16 shrink-0 items-center border-b border-slate-200",
+          isCollapsed ? "justify-center px-3" : "px-6",
         )}
       >
         <Link
           href={homeHref}
-          aria-label="DeliverFlow home"
-          className={cn(
-            "min-w-0 transition-all",
-            isCollapsed ? "flex justify-center" : "flex-1",
-          )}
+          aria-label="DeliverFlow workspace"
+          className={cn("min-w-0", isCollapsed && "flex justify-center")}
         >
           <BrandLogo subtitle={subtitle} showText={!isCollapsed} />
         </Link>
 
         <Button
+          type="button"
           variant="ghost"
           size="icon-sm"
           aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="shrink-0 text-slate-500 hover:text-slate-950"
+          className={cn(
+            "absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-950",
+            isCollapsed && "right-2",
+          )}
           onClick={() => setIsCollapsed((current) => !current)}
         >
           {isCollapsed ? (
@@ -74,9 +75,9 @@ export function DashboardSidebar({
         </Button>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-3 py-5">
+      <div className="min-h-0 flex-1 overflow-y-auto">
         <nav
-          className="space-y-1"
+          className={cn("space-y-1 px-3 py-5", isCollapsed && "px-2")}
           aria-label={subtitle}
         >
           {navigation.map((item) => {
@@ -124,7 +125,7 @@ export function DashboardSidebar({
         </nav>
 
         {!isCollapsed ? (
-          <div className="mx-1 mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
+          <div className="mx-4 mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
             <p className="text-sm font-semibold text-slate-950">
               {footerTitle}
             </p>

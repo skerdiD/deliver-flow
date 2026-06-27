@@ -1,7 +1,7 @@
 "use client";
 
-import { adminNavigation } from "@/config/navigation";
 import { DashboardSidebar } from "@/components/layouts/dashboard-sidebar";
+import { adminNavigation } from "@/config/navigation";
 
 export function AdminSidebar() {
   return (
