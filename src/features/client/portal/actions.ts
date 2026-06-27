@@ -14,6 +14,7 @@ import {
   type ClientApprovalResponseValues,
   type ClientFeedbackValues,
 } from "@/features/client/portal/portal-validation";
+import { logProjectActivity } from "@/features/projects/activity";
 
 export type ClientPortalActionResult = {
   success: boolean;
@@ -104,6 +105,19 @@ export async function approveMilestoneAction(
         message: "This approval has already been answered.",
       };
     }
+
+    await logProjectActivity({
+      projectId: projectIdParsed.data,
+      actorId: approval.respondedBy,
+      actorName: approval.respondedByName,
+      actorRole: "client",
+      type: "approval_approved",
+      message: `Client approved: ${approval.title}.`,
+      metadata: {
+        approvalId: approval.id,
+        approvalTitle: approval.title,
+      },
+    });
   } catch {
     return {
       success: false,
@@ -169,6 +183,19 @@ export async function requestChangesAction(
         message: "This approval has already been answered.",
       };
     }
+
+    await logProjectActivity({
+      projectId: projectIdParsed.data,
+      actorId: approval.respondedBy,
+      actorName: approval.respondedByName,
+      actorRole: "client",
+      type: "changes_requested",
+      message: `Client requested changes: ${approval.title}.`,
+      metadata: {
+        approvalId: approval.id,
+        approvalTitle: approval.title,
+      },
+    });
   } catch {
     return {
       success: false,

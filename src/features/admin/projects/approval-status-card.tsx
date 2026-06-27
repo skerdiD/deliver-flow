@@ -21,7 +21,7 @@ import type {
   AdminProjectApproval,
   AdminProjectMilestone,
 } from "@/features/admin/projects/types";
-import { formatShortDate } from "@/lib/format";
+import { formatRelativeTime, formatShortDate } from "@/lib/format";
 
 type ApprovalStatusCardProps = {
   projectId: string;
@@ -225,6 +225,11 @@ function ApprovalRow({ approval }: { approval: AdminProjectApproval }) {
             {approval.respondedAt ? (
               <span>Responded {formatShortDate(approval.respondedAt)}</span>
             ) : null}
+            <span>
+              {approval.viewedAt
+                ? `Viewed ${formatRelativeTime(approval.viewedAt)}`
+                : "Not viewed yet"}
+            </span>
           </div>
         </div>
       </div>

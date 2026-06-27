@@ -1,4 +1,4 @@
-import { CalendarDays, ExternalLink, GitBranch } from "lucide-react";
+import { CalendarDays, ExternalLink, Eye, GitBranch } from "lucide-react";
 import Link from "next/link";
 
 import { PageHeader } from "@/components/shared/page-header";
@@ -7,7 +7,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { PaymentStatusBadge } from "@/features/admin/projects/payment-status-badge";
 import { ProjectStatusBadge } from "@/features/admin/projects/project-status-badge";
 import type { AdminProject } from "@/features/admin/projects/types";
-import { formatCurrencyFromCents, formatShortDate } from "@/lib/format";
+import {
+  formatCurrencyFromCents,
+  formatRelativeTime,
+  formatShortDate,
+} from "@/lib/format";
 
 type ProjectDetailHeaderProps = {
   project: AdminProject;
@@ -35,7 +39,7 @@ export function ProjectDetailHeader({ project }: ProjectDetailHeaderProps) {
                 <PaymentStatusBadge status={project.paymentStatus} />
               </div>
 
-              <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
                 <div className="rounded-lg border border-slate-200 p-4">
                   <p className="text-xs font-medium text-slate-500">Client</p>
                   <p className="mt-2 text-sm font-semibold text-slate-950">
@@ -67,6 +71,18 @@ export function ProjectDetailHeader({ project }: ProjectDetailHeaderProps) {
                   <p className="text-xs font-medium text-slate-500">Paid</p>
                   <p className="mt-2 text-sm font-semibold text-slate-950">
                     {formatCurrencyFromCents(project.paidCents)}
+                  </p>
+                </div>
+
+                <div className="rounded-lg border border-slate-200 p-4">
+                  <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
+                    <Eye className="size-4" />
+                    Client last seen
+                  </div>
+                  <p className="mt-2 text-sm font-semibold text-slate-950">
+                    {project.clientLastSeenAt
+                      ? formatRelativeTime(project.clientLastSeenAt)
+                      : "Not viewed yet"}
                   </p>
                 </div>
               </div>

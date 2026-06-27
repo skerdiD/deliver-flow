@@ -3,7 +3,10 @@ import { notFound } from "next/navigation";
 
 import { PageHeader } from "@/components/shared/page-header";
 import { ClientFilesGrid } from "@/features/client/portal/client-files-grid";
-import { getClientPortalProjectById } from "@/features/client/portal/portal-data";
+import {
+  getClientPortalProjectById,
+  recordClientProjectFileViews,
+} from "@/features/client/portal/portal-data";
 
 export const metadata: Metadata = {
   title: "Files",
@@ -20,6 +23,8 @@ export default async function ClientProjectFilesPage({
   if (!project) {
     notFound();
   }
+
+  await recordClientProjectFileViews(project);
 
   return (
     <div className="space-y-6">

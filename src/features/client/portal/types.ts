@@ -88,6 +88,14 @@ export type ClientPortalApproval = {
   respondedAt?: string | null;
 };
 
+export type ClientPortalActivity = {
+  id: string;
+  actorName: string | null;
+  actorRole: "admin" | "client" | "system";
+  message: string;
+  createdAt: string;
+};
+
 export type ClientPortalProject = {
   id: string;
   name: string;
@@ -111,4 +119,5 @@ export type ClientPortalProject = {
   feedback: ClientPortalFeedback[];
   approvals: ClientPortalApproval[];
   approval: ClientPortalApproval | null;
+  activity: ClientPortalActivity[];
 };

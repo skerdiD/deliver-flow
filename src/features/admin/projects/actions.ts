@@ -37,6 +37,7 @@ import {
   type TaskFormValues,
   type UpdateFormValues,
 } from "@/features/admin/projects/project-validation";
+import { logProjectActivity } from "@/features/projects/activity";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireRole } from "@/lib/supabase/auth";
 
@@ -106,6 +107,10 @@ function normalizeFileName(fileName: string) {
   return fileName.replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/-+/g, "-");
 }
 
+function getActorName(profile: { full_name: string | null; email: string }) {
+  return profile.full_name?.trim() || profile.email;
+}
+
 function revalidateProjectWorkflow(projectId: string) {
   revalidatePath(routes.admin.projects);
   revalidatePath(`${routes.admin.projects}/${projectId}`);
@@ -122,7 +127,7 @@ function revalidateProjectWorkflow(projectId: string) {
 export async function createProjectAction(
   values: ProjectFormValues,
 ): Promise<ProjectActionResult> {
-  await requireRole("admin");
+  const adminProfile = await requireRole("admin");
 
   const parsed = projectFormSchema.safeParse(values);
 
@@ -135,6 +140,20 @@ export async function createProjectAction(
 
   try {
     const project = await createAdminProject(parsed.data);
+
+    await logProjectActivity({
+      projectId: project.id,
+      actorId: adminProfile.id,
+      actorName: getActorName(adminProfile),
+      actorRole: "admin",
+      type: "project_created",
+      message: "Project created.",
+      metadata: {
+        projectName: project.name,
+        clientName: project.client.name,
+        clientCompany: project.client.company,
+      },
+    });
 
     revalidatePath("/admin/projects");
 
@@ -204,7 +223,7 @@ export async function updateProjectProgressAction(
   id: string,
   values: ProgressFormValues,
 ): Promise<ProjectActionResult> {
-  await requireRole("admin");
+  const adminProfile = await requireRole("admin");
 
   const idParsed = projectIdActionSchema.safeParse({ projectId: id });
   if (!idParsed.success) {
@@ -231,6 +250,19 @@ export async function updateProjectProgressAction(
       message: "Project not found.",
     };
   }
+
+  await logProjectActivity({
+    projectId: idParsed.data.projectId,
+    actorId: adminProfile.id,
+    actorName: getActorName(adminProfile),
+    actorRole: "admin",
+    type: "project_progress_updated",
+    message: `Project progress updated to ${parsed.data.progress}%.`,
+    metadata: {
+      progress: parsed.data.progress,
+      status: parsed.data.status,
+    },
+  });
 
   revalidatePath(`/admin/projects/${idParsed.data.projectId}`);
 
@@ -315,7 +347,7 @@ export async function addMilestoneAction(
   projectId: string,
   values: MilestoneFormValues,
 ): Promise<ProjectActionResult> {
-  await requireRole("admin");
+  const adminProfile = await requireRole("admin");
 
   const idParsed = projectIdActionSchema.safeParse({ projectId });
   if (!idParsed.success) {
@@ -346,6 +378,18 @@ export async function addMilestoneAction(
     };
   }
 
+  await logProjectActivity({
+    projectId: idParsed.data.projectId,
+    actorId: adminProfile.id,
+    actorName: getActorName(adminProfile),
+    actorRole: "admin",
+    type: "milestone_added",
+    message: `Milestone added: ${parsed.data.title}.`,
+    metadata: {
+      milestoneTitle: parsed.data.title,
+    },
+  });
+
   revalidatePath(`/admin/projects/${idParsed.data.projectId}`);
 
   return {
@@ -359,7 +403,7 @@ export async function markMilestoneCompleteAction(
   projectId: string,
   milestoneId: string,
 ): Promise<ProjectActionResult> {
-  await requireRole("admin");
+  const adminProfile = await requireRole("admin");
 
   const parsed = projectItemActionSchema.safeParse({
     projectId,
@@ -373,10 +417,30 @@ export async function markMilestoneCompleteAction(
     };
   }
 
-  await markProjectMilestoneComplete(
+  const milestone = await markProjectMilestoneComplete(
     parsed.data.projectId,
     parsed.data.itemId,
   );
+
+  if (!milestone) {
+    return {
+      success: false,
+      message: "Milestone not found.",
+    };
+  }
+
+  await logProjectActivity({
+    projectId: parsed.data.projectId,
+    actorId: adminProfile.id,
+    actorName: getActorName(adminProfile),
+    actorRole: "admin",
+    type: "milestone_completed",
+    message: `Milestone completed: ${milestone.title}.`,
+    metadata: {
+      milestoneId: milestone.id,
+      milestoneTitle: milestone.title,
+    },
+  });
 
   revalidatePath(`/admin/projects/${parsed.data.projectId}`);
 
@@ -391,7 +455,7 @@ export async function addUpdateAction(
   projectId: string,
   values: UpdateFormValues,
 ): Promise<ProjectActionResult> {
-  await requireRole("admin");
+  const adminProfile = await requireRole("admin");
 
   const idParsed = projectIdActionSchema.safeParse({ projectId });
   if (!idParsed.success) {
@@ -418,6 +482,18 @@ export async function addUpdateAction(
       message: "Project not found.",
     };
   }
+
+  await logProjectActivity({
+    projectId: idParsed.data.projectId,
+    actorId: adminProfile.id,
+    actorName: getActorName(adminProfile),
+    actorRole: "admin",
+    type: "project_update_added",
+    message: `Project update posted: ${parsed.data.title}.`,
+    metadata: {
+      updateTitle: parsed.data.title,
+    },
+  });
 
   revalidatePath(`/admin/projects/${idParsed.data.projectId}`);
 
@@ -484,15 +560,21 @@ export async function requestProjectApprovalAction(
     }
   }
 
-  await db.transaction(async (tx) => {
-    await tx.insert(approvals).values({
-      projectId: projectIdParsed.data,
-      milestoneId: parsed.data.milestoneId || null,
-      title: parsed.data.title,
-      description: parsed.data.description,
-      status: "pending",
-      requestedBy: adminProfile.id,
-    });
+  const createdApproval = await db.transaction(async (tx) => {
+    const [approval] = await tx
+      .insert(approvals)
+      .values({
+        projectId: projectIdParsed.data,
+        milestoneId: parsed.data.milestoneId || null,
+        title: parsed.data.title,
+        description: parsed.data.description,
+        status: "pending",
+        requestedBy: adminProfile.id,
+      })
+      .returning({
+        id: approvals.id,
+        title: approvals.title,
+      });
 
     if (parsed.data.milestoneId) {
       await tx
@@ -508,6 +590,22 @@ export async function requestProjectApprovalAction(
           ),
         );
     }
+
+    return approval;
+  });
+
+  await logProjectActivity({
+    projectId: projectIdParsed.data,
+    actorId: adminProfile.id,
+    actorName: getActorName(adminProfile),
+    actorRole: "admin",
+    type: "approval_requested",
+    message: `Approval requested: ${createdApproval.title}.`,
+    metadata: {
+      approvalId: createdApproval.id,
+      approvalTitle: createdApproval.title,
+      milestoneId: parsed.data.milestoneId || null,
+    },
   });
 
   revalidateProjectWorkflow(projectIdParsed.data);
@@ -523,7 +621,7 @@ export async function addProjectPaymentAction(
   projectId: string,
   values: ProjectPaymentValues,
 ): Promise<ProjectActionResult> {
-  await requireRole("admin");
+  const adminProfile = await requireRole("admin");
   const projectIdParsed = uuidSchema.safeParse(projectId);
 
   if (!projectIdParsed.success) {
@@ -544,13 +642,33 @@ export async function addProjectPaymentAction(
 
   const amountCents = Math.round(parsed.data.amountDollars * 100);
 
-  await db.insert(payments).values({
+  const [payment] = await db
+    .insert(payments)
+    .values({
+      projectId: projectIdParsed.data,
+      amountCents,
+      status: parsed.data.status,
+      dueDate: parsed.data.dueDate || null,
+      paidAt: parsed.data.status === "paid" ? new Date() : null,
+      notes: parsed.data.notes?.trim() || null,
+    })
+    .returning({
+      id: payments.id,
+      status: payments.status,
+    });
+
+  await logProjectActivity({
     projectId: projectIdParsed.data,
-    amountCents,
-    status: parsed.data.status,
-    dueDate: parsed.data.dueDate || null,
-    paidAt: parsed.data.status === "paid" ? new Date() : null,
-    notes: parsed.data.notes?.trim() || null,
+    actorId: adminProfile.id,
+    actorName: getActorName(adminProfile),
+    actorRole: "admin",
+    type: "payment_created",
+    message: "Payment record created.",
+    metadata: {
+      paymentId: payment.id,
+      status: payment.status,
+      amountCents,
+    },
   });
 
   revalidateProjectWorkflow(projectIdParsed.data);
@@ -567,7 +685,7 @@ export async function updateProjectPaymentStatusAction(input: {
   paymentId: string;
   status: "unpaid" | "partial" | "paid" | "overdue";
 }): Promise<ProjectActionResult> {
-  await requireRole("admin");
+  const adminProfile = await requireRole("admin");
 
   const parsed = paymentStatusSchema.safeParse(input);
 
@@ -577,6 +695,17 @@ export async function updateProjectPaymentStatusAction(input: {
       message: "Payment request is invalid.",
     };
   }
+
+  const [paymentBeforeUpdate] = await db
+    .select({ status: payments.status })
+    .from(payments)
+    .where(
+      and(
+        eq(payments.id, parsed.data.paymentId),
+        eq(payments.projectId, parsed.data.projectId),
+      ),
+    )
+    .limit(1);
 
   const [payment] = await db
     .update(payments)
@@ -599,6 +728,22 @@ export async function updateProjectPaymentStatusAction(input: {
       message: "Payment not found.",
     };
   }
+
+  await logProjectActivity({
+    projectId: parsed.data.projectId,
+    actorId: adminProfile.id,
+    actorName: getActorName(adminProfile),
+    actorRole: "admin",
+    type: "payment_status_updated",
+    message: `Payment status changed from ${
+      paymentBeforeUpdate?.status ?? "unknown"
+    } to ${parsed.data.status}.`,
+    metadata: {
+      paymentId: payment.id,
+      previousStatus: paymentBeforeUpdate?.status ?? null,
+      status: parsed.data.status,
+    },
+  });
 
   revalidateProjectWorkflow(parsed.data.projectId);
 
@@ -659,16 +804,38 @@ export async function uploadProjectFileAction(
     };
   }
 
-  await db.insert(projectFiles).values({
+  const [createdFile] = await db
+    .insert(projectFiles)
+    .values({
+      projectId: projectIdParsed.data,
+      uploadedBy: adminProfile.id,
+      fileName: file.name,
+      bucketName: "project-files",
+      storagePath,
+      fileType: file.type || "application/octet-stream",
+      fileSize: file.size,
+      category: categoryParsed.data,
+      isVisibleToClient: visibleToClient,
+    })
+    .returning({
+      id: projectFiles.id,
+      fileName: projectFiles.fileName,
+      category: projectFiles.category,
+    });
+
+  await logProjectActivity({
     projectId: projectIdParsed.data,
-    uploadedBy: adminProfile.id,
-    fileName: file.name,
-    bucketName: "project-files",
-    storagePath,
-    fileType: file.type || "application/octet-stream",
-    fileSize: file.size,
-    category: categoryParsed.data,
-    isVisibleToClient: visibleToClient,
+    actorId: adminProfile.id,
+    actorName: getActorName(adminProfile),
+    actorRole: "admin",
+    type: "file_uploaded",
+    message: `File uploaded: ${createdFile.fileName}.`,
+    metadata: {
+      fileId: createdFile.id,
+      fileName: createdFile.fileName,
+      category: createdFile.category,
+      isVisibleToClient: visibleToClient,
+    },
   });
 
   revalidateProjectWorkflow(projectIdParsed.data);

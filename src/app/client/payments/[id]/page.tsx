@@ -3,7 +3,10 @@ import { notFound } from "next/navigation";
 
 import { PageHeader } from "@/components/shared/page-header";
 import { ClientPaymentSummary } from "@/features/client/portal/client-payment-summary";
-import { getClientPortalProjectById } from "@/features/client/portal/portal-data";
+import {
+  getClientPortalProjectById,
+  recordClientProjectPaymentViews,
+} from "@/features/client/portal/portal-data";
 
 export const metadata: Metadata = {
   title: "Payments",
@@ -20,6 +23,8 @@ export default async function ClientProjectPaymentsPage({
   if (!project) {
     notFound();
   }
+
+  await recordClientProjectPaymentViews(project);
 
   return (
     <div className="space-y-6">

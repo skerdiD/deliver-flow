@@ -27,6 +27,7 @@ import type {
 } from "@/features/admin/projects/types";
 import {
   formatCurrencyFromCents,
+  formatRelativeTime,
   formatShortDate,
 } from "@/lib/format";
 
@@ -200,6 +201,11 @@ export function ProjectPaymentsCard({
                     </p>
                     <p className="mt-2 text-sm leading-6 text-slate-600">
                       {payment.notes ?? "No note added."}
+                    </p>
+                    <p className="mt-2 text-xs text-slate-500">
+                      {payment.viewedAt
+                        ? `Viewed ${formatRelativeTime(payment.viewedAt)}`
+                        : "Not viewed yet"}
                     </p>
                   </div>
 

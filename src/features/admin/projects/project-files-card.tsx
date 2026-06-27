@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { uploadProjectFileAction } from "@/features/admin/projects/actions";
 import type { AdminProjectFile } from "@/features/admin/projects/types";
-import { formatShortDate } from "@/lib/format";
+import { formatRelativeTime, formatShortDate } from "@/lib/format";
 
 type ProjectFilesCardProps = {
   projectId: string;
@@ -141,6 +141,11 @@ export function ProjectFilesCard({ projectId, files }: ProjectFilesCardProps) {
                   </p>
                   <p className="mt-2 break-all text-xs text-slate-500">
                     {file.bucketName}/{file.storagePath}
+                  </p>
+                  <p className="mt-2 text-xs text-slate-500">
+                    {file.viewedAt
+                      ? `Viewed ${formatRelativeTime(file.viewedAt)}`
+                      : "Not viewed yet"}
                   </p>
                 </div>
 

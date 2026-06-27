@@ -23,6 +23,15 @@ export type AdminApprovalStatus =
 
 export type AdminFeedbackStatus = "open" | "reviewed" | "resolved";
 
+export type AdminProjectActivity = {
+  id: string;
+  actorName: string | null;
+  actorRole: "admin" | "client" | "system";
+  type: string;
+  message: string;
+  createdAt: string;
+};
+
 export type AdminProjectClient = {
   id: string;
   name: string;
@@ -56,6 +65,7 @@ export type AdminProjectUpdate = {
   body: string;
   createdAt: string;
   isVisibleToClient?: boolean;
+  viewedAt?: string | null;
 };
 
 export type AdminProjectFeedback = {
@@ -75,6 +85,7 @@ export type AdminProjectApproval = {
   responseNote?: string | null;
   requestedAt: string;
   respondedAt?: string | null;
+  viewedAt?: string | null;
 };
 
 export type AdminProjectFile = {
@@ -87,6 +98,7 @@ export type AdminProjectFile = {
   storagePath: string;
   isVisibleToClient: boolean;
   createdAt: string;
+  viewedAt?: string | null;
 };
 
 export type AdminProjectPayment = {
@@ -97,6 +109,7 @@ export type AdminProjectPayment = {
   dueDate: string | null;
   paidAt: string | null;
   notes: string | null;
+  viewedAt?: string | null;
 };
 
 export type AdminProject = {
@@ -120,5 +133,7 @@ export type AdminProject = {
   feedback: AdminProjectFeedback[];
   approvals?: AdminProjectApproval[];
   approval: AdminProjectApproval;
+  activity: AdminProjectActivity[];
+  clientLastSeenAt: string | null;
   createdAt: string;
 };

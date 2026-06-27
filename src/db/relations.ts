@@ -8,10 +8,12 @@ import {
   milestones,
   payments,
   profiles,
+  projectActivity,
   projectAssignments,
   projectFiles,
   projects,
   projectUpdates,
+  projectViewEvents,
   tasks,
 } from "@/db/schema";
 
@@ -46,6 +48,12 @@ export const profilesRelations = relations(profiles, ({ many }) => ({
   uploadedFiles: many(projectFiles, {
     relationName: "fileUploader",
   }),
+  projectActivity: many(projectActivity, {
+    relationName: "activityActor",
+  }),
+  projectViewEvents: many(projectViewEvents, {
+    relationName: "viewEventUser",
+  }),
   sentClientInvitations: many(clientInvitations, {
     relationName: "clientInvitationSender",
   }),
@@ -68,6 +76,7 @@ export const clientsRelations = relations(clients, ({ one, many }) => ({
   projectAssignments: many(projectAssignments),
   feedback: many(feedback),
   invitations: many(clientInvitations),
+  viewEvents: many(projectViewEvents),
 }));
 
 export const clientInvitationsRelations = relations(
@@ -104,7 +113,43 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   approvals: many(approvals),
   payments: many(payments),
   files: many(projectFiles),
+  activity: many(projectActivity),
+  viewEvents: many(projectViewEvents),
 }));
+
+export const projectActivityRelations = relations(
+  projectActivity,
+  ({ one }) => ({
+    project: one(projects, {
+      fields: [projectActivity.projectId],
+      references: [projects.id],
+    }),
+    actor: one(profiles, {
+      fields: [projectActivity.actorId],
+      references: [profiles.id],
+      relationName: "activityActor",
+    }),
+  }),
+);
+
+export const projectViewEventsRelations = relations(
+  projectViewEvents,
+  ({ one }) => ({
+    project: one(projects, {
+      fields: [projectViewEvents.projectId],
+      references: [projects.id],
+    }),
+    client: one(clients, {
+      fields: [projectViewEvents.clientId],
+      references: [clients.id],
+    }),
+    user: one(profiles, {
+      fields: [projectViewEvents.userId],
+      references: [profiles.id],
+      relationName: "viewEventUser",
+    }),
+  }),
+);
 
 export const projectAssignmentsRelations = relations(
   projectAssignments,

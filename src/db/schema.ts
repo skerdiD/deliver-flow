@@ -5,6 +5,7 @@ import {
   date,
   index,
   integer,
+  json,
   pgEnum,
   pgSchema,
   pgTable,
@@ -99,6 +100,19 @@ export const projectFileCategoryEnum = pgEnum("project_file_category", [
   "invoice",
   "deliverable",
   "other",
+]);
+
+export const projectActivityActorRoleEnum = pgEnum(
+  "project_activity_actor_role",
+  ["admin", "client", "system"],
+);
+
+export const projectViewTargetTypeEnum = pgEnum("project_view_target_type", [
+  "project",
+  "update",
+  "file",
+  "approval",
+  "payment",
 ]);
 
 export const profiles = pgTable("profiles", {
@@ -261,6 +275,82 @@ export const projectAssignments = pgTable(
     clientAssignedAtIdx: index("project_assignments_client_assigned_at_idx").on(
       table.clientId,
       table.assignedAt,
+    ),
+  }),
+);
+
+export const projectActivity = pgTable(
+  "project_activity",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    actorId: uuid("actor_id").references(() => profiles.id, {
+      onDelete: "set null",
+    }),
+    actorName: text("actor_name"),
+    actorRole: projectActivityActorRoleEnum("actor_role")
+      .notNull()
+      .default("system"),
+    type: text("type").notNull(),
+    message: text("message").notNull(),
+    metadata: json("metadata"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    projectCreatedAtIdx: index("project_activity_project_created_at_idx").on(
+      table.projectId,
+      table.createdAt,
+    ),
+    actorIdIdx: index("project_activity_actor_id_idx").on(table.actorId),
+    typeIdx: index("project_activity_type_idx").on(table.type),
+  }),
+);
+
+export const projectViewEvents = pgTable(
+  "project_view_events",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    clientId: uuid("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").references(() => profiles.id, {
+      onDelete: "set null",
+    }),
+    targetType: projectViewTargetTypeEnum("target_type").notNull(),
+    targetId: uuid("target_id"),
+    viewedAt: timestamp("viewed_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    uniqueClientTarget: unique("project_view_events_client_target_unique").on(
+      table.projectId,
+      table.clientId,
+      table.targetType,
+      table.targetId,
+    ),
+    projectViewedAtIdx: index("project_view_events_project_viewed_at_idx").on(
+      table.projectId,
+      table.viewedAt,
+    ),
+    clientViewedAtIdx: index("project_view_events_client_viewed_at_idx").on(
+      table.clientId,
+      table.viewedAt,
+    ),
+    targetIdx: index("project_view_events_target_idx").on(
+      table.targetType,
+      table.targetId,
     ),
   }),
 );
@@ -565,6 +655,12 @@ export type NewProject = typeof projects.$inferInsert;
 
 export type ProjectAssignment = typeof projectAssignments.$inferSelect;
 export type NewProjectAssignment = typeof projectAssignments.$inferInsert;
+
+export type ProjectActivity = typeof projectActivity.$inferSelect;
+export type NewProjectActivity = typeof projectActivity.$inferInsert;
+
+export type ProjectViewEvent = typeof projectViewEvents.$inferSelect;
+export type NewProjectViewEvent = typeof projectViewEvents.$inferInsert;
 
 export type Milestone = typeof milestones.$inferSelect;
 export type NewMilestone = typeof milestones.$inferInsert;

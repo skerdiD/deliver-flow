@@ -7,10 +7,12 @@ import {
   feedback,
   milestones,
   payments,
+  projectActivity,
   projectAssignments,
   projectFiles,
   projects,
   projectUpdates,
+  projectViewEvents,
   tasks,
 } from "@/db/schema";
 import type {
@@ -18,6 +20,7 @@ import type {
   AdminMilestoneStatus,
   AdminPaymentStatus,
   AdminProject,
+  AdminProjectActivity,
   AdminProjectApproval,
   AdminProjectClient,
   AdminProjectFeedback,
@@ -86,6 +89,18 @@ function derivePaymentStatus(projectPayments: AdminProjectPayment[]) {
   return "unpaid";
 }
 
+function getViewKey(targetType: string, targetId: string | null) {
+  return `${targetType}:${targetId ?? ""}`;
+}
+
+function getViewedAt(
+  viewMap: Map<string, string>,
+  targetType: string,
+  targetId: string,
+) {
+  return viewMap.get(getViewKey(targetType, targetId)) ?? null;
+}
+
 function mapApproval(row: {
   id: string;
   title: string;
@@ -134,6 +149,8 @@ async function getProjectParts(projectId: string) {
     projectPayments,
     projectFeedback,
     projectApprovals,
+    projectActivityRows,
+    projectViewRows,
   ] = await Promise.all([
     db
       .select({
@@ -226,7 +243,39 @@ async function getProjectParts(projectId: string) {
       .leftJoin(milestones, eq(approvals.milestoneId, milestones.id))
       .where(eq(approvals.projectId, projectId))
       .orderBy(desc(approvals.requestedAt)),
+    db
+      .select({
+        id: projectActivity.id,
+        actorName: projectActivity.actorName,
+        actorRole: projectActivity.actorRole,
+        type: projectActivity.type,
+        message: projectActivity.message,
+        createdAt: projectActivity.createdAt,
+      })
+      .from(projectActivity)
+      .where(eq(projectActivity.projectId, projectId))
+      .orderBy(desc(projectActivity.createdAt))
+      .limit(30),
+    db
+      .select({
+        targetType: projectViewEvents.targetType,
+        targetId: projectViewEvents.targetId,
+        viewedAt: projectViewEvents.viewedAt,
+      })
+      .from(projectViewEvents)
+      .where(eq(projectViewEvents.projectId, projectId))
+      .orderBy(desc(projectViewEvents.viewedAt)),
   ]);
+
+  const viewMap = new Map<string, string>();
+
+  for (const view of projectViewRows) {
+    const key = getViewKey(view.targetType, view.targetId);
+
+    if (!viewMap.has(key)) {
+      viewMap.set(key, toIsoString(view.viewedAt));
+    }
+  }
 
   const mappedPayments: AdminProjectPayment[] = projectPayments.map((payment) => ({
     id: payment.id,
@@ -236,9 +285,24 @@ async function getProjectParts(projectId: string) {
     dueDate: payment.dueDate,
     paidAt: payment.paidAt ? toIsoString(payment.paidAt) : null,
     notes: payment.notes,
+    viewedAt: getViewedAt(viewMap, "payment", payment.id),
   }));
 
-  const mappedApprovals = projectApprovals.map(mapApproval);
+  const mappedApprovals = projectApprovals.map((approval) => ({
+    ...mapApproval(approval),
+    viewedAt: getViewedAt(viewMap, "approval", approval.id),
+  }));
+
+  const mappedActivity: AdminProjectActivity[] = projectActivityRows.map(
+    (activity) => ({
+      id: activity.id,
+      actorName: activity.actorName,
+      actorRole: activity.actorRole,
+      type: activity.type,
+      message: activity.message,
+      createdAt: toIsoString(activity.createdAt),
+    }),
+  );
 
   return {
     milestones: projectMilestones.map(
@@ -273,6 +337,7 @@ async function getProjectParts(projectId: string) {
         body: update.body,
         createdAt: toIsoString(update.createdAt),
         isVisibleToClient: update.isVisibleToClient,
+        viewedAt: getViewedAt(viewMap, "update", update.id),
       }),
     ),
     files: files.map(
@@ -286,6 +351,7 @@ async function getProjectParts(projectId: string) {
         storagePath: file.storagePath,
         isVisibleToClient: file.isVisibleToClient,
         createdAt: toIsoString(file.createdAt),
+        viewedAt: getViewedAt(viewMap, "file", file.id),
       }),
     ),
     payments: mappedPayments,
@@ -299,6 +365,8 @@ async function getProjectParts(projectId: string) {
       }),
     ),
     approvals: mappedApprovals,
+    activity: mappedActivity,
+    clientLastSeenAt: getViewedAt(viewMap, "project", projectId),
   };
 }
 
@@ -357,6 +425,8 @@ async function mapProject(row: {
     feedback: parts.feedback,
     approvals: parts.approvals,
     approval: parts.approvals[0] ?? defaultApproval,
+    activity: parts.activity,
+    clientLastSeenAt: parts.clientLastSeenAt,
     createdAt: toIsoString(row.createdAt),
   };
 }
@@ -683,13 +753,19 @@ export async function markProjectMilestoneComplete(
   projectId: string,
   milestoneId: string,
 ) {
-  await db
+  const [milestone] = await db
     .update(milestones)
     .set({
       status: "completed",
       updatedAt: new Date(),
     })
-    .where(and(eq(milestones.id, milestoneId), eq(milestones.projectId, projectId)));
+    .where(and(eq(milestones.id, milestoneId), eq(milestones.projectId, projectId)))
+    .returning({
+      id: milestones.id,
+      title: milestones.title,
+    });
+
+  return milestone ?? null;
 }
 
 export async function addProjectUpdate(

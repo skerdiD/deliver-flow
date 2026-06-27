@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ApprovalStatusCard } from "@/features/admin/projects/approval-status-card";
 import { ProjectDeliveryOverview } from "@/features/admin/projects/project-delivery-overview";
 import { ProjectDetailHeader } from "@/features/admin/projects/project-detail-header";
+import { ProjectActivityTimeline } from "@/features/admin/projects/project-activity-timeline";
 import { ProjectFeedbackPreview } from "@/features/admin/projects/project-feedback-preview";
 import { ProjectFilesCard } from "@/features/admin/projects/project-files-card";
 import { ProjectMilestonesCard } from "@/features/admin/projects/project-milestones-card";
@@ -90,6 +91,8 @@ export default async function ProjectDetailPage({
             projectId={project.id}
             payments={project.payments ?? []}
           />
+
+          <ProjectActivityTimeline activity={project.activity} />
         </div>
       </div>
     </div>

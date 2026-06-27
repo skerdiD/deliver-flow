@@ -11,6 +11,7 @@ import {
   projects,
 } from "@/db/schema";
 import { getFileDownloadAccessDecision } from "@/app/api/client/files/[fileId]/download/access-policy";
+import { recordClientViewEvent } from "@/features/projects/activity";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getCurrentProfile } from "@/lib/supabase/auth";
 
@@ -84,6 +85,9 @@ export async function GET(
 
   const [file] = await db
     .select({
+      id: projectFiles.id,
+      projectId: projectFiles.projectId,
+      clientId: clients.id,
       fileName: projectFiles.fileName,
       bucketName: projectFiles.bucketName,
       storagePath: projectFiles.storagePath,
@@ -140,6 +144,19 @@ export async function GET(
 
     return jsonError("File download is temporarily unavailable.", 502);
   }
+
+  await recordClientViewEvent({
+    projectId: file.projectId,
+    clientId: file.clientId,
+    userId: profile.id,
+    actorName: profile.full_name?.trim() || profile.email,
+    targetType: "file",
+    targetId: file.id,
+    message: `Client viewed deliverable: ${file.fileName}.`,
+    metadata: {
+      fileName: file.fileName,
+    },
+  });
 
   return NextResponse.redirect(data.signedUrl, {
     status: 302,

@@ -3,12 +3,16 @@ import { notFound } from "next/navigation";
 
 import { PageHeader } from "@/components/shared/page-header";
 import { ApprovalActionsCard } from "@/features/client/portal/approval-actions-card";
+import { ClientActivityCard } from "@/features/client/portal/client-activity-card";
 import { ClientProjectOverview } from "@/features/client/portal/client-project-overview";
 import { ClientTasksCard } from "@/features/client/portal/client-tasks-card";
 import { ClientTimelineCard } from "@/features/client/portal/client-timeline-card";
 import { ClientUpdatesCard } from "@/features/client/portal/client-updates-card";
 import { FeedbackForm } from "@/features/client/portal/feedback-form";
-import { getClientPortalProjectById } from "@/features/client/portal/portal-data";
+import {
+  getClientPortalProjectById,
+  recordClientProjectDetailViews,
+} from "@/features/client/portal/portal-data";
 
 export const metadata: Metadata = {
   title: "Project",
@@ -25,6 +29,8 @@ export default async function ClientProjectDetailPage({
   if (!project) {
     notFound();
   }
+
+  await recordClientProjectDetailViews(project);
 
   return (
     <div className="space-y-6">
@@ -48,6 +54,8 @@ export default async function ClientProjectDetailPage({
             projectId={project.id}
             approvals={project.approvals}
           />
+
+          <ClientActivityCard activity={project.activity} />
         </div>
       </div>
 

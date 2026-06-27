@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { formatShortDate } from "@/lib/format";
+import { formatRelativeTime, formatShortDate } from "@/lib/format";
 
 type ProjectUpdatesCardProps = {
   projectId: string;
@@ -161,6 +161,12 @@ export function ProjectUpdatesCard({
 
               <p className="mt-3 text-sm leading-6 text-slate-600">
                 {update.body}
+              </p>
+
+              <p className="mt-3 text-xs text-slate-500">
+                {update.viewedAt
+                  ? `Viewed ${formatRelativeTime(update.viewedAt)}`
+                  : "Not viewed yet"}
               </p>
             </div>
           ))}

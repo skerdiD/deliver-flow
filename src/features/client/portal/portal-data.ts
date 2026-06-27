@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, desc, eq, ne } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, ne } from "drizzle-orm";
 import { cache } from "react";
 
 import { db } from "@/db";
@@ -10,6 +10,7 @@ import {
   feedback,
   milestones,
   payments,
+  projectActivity,
   projectAssignments,
   projectFiles,
   projects,
@@ -20,6 +21,7 @@ import type {
   ClientApprovalStatus,
   ClientPaymentStatus,
   ClientPortalApproval,
+  ClientPortalActivity,
   ClientPortalFeedback,
   ClientPortalFile,
   ClientPortalPayment,
@@ -28,6 +30,10 @@ import type {
   ClientPortalUpdate,
 } from "@/features/client/portal/types";
 import { clientProjectIdSchema } from "@/features/client/portal/portal-validation";
+import {
+  recordClientViewEvent,
+  type ProjectViewTargetType,
+} from "@/features/projects/activity";
 import { requireRole } from "@/lib/supabase/auth";
 import type { Profile, ProjectStatus } from "@/types/database";
 
@@ -171,6 +177,10 @@ function toIsoString(value: Date | string): string {
   return new Date(value).toISOString();
 }
 
+function getProfileDisplayName(profile: Profile) {
+  return profile.full_name?.trim() || profile.email;
+}
+
 function mapApprovalRowToPortalApproval(row: {
   id: string;
   title: string;
@@ -283,6 +293,7 @@ async function buildClientPortalProject(
     projectFilesList,
     projectFeedback,
     projectApprovals,
+    projectActivityRows,
   ] = await Promise.all([
     db
       .select({
@@ -395,6 +406,33 @@ async function buildClientPortalProject(
       .leftJoin(milestones, eq(approvals.milestoneId, milestones.id))
       .where(eq(approvals.projectId, assignment.projectId))
       .orderBy(desc(approvals.requestedAt)),
+    db
+      .select({
+        id: projectActivity.id,
+        actorName: projectActivity.actorName,
+        actorRole: projectActivity.actorRole,
+        message: projectActivity.message,
+        createdAt: projectActivity.createdAt,
+      })
+      .from(projectActivity)
+      .where(
+        and(
+          eq(projectActivity.projectId, assignment.projectId),
+          inArray(projectActivity.type, [
+            "project_created",
+            "project_update_added",
+            "approval_requested",
+            "approval_approved",
+            "changes_requested",
+            "milestone_completed",
+            "file_uploaded",
+            "payment_created",
+            "payment_status_updated",
+          ]),
+        ),
+      )
+      .orderBy(desc(projectActivity.createdAt))
+      .limit(12),
   ]);
 
   const mappedMilestones = projectMilestones.map((milestone) => ({
@@ -473,6 +511,16 @@ async function buildClientPortalProject(
       );
     });
 
+  const mappedActivity: ClientPortalActivity[] = projectActivityRows.map(
+    (activity) => ({
+      id: activity.id,
+      actorName: activity.actorName,
+      actorRole: activity.actorRole,
+      message: activity.message,
+      createdAt: toIsoString(activity.createdAt),
+    }),
+  );
+
   const totalAmountCents = mappedPayments.reduce(
     (sum, payment) => sum + payment.amountCents,
     0,
@@ -519,6 +567,7 @@ async function buildClientPortalProject(
     feedback: mappedFeedback,
     approvals: mappedApprovals,
     approval: mappedApprovals[0] ?? null,
+    activity: mappedActivity,
   };
 }
 
@@ -701,5 +750,116 @@ export async function respondToClientApproval(input: {
     return null;
   }
 
-  return mapApprovalRowToPortalApproval(updatedApproval);
+  return {
+    ...mapApprovalRowToPortalApproval(updatedApproval),
+    respondedBy: access.profile.id,
+    respondedByName: getProfileDisplayName(access.profile),
+  };
+}
+
+type ClientViewTargetInput = {
+  targetType: ProjectViewTargetType;
+  targetId: string;
+  message?: string;
+  logActivity?: boolean;
+  metadata?: Record<string, string | number | boolean | null>;
+};
+
+async function recordClientProjectTargets(
+  projectId: string,
+  targets: ClientViewTargetInput[],
+) {
+  if (targets.length === 0) {
+    return;
+  }
+
+  const access = await getClientPortalAccess();
+  const assignment = await getClientPortalAssignmentById(
+    access.profile.id,
+    projectId,
+  );
+
+  if (!assignment) {
+    return;
+  }
+
+  const actorName = getProfileDisplayName(access.profile);
+
+  await Promise.all(
+    targets.map((target) =>
+      recordClientViewEvent({
+        projectId: assignment.projectId,
+        clientId: assignment.clientId,
+        userId: access.profile.id,
+        actorName,
+        targetType: target.targetType,
+        targetId: target.targetId,
+        message: target.message,
+        metadata: target.metadata,
+        logActivity: target.logActivity,
+      }),
+    ),
+  );
+}
+
+export async function recordClientProjectDetailViews(
+  project: ClientPortalProject,
+) {
+  await recordClientProjectTargets(project.id, [
+    {
+      targetType: "project",
+      targetId: project.id,
+      message: "Client viewed the project.",
+      logActivity: true,
+    },
+    ...project.updates.map((update) => ({
+      targetType: "update" as const,
+      targetId: update.id,
+      logActivity: false,
+      metadata: {
+        updateTitle: update.title,
+      },
+    })),
+    ...project.approvals.map((approval) => ({
+      targetType: "approval" as const,
+      targetId: approval.id,
+      message: `Client viewed approval request: ${approval.title}.`,
+      logActivity: true,
+      metadata: {
+        approvalTitle: approval.title,
+      },
+    })),
+  ]);
+}
+
+export async function recordClientProjectFileViews(
+  project: ClientPortalProject,
+) {
+  await recordClientProjectTargets(
+    project.id,
+    project.files.map((file) => ({
+      targetType: "file" as const,
+      targetId: file.id,
+      logActivity: false,
+      metadata: {
+        fileName: file.name,
+      },
+    })),
+  );
+}
+
+export async function recordClientProjectPaymentViews(
+  project: ClientPortalProject,
+) {
+  await recordClientProjectTargets(
+    project.id,
+    project.payments.map((payment) => ({
+      targetType: "payment" as const,
+      targetId: payment.id,
+      logActivity: false,
+      metadata: {
+        paymentLabel: payment.label,
+      },
+    })),
+  );
 }
