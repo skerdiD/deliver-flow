@@ -1,18 +1,65 @@
-import { CheckCircle2 } from "lucide-react";
+"use client";
+
+import { CheckCircle2, Loader2, Send } from "lucide-react";
+import { useState, useTransition } from "react";
 
 import { StatusBadge } from "@/components/shared/status-badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { AdminProjectApproval } from "@/features/admin/projects/types";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { requestProjectApprovalAction } from "@/features/admin/projects/actions";
+import type {
+  AdminProjectApproval,
+  AdminProjectMilestone,
+} from "@/features/admin/projects/types";
 import { formatShortDate } from "@/lib/format";
 
 type ApprovalStatusCardProps = {
+  projectId: string;
+  milestones: AdminProjectMilestone[];
   approvals: AdminProjectApproval[];
 };
 
-export function ApprovalStatusCard({ approvals }: ApprovalStatusCardProps) {
+export function ApprovalStatusCard({
+  projectId,
+  milestones,
+  approvals,
+}: ApprovalStatusCardProps) {
   const pendingCount = approvals.filter(
     (approval) => approval.status === "pending",
   ).length;
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [milestoneId, setMilestoneId] = useState("none");
+  const [resultMessage, setResultMessage] = useState("");
+  const [isPending, startTransition] = useTransition();
+
+  function submitApprovalRequest() {
+    startTransition(async () => {
+      const result = await requestProjectApprovalAction(projectId, {
+        title,
+        description,
+        milestoneId: milestoneId === "none" ? undefined : milestoneId,
+      });
+
+      setResultMessage(result.message);
+
+      if (result.success) {
+        setTitle("");
+        setDescription("");
+        setMilestoneId("none");
+      }
+    });
+  }
 
   return (
     <Card className="rounded-lg border-slate-200 shadow-sm">
@@ -33,6 +80,75 @@ export function ApprovalStatusCard({ approvals }: ApprovalStatusCardProps) {
       </CardHeader>
 
       <CardContent className="space-y-3">
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+          <div className="grid gap-3">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="approval-title">Approval title</Label>
+                <Input
+                  id="approval-title"
+                  value={title}
+                  onChange={(event) => setTitle(event.target.value)}
+                  placeholder="Final deliverable review"
+                  disabled={isPending}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Milestone</Label>
+                <Select
+                  value={milestoneId}
+                  onValueChange={setMilestoneId}
+                  disabled={isPending}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">General approval</SelectItem>
+                    {milestones.map((milestone) => (
+                      <SelectItem key={milestone.id} value={milestone.id}>
+                        {milestone.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="approval-description">Request note</Label>
+              <Textarea
+                id="approval-description"
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                placeholder="Ask the client to review the final deliverable and approve or request changes."
+                className="min-h-24 bg-white"
+                disabled={isPending}
+              />
+            </div>
+
+            {resultMessage ? (
+              <p className="text-sm text-slate-600">{resultMessage}</p>
+            ) : null}
+
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                onClick={submitApprovalRequest}
+                disabled={isPending}
+              >
+                {isPending ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Send className="size-4" />
+                )}
+                Request approval
+              </Button>
+            </div>
+          </div>
+        </div>
+
         {approvals.length === 0 ? (
           <div className="rounded-lg border border-dashed border-slate-300 p-6 text-center">
             <CheckCircle2 className="mx-auto size-6 text-slate-400" />

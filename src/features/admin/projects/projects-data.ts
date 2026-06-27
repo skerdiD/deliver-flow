@@ -1,286 +1,469 @@
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
+
+import { db } from "@/db";
+import {
+  approvals,
+  clients,
+  feedback,
+  milestones,
+  payments,
+  projectAssignments,
+  projectFiles,
+  projects,
+  projectUpdates,
+  tasks,
+} from "@/db/schema";
 import type {
+  AdminApprovalStatus,
   AdminMilestoneStatus,
   AdminPaymentStatus,
   AdminProject,
+  AdminProjectApproval,
   AdminProjectClient,
+  AdminProjectFeedback,
+  AdminProjectFile,
+  AdminProjectMilestone,
+  AdminProjectPayment,
   AdminProjectStatus,
+  AdminProjectTask,
+  AdminProjectUpdate,
   AdminTaskStatus,
 } from "@/features/admin/projects/types";
 
-export const projectClients: AdminProjectClient[] = [
-  {
-    id: "client_nova_agency",
-    name: "Sarah Johnson",
-    company: "Nova Agency",
-    email: "sarah@novaagency.com",
-  },
-  {
-    id: "client_retailco",
-    name: "Michael Chen",
-    company: "RetailCo",
-    email: "michael@retailco.com",
-  },
-  {
-    id: "client_creative_hub",
-    name: "James Rodriguez",
-    company: "Creative Hub",
-    email: "james@creativehub.co",
-  },
-];
+function toIsoString(value: Date | string): string {
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
 
-let projectsStore: AdminProject[] = [
-  {
-    id: "project_agency_redesign",
-    name: "Agency Website Redesign",
-    description:
-      "A focused website redesign for a creative agency, including cleaner messaging, stronger service sections, and a final client approval flow.",
-    client: projectClients[2],
-    status: "waiting_feedback",
-    progress: 90,
-    deadline: "2026-06-25",
-    liveDemoUrl: "https://demo.deliverflow.dev/agency-website-redesign",
-    repositoryUrl: "https://github.com/example/agency-website-redesign",
-    paymentStatus: "paid",
-    budgetCents: 50000,
-    paidCents: 50000,
-    createdAt: "2026-05-28T10:00:00.000Z",
-    milestones: [
-      {
-        id: "milestone_agency_1",
-        title: "Homepage redesign",
-        description: "Hero, services, proof section, and contact CTA updated.",
-        status: "completed",
-        dueDate: "2026-06-04",
-      },
-      {
-        id: "milestone_agency_2",
-        title: "Final design review",
-        description: "Client review before the final handoff.",
-        status: "waiting_approval",
-        dueDate: "2026-06-18",
-      },
-    ],
-    tasks: [
-      {
-        id: "task_agency_1",
-        title: "Update hero copy",
-        description: "Make the main headline more direct and client-focused.",
-        status: "completed",
-        dueDate: "2026-06-02",
-      },
-      {
-        id: "task_agency_2",
-        title: "Prepare final responsive pass",
-        description: "Check tablet and mobile spacing before approval.",
-        status: "in_progress",
-        dueDate: "2026-06-18",
-      },
-    ],
-    updates: [
-      {
-        id: "update_agency_1",
-        title: "Design review is ready",
-        body: "The main homepage sections are updated. The next step is reviewing the CTA section and confirming final changes.",
-        createdAt: "2026-06-07T15:30:00.000Z",
-      },
-    ],
-    feedback: [
-      {
-        id: "feedback_agency_1",
-        clientName: "James Rodriguez",
-        message:
-          "The homepage is much better now. Please make the call-to-action section more direct.",
-        status: "open",
-        createdAt: "2026-06-06T13:00:00.000Z",
-      },
-    ],
-    approval: {
-      id: "approval_agency_1",
-      title: "Agency website design review",
-      status: "changes_requested",
-      milestoneTitle: "Final design review",
-      note: "Client wants the CTA section to be stronger before final approval.",
-      responseNote:
-        "Please make the call-to-action section more direct before final approval.",
-      requestedAt: "2026-06-06T15:30:00.000Z",
-      respondedAt: "2026-06-07T09:15:00.000Z",
-    },
-  },
-  {
-    id: "project_saas_mvp",
-    name: "SaaS Dashboard MVP",
-    description:
-      "A SaaS-style dashboard MVP with authentication, analytics, project tracking, client-facing status, and admin workflows.",
-    client: projectClients[0],
-    status: "in_progress",
-    progress: 68,
-    deadline: "2026-07-15",
-    liveDemoUrl: "https://demo.deliverflow.dev/saas-dashboard-mvp",
-    repositoryUrl: "https://github.com/example/saas-dashboard-mvp",
-    paymentStatus: "partial",
-    budgetCents: 240000,
-    paidCents: 150000,
-    createdAt: "2026-06-01T09:00:00.000Z",
-    milestones: [
-      {
-        id: "milestone_saas_1",
-        title: "Project setup and planning",
-        description: "Repository, app structure, and delivery plan completed.",
-        status: "completed",
-        dueDate: "2026-06-01",
-      },
-      {
-        id: "milestone_saas_2",
-        title: "Frontend dashboard screens",
-        description: "Admin dashboard and project overview screens built.",
-        status: "completed",
-        dueDate: "2026-06-10",
-      },
-      {
-        id: "milestone_saas_3",
-        title: "Backend API integration",
-        description: "Connect dashboard data and protected actions.",
-        status: "in_progress",
-        dueDate: "2026-07-05",
-      },
-    ],
-    tasks: [
-      {
-        id: "task_saas_1",
-        title: "Build dashboard layout",
-        description: "Create the main admin overview and project cards.",
-        status: "completed",
-        dueDate: "2026-06-07",
-      },
-      {
-        id: "task_saas_2",
-        title: "Connect project data layer",
-        description: "Prepare the project queries for Supabase replacement.",
-        status: "in_progress",
-        dueDate: "2026-06-20",
-      },
-      {
-        id: "task_saas_3",
-        title: "Add approval flow",
-        description: "Let clients approve or request changes from their portal.",
-        status: "todo",
-        dueDate: "2026-07-02",
-      },
-    ],
-    updates: [
-      {
-        id: "update_saas_1",
-        title: "Dashboard screens completed",
-        body: "The main dashboard layout is ready. Current work is focused on connecting project data and approval actions.",
-        createdAt: "2026-06-08T10:00:00.000Z",
-      },
-      {
-        id: "update_saas_2",
-        title: "API work started",
-        body: "Project progress, files, updates, and milestones are being prepared for Supabase integration.",
-        createdAt: "2026-06-06T12:00:00.000Z",
-      },
-    ],
-    feedback: [
-      {
-        id: "feedback_saas_1",
-        clientName: "Sarah Johnson",
-        message:
-          "The dashboard looks clean. Please adjust the analytics chart spacing before the next review.",
-        status: "open",
-        createdAt: "2026-06-08T09:30:00.000Z",
-      },
-    ],
-    approval: {
-      id: "approval_saas_1",
-      title: "Frontend development milestone",
-      status: "pending",
-      milestoneTitle: "Frontend dashboard screens",
-      note: "Client needs to review the latest dashboard screens.",
-      requestedAt: "2026-06-08T10:15:00.000Z",
-    },
-  },
-  {
-    id: "project_client_portal",
-    name: "Client Portal Build",
-    description:
-      "A private client portal where customers can check progress, updates, files, approvals, payment status, and feedback.",
-    client: projectClients[1],
-    status: "active",
-    progress: 45,
-    deadline: "2026-08-20",
-    liveDemoUrl: "https://demo.deliverflow.dev/client-portal-build",
-    repositoryUrl: "https://github.com/example/client-portal-build",
-    paymentStatus: "unpaid",
-    budgetCents: 220000,
-    paidCents: 0,
-    createdAt: "2026-06-02T11:30:00.000Z",
-    milestones: [
-      {
-        id: "milestone_portal_1",
-        title: "Authentication and client access",
-        description: "Set up login, roles, and client-only project visibility.",
-        status: "in_progress",
-        dueDate: "2026-07-10",
-      },
-    ],
-    tasks: [
-      {
-        id: "task_portal_1",
-        title: "Create client dashboard shell",
-        description: "Build the main client portal layout and navigation.",
-        status: "completed",
-        dueDate: "2026-06-15",
-      },
-      {
-        id: "task_portal_2",
-        title: "Add files section",
-        description: "Prepare file metadata cards and download actions.",
-        status: "todo",
-        dueDate: "2026-07-14",
-      },
-    ],
-    updates: [
-      {
-        id: "update_portal_1",
-        title: "Client portal structure ready",
-        body: "The base portal layout is ready. Next step is connecting project assignment logic.",
-        createdAt: "2026-06-06T12:00:00.000Z",
-      },
-    ],
-    feedback: [
-      {
-        id: "feedback_portal_1",
-        clientName: "Michael Chen",
-        message:
-          "The portal flow makes sense. Can we make the payment section easier to notice?",
-        status: "reviewed",
-        createdAt: "2026-06-07T16:20:00.000Z",
-      },
-    ],
-    approval: {
-      id: "approval_portal_1",
-      title: "Authentication flow review",
-      status: "pending",
-      milestoneTitle: "Authentication and client access",
-      note: "Waiting for client review after the next demo.",
-      requestedAt: "2026-06-07T11:00:00.000Z",
-    },
-  },
-];
+  return new Date(value).toISOString();
+}
+
+function normalizeProjectStatus(status: string): AdminProjectStatus {
+  if (
+    status === "active" ||
+    status === "in_progress" ||
+    status === "waiting_feedback" ||
+    status === "completed" ||
+    status === "archived"
+  ) {
+    return status;
+  }
+
+  return "active";
+}
+
+function slugify(value: string) {
+  const slug = value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return slug || `project-${Date.now()}`;
+}
+
+function derivePaymentStatus(projectPayments: AdminProjectPayment[]) {
+  if (projectPayments.length === 0) {
+    return "unpaid";
+  }
+
+  if (projectPayments.some((payment) => payment.status === "overdue")) {
+    return "overdue";
+  }
+
+  if (projectPayments.every((payment) => payment.status === "paid")) {
+    return "paid";
+  }
+
+  if (
+    projectPayments.some((payment) => payment.status === "partial") ||
+    (projectPayments.some((payment) => payment.status === "paid") &&
+      projectPayments.some((payment) => payment.status === "unpaid"))
+  ) {
+    return "partial";
+  }
+
+  return "unpaid";
+}
+
+function mapApproval(row: {
+  id: string;
+  title: string;
+  description: string | null;
+  status: AdminApprovalStatus;
+  milestoneTitle: string | null;
+  responseNote: string | null;
+  requestedAt: Date | string;
+  respondedAt: Date | string | null;
+}): AdminProjectApproval {
+  return {
+    id: row.id,
+    title: row.title,
+    status: row.status,
+    note: row.description ?? "Review this work and share your decision.",
+    milestoneTitle: row.milestoneTitle,
+    responseNote: row.responseNote,
+    requestedAt: toIsoString(row.requestedAt),
+    respondedAt: row.respondedAt ? toIsoString(row.respondedAt) : null,
+  };
+}
+
+async function getProjectClient(projectId: string): Promise<AdminProjectClient | null> {
+  const [assignment] = await db
+    .select({
+      id: clients.id,
+      name: clients.contactName,
+      company: clients.companyName,
+      email: clients.email,
+    })
+    .from(projectAssignments)
+    .innerJoin(clients, eq(projectAssignments.clientId, clients.id))
+    .where(eq(projectAssignments.projectId, projectId))
+    .orderBy(desc(projectAssignments.assignedAt))
+    .limit(1);
+
+  return assignment ?? null;
+}
+
+async function getProjectParts(projectId: string) {
+  const [
+    projectMilestones,
+    projectTasks,
+    updates,
+    files,
+    projectPayments,
+    projectFeedback,
+    projectApprovals,
+  ] = await Promise.all([
+    db
+      .select({
+        id: milestones.id,
+        title: milestones.title,
+        description: milestones.description,
+        status: milestones.status,
+        dueDate: milestones.dueDate,
+        position: milestones.position,
+      })
+      .from(milestones)
+      .where(eq(milestones.projectId, projectId))
+      .orderBy(asc(milestones.position), asc(milestones.createdAt)),
+    db
+      .select({
+        id: tasks.id,
+        title: tasks.title,
+        description: tasks.description,
+        status: tasks.status,
+        dueDate: tasks.dueDate,
+        priority: tasks.priority,
+        isVisibleToClient: tasks.isVisibleToClient,
+      })
+      .from(tasks)
+      .where(eq(tasks.projectId, projectId))
+      .orderBy(asc(tasks.position), asc(tasks.createdAt)),
+    db
+      .select({
+        id: projectUpdates.id,
+        title: projectUpdates.title,
+        body: projectUpdates.body,
+        createdAt: projectUpdates.createdAt,
+        isVisibleToClient: projectUpdates.isVisibleToClient,
+      })
+      .from(projectUpdates)
+      .where(eq(projectUpdates.projectId, projectId))
+      .orderBy(desc(projectUpdates.createdAt)),
+    db
+      .select({
+        id: projectFiles.id,
+        fileName: projectFiles.fileName,
+        fileType: projectFiles.fileType,
+        fileSize: projectFiles.fileSize,
+        category: projectFiles.category,
+        bucketName: projectFiles.bucketName,
+        storagePath: projectFiles.storagePath,
+        isVisibleToClient: projectFiles.isVisibleToClient,
+        createdAt: projectFiles.createdAt,
+      })
+      .from(projectFiles)
+      .where(eq(projectFiles.projectId, projectId))
+      .orderBy(desc(projectFiles.createdAt)),
+    db
+      .select({
+        id: payments.id,
+        amountCents: payments.amountCents,
+        currency: payments.currency,
+        status: payments.status,
+        dueDate: payments.dueDate,
+        paidAt: payments.paidAt,
+        notes: payments.notes,
+      })
+      .from(payments)
+      .where(eq(payments.projectId, projectId))
+      .orderBy(asc(payments.dueDate), asc(payments.createdAt)),
+    db
+      .select({
+        id: feedback.id,
+        clientName: clients.contactName,
+        message: feedback.message,
+        status: feedback.status,
+        createdAt: feedback.createdAt,
+      })
+      .from(feedback)
+      .innerJoin(clients, eq(feedback.clientId, clients.id))
+      .where(eq(feedback.projectId, projectId))
+      .orderBy(desc(feedback.createdAt)),
+    db
+      .select({
+        id: approvals.id,
+        title: approvals.title,
+        description: approvals.description,
+        status: approvals.status,
+        milestoneTitle: milestones.title,
+        responseNote: approvals.responseNote,
+        requestedAt: approvals.requestedAt,
+        respondedAt: approvals.respondedAt,
+      })
+      .from(approvals)
+      .leftJoin(milestones, eq(approvals.milestoneId, milestones.id))
+      .where(eq(approvals.projectId, projectId))
+      .orderBy(desc(approvals.requestedAt)),
+  ]);
+
+  const mappedPayments: AdminProjectPayment[] = projectPayments.map((payment) => ({
+    id: payment.id,
+    amountCents: payment.amountCents,
+    currency: payment.currency,
+    status: payment.status,
+    dueDate: payment.dueDate,
+    paidAt: payment.paidAt ? toIsoString(payment.paidAt) : null,
+    notes: payment.notes,
+  }));
+
+  const mappedApprovals = projectApprovals.map(mapApproval);
+
+  return {
+    milestones: projectMilestones.map(
+      (milestone): AdminProjectMilestone => ({
+        id: milestone.id,
+        title: milestone.title,
+        description: milestone.description ?? "No milestone details added.",
+        status: milestone.status as AdminMilestoneStatus,
+        dueDate: milestone.dueDate ?? "",
+        position: milestone.position,
+        approvalStatus:
+          mappedApprovals.find(
+            (approval) => approval.milestoneTitle === milestone.title,
+          )?.status ?? null,
+      }),
+    ),
+    tasks: projectTasks.map(
+      (task): AdminProjectTask => ({
+        id: task.id,
+        title: task.title,
+        description: task.description ?? "No task details added.",
+        status: task.status as AdminTaskStatus,
+        dueDate: task.dueDate ?? "",
+        priority: task.priority,
+        isVisibleToClient: task.isVisibleToClient,
+      }),
+    ),
+    updates: updates.map(
+      (update): AdminProjectUpdate => ({
+        id: update.id,
+        title: update.title,
+        body: update.body,
+        createdAt: toIsoString(update.createdAt),
+        isVisibleToClient: update.isVisibleToClient,
+      }),
+    ),
+    files: files.map(
+      (file): AdminProjectFile => ({
+        id: file.id,
+        fileName: file.fileName,
+        fileType: file.fileType,
+        fileSize: file.fileSize,
+        category: file.category,
+        bucketName: file.bucketName,
+        storagePath: file.storagePath,
+        isVisibleToClient: file.isVisibleToClient,
+        createdAt: toIsoString(file.createdAt),
+      }),
+    ),
+    payments: mappedPayments,
+    feedback: projectFeedback.map(
+      (item): AdminProjectFeedback => ({
+        id: item.id,
+        clientName: item.clientName,
+        message: item.message,
+        status: item.status,
+        createdAt: toIsoString(item.createdAt),
+      }),
+    ),
+    approvals: mappedApprovals,
+  };
+}
+
+async function mapProject(row: {
+  id: string;
+  name: string;
+  description: string | null;
+  status: string;
+  progress: number;
+  deadline: string | null;
+  liveDemoUrl: string | null;
+  repositoryUrl: string | null;
+  createdAt: Date | string;
+}): Promise<AdminProject | null> {
+  const client = await getProjectClient(row.id);
+
+  if (!client) {
+    return null;
+  }
+
+  const parts = await getProjectParts(row.id);
+  const budgetCents = parts.payments.reduce(
+    (sum, payment) => sum + payment.amountCents,
+    0,
+  );
+  const paidCents = parts.payments
+    .filter((payment) => payment.status === "paid")
+    .reduce((sum, payment) => sum + payment.amountCents, 0);
+
+  const defaultApproval: AdminProjectApproval = {
+    id: `approval-empty-${row.id}`,
+    title: "No approval requested",
+    status: "pending",
+    note: "No approval requested yet.",
+    requestedAt: toIsoString(row.createdAt),
+  };
+
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description ?? "No project description added.",
+    client,
+    status: normalizeProjectStatus(row.status),
+    progress: row.progress,
+    deadline: row.deadline ?? "",
+    liveDemoUrl: row.liveDemoUrl ?? "",
+    repositoryUrl: row.repositoryUrl ?? "",
+    paymentStatus: derivePaymentStatus(parts.payments),
+    budgetCents,
+    paidCents,
+    milestones: parts.milestones,
+    tasks: parts.tasks,
+    updates: parts.updates,
+    files: parts.files,
+    payments: parts.payments,
+    feedback: parts.feedback,
+    approvals: parts.approvals,
+    approval: parts.approvals[0] ?? defaultApproval,
+    createdAt: toIsoString(row.createdAt),
+  };
+}
 
 export async function getAdminProjects() {
-  return projectsStore.map(normalizeAdminProject);
+  const rows = await db
+    .select({
+      id: projects.id,
+      name: projects.name,
+      description: projects.description,
+      status: projects.status,
+      progress: projects.progress,
+      deadline: projects.deadline,
+      liveDemoUrl: projects.liveDemoUrl,
+      repositoryUrl: projects.repositoryUrl,
+      createdAt: projects.createdAt,
+    })
+    .from(projects)
+    .orderBy(desc(projects.createdAt));
+
+  const mapped = await Promise.all(rows.map(mapProject));
+
+  return mapped.filter((project): project is AdminProject => Boolean(project));
 }
 
 export async function getAdminProjectById(id: string) {
-  const project = projectsStore.find((item) => item.id === id);
+  const [row] = await db
+    .select({
+      id: projects.id,
+      name: projects.name,
+      description: projects.description,
+      status: projects.status,
+      progress: projects.progress,
+      deadline: projects.deadline,
+      liveDemoUrl: projects.liveDemoUrl,
+      repositoryUrl: projects.repositoryUrl,
+      createdAt: projects.createdAt,
+    })
+    .from(projects)
+    .where(eq(projects.id, id))
+    .limit(1);
 
-  return project ? normalizeAdminProject(project) : null;
+  return row ? mapProject(row) : null;
 }
 
 export async function getProjectClientOptions() {
-  return projectClients;
+  const rows = await db
+    .select({
+      id: clients.id,
+      name: clients.contactName,
+      company: clients.companyName,
+      email: clients.email,
+    })
+    .from(clients)
+    .where(inArray(clients.status, ["active", "inactive"]))
+    .orderBy(asc(clients.companyName), asc(clients.contactName));
+
+  return rows satisfies AdminProjectClient[];
+}
+
+async function replaceProjectPaymentSummary(
+  projectId: string,
+  input: {
+    paymentStatus: AdminPaymentStatus;
+    budgetDollars: number;
+    paidDollars: number;
+    deadline: string;
+  },
+) {
+  const budgetCents = Math.round(input.budgetDollars * 100);
+  const paidCents = Math.round(input.paidDollars * 100);
+
+  await db.delete(payments).where(eq(payments.projectId, projectId));
+
+  if (budgetCents <= 0) {
+    return;
+  }
+
+  if (input.paymentStatus === "partial" && paidCents > 0 && paidCents < budgetCents) {
+    await db.insert(payments).values([
+      {
+        projectId,
+        amountCents: paidCents,
+        status: "paid",
+        dueDate: input.deadline,
+        paidAt: new Date(),
+        notes: "Paid portion",
+      },
+      {
+        projectId,
+        amountCents: budgetCents - paidCents,
+        status: "unpaid",
+        dueDate: input.deadline,
+        notes: "Remaining balance",
+      },
+    ]);
+    return;
+  }
+
+  await db.insert(payments).values({
+    projectId,
+    amountCents: budgetCents,
+    status: input.paymentStatus,
+    dueDate: input.deadline,
+    paidAt: input.paymentStatus === "paid" ? new Date() : null,
+    notes: "Project payment",
+  });
 }
 
 export async function createAdminProject(input: {
@@ -296,87 +479,56 @@ export async function createAdminProject(input: {
   budgetDollars: number;
   paidDollars: number;
 }): Promise<AdminProject> {
-  const client = projectClients.find((item) => item.id === input.clientId);
+  const [client] = await db
+    .select({ id: clients.id })
+    .from(clients)
+    .where(eq(clients.id, input.clientId))
+    .limit(1);
 
   if (!client) {
     throw new Error("Client not found.");
   }
 
-  const project: AdminProject = {
-    id: `project_${Date.now()}`,
-    name: input.name,
-    client,
-    description: input.description,
-    status: input.status,
-    progress: input.progress,
-    deadline: input.deadline,
-    liveDemoUrl: input.liveDemoUrl ?? "",
-    repositoryUrl: input.repositoryUrl ?? "",
-    paymentStatus: input.paymentStatus,
-    budgetCents: Math.round(input.budgetDollars * 100),
-    paidCents: Math.round(input.paidDollars * 100),
-    createdAt: new Date().toISOString(),
-    milestones: [],
-    tasks: [],
-    updates: [
-      {
-        id: `update_${Date.now()}`,
-        title: "Project created",
-        body: "The project workspace is ready. Add milestones, tasks, and updates as delivery starts.",
-        createdAt: new Date().toISOString(),
-        isVisibleToClient: true,
-      },
-    ],
-    files: [],
-    payments: [],
-    feedback: [],
-    approvals: [],
-    approval: {
-      id: `approval_${Date.now()}`,
-      title: "First client review",
-      status: "pending",
-      note: "No approval requested yet.",
-      requestedAt: new Date().toISOString(),
-    },
-  };
+  const created = await db.transaction(async (tx) => {
+    const [project] = await tx
+      .insert(projects)
+      .values({
+        name: input.name,
+        slug: `${slugify(input.name)}-${Date.now()}`,
+        description: input.description,
+        status: input.status,
+        progress: input.progress,
+        deadline: input.deadline,
+        liveDemoUrl: input.liveDemoUrl?.trim() || null,
+        repositoryUrl: input.repositoryUrl?.trim() || null,
+      })
+      .returning({ id: projects.id });
 
-  projectsStore = [project, ...projectsStore];
+    await tx.insert(projectAssignments).values({
+      projectId: project.id,
+      clientId: input.clientId,
+    });
+
+    await tx.insert(projectUpdates).values({
+      projectId: project.id,
+      title: "Project created",
+      body: "The project workspace is ready. Add milestones, files, approvals, and payments as delivery moves forward.",
+      updateType: "general",
+      isVisibleToClient: true,
+    });
+
+    return project;
+  });
+
+  await replaceProjectPaymentSummary(created.id, input);
+
+  const project = await getAdminProjectById(created.id);
+
+  if (!project) {
+    throw new Error("Project could not be loaded.");
+  }
 
   return project;
-}
-
-function normalizeAdminProject(project: AdminProject): AdminProject {
-  const approvals =
-    project.approvals ??
-    (project.approval.note === "No approval requested yet."
-      ? []
-      : [project.approval]);
-
-  return {
-    ...project,
-    milestones: project.milestones.map((milestone, index) => ({
-      ...milestone,
-      position: milestone.position ?? index + 1,
-      approvalStatus:
-        milestone.approvalStatus ??
-        approvals.find(
-          (approval) => approval.milestoneTitle === milestone.title,
-        )?.status ??
-        null,
-    })),
-    tasks: project.tasks.map((task) => ({
-      ...task,
-      priority: task.priority ?? "medium",
-      isVisibleToClient: task.isVisibleToClient ?? true,
-    })),
-    updates: project.updates.map((update) => ({
-      ...update,
-      isVisibleToClient: update.isVisibleToClient ?? true,
-    })),
-    files: project.files ?? [],
-    payments: project.payments ?? [],
-    approvals,
-  };
 }
 
 export async function updateAdminProject(
@@ -395,38 +547,46 @@ export async function updateAdminProject(
     paidDollars: number;
   },
 ): Promise<AdminProject | null> {
-  const client = projectClients.find((item) => item.id === input.clientId);
+  const [client] = await db
+    .select({ id: clients.id })
+    .from(clients)
+    .where(eq(clients.id, input.clientId))
+    .limit(1);
 
   if (!client) {
     throw new Error("Client not found.");
   }
 
-  let updatedProject: AdminProject | null = null;
-
-  projectsStore = projectsStore.map((project) => {
-    if (project.id !== id) {
-      return project;
-    }
-
-    updatedProject = {
-      ...project,
+  const [updatedProject] = await db
+    .update(projects)
+    .set({
       name: input.name,
-      client,
       description: input.description,
       status: input.status,
       progress: input.progress,
       deadline: input.deadline,
-      liveDemoUrl: input.liveDemoUrl ?? "",
-      repositoryUrl: input.repositoryUrl ?? "",
-      paymentStatus: input.paymentStatus,
-      budgetCents: Math.round(input.budgetDollars * 100),
-      paidCents: Math.round(input.paidDollars * 100),
-    };
+      liveDemoUrl: input.liveDemoUrl?.trim() || null,
+      repositoryUrl: input.repositoryUrl?.trim() || null,
+      updatedAt: new Date(),
+    })
+    .where(eq(projects.id, id))
+    .returning({ id: projects.id });
 
-    return updatedProject;
+  if (!updatedProject) {
+    return null;
+  }
+
+  await db.transaction(async (tx) => {
+    await tx.delete(projectAssignments).where(eq(projectAssignments.projectId, id));
+    await tx.insert(projectAssignments).values({
+      projectId: id,
+      clientId: input.clientId,
+    });
   });
 
-  return updatedProject;
+  await replaceProjectPaymentSummary(id, input);
+
+  return getAdminProjectById(id);
 }
 
 export async function updateProjectProgress(
@@ -436,23 +596,17 @@ export async function updateProjectProgress(
     status: AdminProjectStatus;
   },
 ): Promise<AdminProject | null> {
-  let updatedProject: AdminProject | null = null;
-
-  projectsStore = projectsStore.map((project) => {
-    if (project.id !== id) {
-      return project;
-    }
-
-    updatedProject = {
-      ...project,
+  const [updatedProject] = await db
+    .update(projects)
+    .set({
       progress: input.progress,
       status: input.status,
-    };
+      updatedAt: new Date(),
+    })
+    .where(eq(projects.id, id))
+    .returning({ id: projects.id });
 
-    return updatedProject;
-  });
-
-  return updatedProject;
+  return updatedProject ? getAdminProjectById(id) : null;
 }
 
 export async function addProjectTask(
@@ -463,46 +617,36 @@ export async function addProjectTask(
     dueDate: string;
   },
 ): Promise<AdminProject | null> {
-  let updatedProject: AdminProject | null = null;
+  const [project] = await db
+    .select({ id: projects.id })
+    .from(projects)
+    .where(eq(projects.id, projectId))
+    .limit(1);
 
-  projectsStore = projectsStore.map((project) => {
-    if (project.id !== projectId) {
-      return project;
-    }
+  if (!project) {
+    return null;
+  }
 
-    updatedProject = {
-      ...project,
-      tasks: [
-        {
-          id: `task_${Date.now()}`,
-          title: input.title,
-          description: input.description,
-          dueDate: input.dueDate,
-          status: "todo",
-        },
-        ...project.tasks,
-      ],
-    };
-
-    return updatedProject;
+  await db.insert(tasks).values({
+    projectId,
+    title: input.title,
+    description: input.description,
+    dueDate: input.dueDate,
+    status: "todo",
+    isVisibleToClient: true,
   });
 
-  return updatedProject;
+  return getAdminProjectById(projectId);
 }
 
 export async function markProjectTaskComplete(projectId: string, taskId: string) {
-  projectsStore = projectsStore.map((project) => {
-    if (project.id !== projectId) {
-      return project;
-    }
-
-    return {
-      ...project,
-      tasks: project.tasks.map((task) =>
-        task.id === taskId ? { ...task, status: "completed" as AdminTaskStatus } : task,
-      ),
-    };
-  });
+  await db
+    .update(tasks)
+    .set({
+      status: "completed",
+      updatedAt: new Date(),
+    })
+    .where(and(eq(tasks.id, taskId), eq(tasks.projectId, projectId)));
 }
 
 export async function addProjectMilestone(
@@ -513,51 +657,39 @@ export async function addProjectMilestone(
     dueDate: string;
   },
 ): Promise<AdminProject | null> {
-  let updatedProject: AdminProject | null = null;
+  const [project] = await db
+    .select({ id: projects.id })
+    .from(projects)
+    .where(eq(projects.id, projectId))
+    .limit(1);
 
-  projectsStore = projectsStore.map((project) => {
-    if (project.id !== projectId) {
-      return project;
-    }
+  if (!project) {
+    return null;
+  }
 
-    updatedProject = {
-      ...project,
-      milestones: [
-        {
-          id: `milestone_${Date.now()}`,
-          title: input.title,
-          description: input.description,
-          dueDate: input.dueDate,
-          status: "not_started",
-        },
-        ...project.milestones,
-      ],
-    };
-
-    return updatedProject;
+  await db.insert(milestones).values({
+    projectId,
+    title: input.title,
+    description: input.description,
+    dueDate: input.dueDate,
+    status: "not_started",
+    isVisibleToClient: true,
   });
 
-  return updatedProject;
+  return getAdminProjectById(projectId);
 }
 
 export async function markProjectMilestoneComplete(
   projectId: string,
   milestoneId: string,
 ) {
-  projectsStore = projectsStore.map((project) => {
-    if (project.id !== projectId) {
-      return project;
-    }
-
-    return {
-      ...project,
-      milestones: project.milestones.map((milestone) =>
-        milestone.id === milestoneId
-          ? { ...milestone, status: "completed" as AdminMilestoneStatus }
-          : milestone,
-      ),
-    };
-  });
+  await db
+    .update(milestones)
+    .set({
+      status: "completed",
+      updatedAt: new Date(),
+    })
+    .where(and(eq(milestones.id, milestoneId), eq(milestones.projectId, projectId)));
 }
 
 export async function addProjectUpdate(
@@ -567,28 +699,23 @@ export async function addProjectUpdate(
     body: string;
   },
 ): Promise<AdminProject | null> {
-  let updatedProject: AdminProject | null = null;
+  const [project] = await db
+    .select({ id: projects.id })
+    .from(projects)
+    .where(eq(projects.id, projectId))
+    .limit(1);
 
-  projectsStore = projectsStore.map((project) => {
-    if (project.id !== projectId) {
-      return project;
-    }
+  if (!project) {
+    return null;
+  }
 
-    updatedProject = {
-      ...project,
-      updates: [
-        {
-          id: `update_${Date.now()}`,
-          title: input.title,
-          body: input.body,
-          createdAt: new Date().toISOString(),
-        },
-        ...project.updates,
-      ],
-    };
-
-    return updatedProject;
+  await db.insert(projectUpdates).values({
+    projectId,
+    title: input.title,
+    body: input.body,
+    updateType: "general",
+    isVisibleToClient: true,
   });
 
-  return updatedProject;
+  return getAdminProjectById(projectId);
 }

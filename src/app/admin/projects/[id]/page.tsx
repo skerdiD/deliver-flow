@@ -65,7 +65,10 @@ export default async function ProjectDetailPage({
             updates={project.updates}
           />
 
-          <ProjectFilesCard files={project.files ?? []} />
+          <ProjectFilesCard
+            projectId={project.id}
+            files={project.files ?? []}
+          />
 
           <ProjectFeedbackPreview feedback={project.feedback} />
         </div>
@@ -77,9 +80,16 @@ export default async function ProjectDetailPage({
             status={project.status}
           />
 
-          <ApprovalStatusCard approvals={approvals} />
+          <ApprovalStatusCard
+            projectId={project.id}
+            milestones={project.milestones}
+            approvals={approvals}
+          />
 
-          <ProjectPaymentsCard payments={project.payments ?? []} />
+          <ProjectPaymentsCard
+            projectId={project.id}
+            payments={project.payments ?? []}
+          />
         </div>
       </div>
     </div>

@@ -1,86 +1,193 @@
+import { desc, eq, inArray, ne } from "drizzle-orm";
+
+import { db } from "@/db";
+import {
+  clients,
+  milestones,
+  payments,
+  projectAssignments,
+  projects,
+} from "@/db/schema";
 import type {
   AdminClient,
+  AdminClientProject,
+  AdminClientProjectStatus,
   AdminClientStatus,
 } from "@/features/admin/clients/types";
 
-let clientsStore: AdminClient[] = [
-  {
-    id: "client_nova_agency",
-    name: "Sarah Johnson",
-    company: "Nova Agency",
-    email: "sarah@novaagency.com",
-    status: "active",
-    activeProjects: 1,
-    totalPaidCents: 150000,
-    latestActivity: "Left feedback on SaaS Dashboard MVP",
-    createdAt: "2026-06-01T09:00:00.000Z",
-    projects: [
-      {
-        id: "project_saas_mvp",
-        name: "SaaS Dashboard MVP",
-        status: "in_progress",
-        progress: 68,
-        budgetCents: 240000,
-        paidCents: 150000,
-        nextMilestone: "Backend API integration",
-        deadline: "2026-07-15",
-      },
-    ],
-  },
-  {
-    id: "client_retailco",
-    name: "Michael Chen",
-    company: "RetailCo",
-    email: "michael@retailco.com",
-    status: "active",
-    activeProjects: 1,
-    totalPaidCents: 0,
-    latestActivity: "Asked about payment section visibility",
-    createdAt: "2026-06-02T11:30:00.000Z",
-    projects: [
-      {
-        id: "project_client_portal",
-        name: "Client Portal Build",
-        status: "active",
-        progress: 45,
-        budgetCents: 220000,
-        paidCents: 0,
-        nextMilestone: "Authentication and client access",
-        deadline: "2026-08-20",
-      },
-    ],
-  },
-  {
-    id: "client_creative_hub",
-    name: "James Rodriguez",
-    company: "Creative Hub",
-    email: "james@creativehub.co",
-    status: "paused",
-    activeProjects: 1,
-    totalPaidCents: 50000,
-    latestActivity: "Requested stronger homepage CTA",
-    createdAt: "2026-05-28T14:15:00.000Z",
-    projects: [
-      {
-        id: "project_agency_redesign",
-        name: "Agency Website Redesign",
-        status: "waiting_feedback",
-        progress: 90,
-        budgetCents: 50000,
-        paidCents: 50000,
-        nextMilestone: "Final design review",
-        deadline: "2026-06-25",
-      },
-    ],
-  },
-];
+function toIsoString(value: Date | string): string {
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+
+  return new Date(value).toISOString();
+}
+
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase();
+}
+
+function mapClientStatus(status: "active" | "inactive" | "archived") {
+  if (status === "inactive") {
+    return "paused";
+  }
+
+  return status;
+}
+
+function mapClientStatusForDb(status: AdminClientStatus) {
+  if (status === "paused") {
+    return "inactive";
+  }
+
+  return status;
+}
+
+function mapProjectStatus(status: string): AdminClientProjectStatus {
+  if (
+    status === "active" ||
+    status === "in_progress" ||
+    status === "waiting_feedback" ||
+    status === "completed"
+  ) {
+    return status;
+  }
+
+  return "active";
+}
+
+async function getClientProjects(clientId: string): Promise<AdminClientProject[]> {
+  const projectRows = await db
+    .select({
+      id: projects.id,
+      name: projects.name,
+      status: projects.status,
+      progress: projects.progress,
+      deadline: projects.deadline,
+    })
+    .from(projectAssignments)
+    .innerJoin(projects, eq(projectAssignments.projectId, projects.id))
+    .where(eq(projectAssignments.clientId, clientId))
+    .orderBy(desc(projectAssignments.assignedAt));
+
+  if (projectRows.length === 0) {
+    return [];
+  }
+
+  const projectIds = projectRows.map((project) => project.id);
+
+  const [paymentRows, milestoneRows] = await Promise.all([
+    db
+      .select({
+        projectId: payments.projectId,
+        amountCents: payments.amountCents,
+        status: payments.status,
+      })
+      .from(payments)
+      .where(inArray(payments.projectId, projectIds)),
+    db
+      .select({
+        projectId: milestones.projectId,
+        title: milestones.title,
+        position: milestones.position,
+        createdAt: milestones.createdAt,
+      })
+      .from(milestones)
+      .where(inArray(milestones.projectId, projectIds))
+      .orderBy(milestones.position, milestones.createdAt),
+  ]);
+
+  return projectRows.map((project) => {
+    const projectPayments = paymentRows.filter(
+      (payment) => payment.projectId === project.id,
+    );
+    const nextMilestone = milestoneRows.find(
+      (milestone) => milestone.projectId === project.id,
+    );
+
+    return {
+      id: project.id,
+      name: project.name,
+      status: mapProjectStatus(project.status),
+      progress: project.progress,
+      budgetCents: projectPayments.reduce(
+        (sum, payment) => sum + payment.amountCents,
+        0,
+      ),
+      paidCents: projectPayments
+        .filter((payment) => payment.status === "paid")
+        .reduce((sum, payment) => sum + payment.amountCents, 0),
+      nextMilestone: nextMilestone?.title ?? "No milestone added yet",
+      deadline: project.deadline ?? "",
+    };
+  });
+}
+
+async function mapClient(row: {
+  id: string;
+  companyName: string;
+  contactName: string;
+  email: string;
+  status: "active" | "inactive" | "archived";
+  createdAt: Date | string;
+}): Promise<AdminClient> {
+  const clientProjects = await getClientProjects(row.id);
+  const totalPaidCents = clientProjects.reduce(
+    (sum, project) => sum + project.paidCents,
+    0,
+  );
+
+  return {
+    id: row.id,
+    name: row.contactName,
+    company: row.companyName,
+    email: row.email,
+    status: mapClientStatus(row.status),
+    activeProjects: clientProjects.filter(
+      (project) => project.status !== "completed",
+    ).length,
+    totalPaidCents,
+    latestActivity:
+      clientProjects.length > 0
+        ? `${clientProjects.length} project${clientProjects.length === 1 ? "" : "s"} assigned`
+        : "Client profile ready",
+    createdAt: toIsoString(row.createdAt),
+    projects: clientProjects,
+  };
+}
 
 export async function getAdminClients() {
-  return clientsStore;
+  const rows = await db
+    .select({
+      id: clients.id,
+      companyName: clients.companyName,
+      contactName: clients.contactName,
+      email: clients.email,
+      status: clients.status,
+      createdAt: clients.createdAt,
+    })
+    .from(clients)
+    .where(ne(clients.status, "archived"))
+    .orderBy(desc(clients.createdAt));
+
+  return Promise.all(rows.map(mapClient));
 }
 
 export async function getAdminClientById(id: string) {
-  return clientsStore.find((client) => client.id === id) ?? null;
+  const [row] = await db
+    .select({
+      id: clients.id,
+      companyName: clients.companyName,
+      contactName: clients.contactName,
+      email: clients.email,
+      status: clients.status,
+      createdAt: clients.createdAt,
+    })
+    .from(clients)
+    .where(eq(clients.id, id))
+    .limit(1);
+
+  return row ? mapClient(row) : null;
 }
 
 export async function createAdminClient(input: {
@@ -89,22 +196,24 @@ export async function createAdminClient(input: {
   company?: string;
   status: AdminClientStatus;
 }): Promise<AdminClient> {
-  const client: AdminClient = {
-    id: `client_${Date.now()}`,
-    name: input.name,
-    email: input.email,
-    company: input.company?.trim() ? input.company.trim() : null,
-    status: input.status,
-    activeProjects: 0,
-    totalPaidCents: 0,
-    latestActivity: "Client added today",
-    createdAt: new Date().toISOString(),
-    projects: [],
-  };
+  const [client] = await db
+    .insert(clients)
+    .values({
+      contactName: input.name,
+      email: normalizeEmail(input.email),
+      companyName: input.company?.trim() || "Independent client",
+      status: mapClientStatusForDb(input.status),
+    })
+    .returning({
+      id: clients.id,
+      companyName: clients.companyName,
+      contactName: clients.contactName,
+      email: clients.email,
+      status: clients.status,
+      createdAt: clients.createdAt,
+    });
 
-  clientsStore = [client, ...clientsStore];
-
-  return client;
+  return mapClient(client);
 }
 
 export async function updateAdminClient(
@@ -116,24 +225,24 @@ export async function updateAdminClient(
     status: AdminClientStatus;
   },
 ): Promise<AdminClient | null> {
-  let updatedClient: AdminClient | null = null;
+  const [client] = await db
+    .update(clients)
+    .set({
+      contactName: input.name,
+      email: normalizeEmail(input.email),
+      companyName: input.company?.trim() || "Independent client",
+      status: mapClientStatusForDb(input.status),
+      updatedAt: new Date(),
+    })
+    .where(eq(clients.id, id))
+    .returning({
+      id: clients.id,
+      companyName: clients.companyName,
+      contactName: clients.contactName,
+      email: clients.email,
+      status: clients.status,
+      createdAt: clients.createdAt,
+    });
 
-  clientsStore = clientsStore.map((client) => {
-    if (client.id !== id) {
-      return client;
-    }
-
-    updatedClient = {
-      ...client,
-      name: input.name,
-      email: input.email,
-      company: input.company?.trim() ? input.company.trim() : null,
-      status: input.status,
-      latestActivity: "Client profile updated today",
-    };
-
-    return updatedClient;
-  });
-
-  return updatedClient;
+  return client ? mapClient(client) : null;
 }
