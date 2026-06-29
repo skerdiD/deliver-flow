@@ -2,7 +2,7 @@
 
 **DeliverFlow** is a full-stack client delivery portal built with **Next.js**, **React**, **TypeScript**, **Supabase**, **Drizzle ORM**, **PostgreSQL**, **Tailwind CSS**, and **shadcn/ui**.
 
-It helps freelancers and small agencies manage clients, projects, milestones, tasks, updates, files, payments, feedback, and approvals from one clean dashboard.
+It helps freelancers and small agencies manage clients, projects, tasks, files, payments, feedback, and approvals from one clean dashboard.
 
 [Live Demo](https://deliver-flow.vercel.app/) | [Repository](https://github.com/skerdiD/deliver-flow)
 
@@ -15,9 +15,7 @@ Use the demo credentials below to explore the platform.
 ```txt
 Admin Email: demo@deliverflow.app
 Password: Demo1234!
-```
 
-```txt
 Client Email: client@deliverflow.app
 Password: Demo1234!
 ```
@@ -38,7 +36,7 @@ Explore the deployed app: [deliver-flow.vercel.app](https://deliver-flow.vercel.
 
 <img src="./public/admin-dashboard.png" alt="DeliverFlow admin dashboard" width="100%">
 
-### Projects Management
+### Projects
 
 <img src="./public/projects-management.png" alt="DeliverFlow projects management" width="100%">
 
@@ -56,25 +54,23 @@ Explore the deployed app: [deliver-flow.vercel.app](https://deliver-flow.vercel.
 
 ## Overview
 
-Most freelance project workflows are scattered across email, messages, Google Drive, invoices, and task tools.
+Most freelance delivery workflows are scattered across email, chat, Google Drive, invoices, and task tools.
 
-DeliverFlow was built to bring the full client delivery process into one organized portal.
+DeliverFlow brings the full client delivery process into one organized portal.
 
-Admins can manage clients, create projects, assign milestones and tasks, share updates, upload files, track manual payments, request approvals, and review client feedback.
+Admins can manage clients, create projects, track tasks, upload files, record payments, request approvals, and review feedback.
 
-Clients get a private portal where they can follow project progress, download files, check payments, submit feedback, and respond to approval requests.
+Clients get a private portal where they can follow progress, download files, check payments, submit feedback, and respond to approval requests.
 
-The goal was to build more than a basic CRUD dashboard: DeliverFlow focuses on role-based access, project visibility, client collaboration, protected files, clean dashboards, manual payment tracking, and production-minded full-stack engineering.
+The goal was to build more than a basic CRUD dashboard: DeliverFlow focuses on role-based access, client visibility, protected files, delivery workflow, and production-minded full-stack engineering.
 
 ---
 
 ## Business Value
 
-DeliverFlow helps freelancers and small agencies look more professional by giving clients a clear place to follow delivery progress.
+DeliverFlow helps freelancers and agencies look more professional by giving clients one clear place to follow project delivery.
 
-Instead of asking for updates across email or chat, clients can log in and see project status, tasks, files, payments, feedback, and approvals in one place.
-
-For service providers, it creates a better delivery experience, reduces confusion, and keeps project history organized.
+It reduces messy communication, keeps project history organized, and makes the delivery process easier to manage for both the service provider and the client.
 
 ---
 
@@ -85,97 +81,75 @@ For service providers, it creates a better delivery experience, reduces confusio
 * View delivery overview
 * Track active projects
 * Monitor pending approvals
-* Review client feedback
+* Review feedback
 * See outstanding payments
-* Follow recent project activity
+* Follow recent activity
 
-### Client Management
+### Clients
 
 * Create and manage clients
-* Store company and contact details
+* Store contact details
 * Connect clients to projects
-* Track client status
 * Manage client notes
 * Support client portal access
 
-### Project Management
+### Projects
 
 * Create and edit projects
 * Assign projects to clients
 * Track project status
 * Set deadlines
-* Manage project progress
-* Connect tasks, milestones, files, payments, approvals, and feedback
+* Manage progress
+* Connect tasks, files, payments, feedback, and approvals
 
-### Milestones and Tasks
+### Tasks
 
-* Create project milestones
-* Add tasks to projects
-* Assign task priority
+* Add project tasks
 * Track task status
+* Set priority
 * Set due dates
 * Control client visibility
-* Organize delivery work by project
-
-### Project Updates
-
-* Share progress updates
-* Mark updates by type
-* Keep clients informed
-* Control which updates are visible to clients
-* Maintain delivery communication history
 
 ### Files
 
 * Upload project files
-* Organize files by category
 * Store files with Supabase Storage
 * Keep files private
-* Generate protected download access
-* Control client file visibility
-
-### Feedback
-
-* Collect client feedback
-* Review open feedback
-* Respond as admin
-* Mark feedback as reviewed or resolved
-* Keep feedback connected to the right project and client
-
-### Approvals
-
-* Request client approval
-* Connect approvals to projects and milestones
-* Track pending approvals
-* Store approval responses
-* Support changes requested by clients
-* Keep approval history organized
+* Generate protected downloads
+* Control client visibility
 
 ### Payments
 
 * Create manual payment records
 * Track unpaid, partial, paid, and overdue payments
-* Set due dates
-* Add payment notes
 * Mark payments as paid when paid elsewhere
-* Keep payment status visible to admin and client
+* Add due dates and notes
+* Show payment status to admin and client
+
+### Feedback and Approvals
+
+* Collect client feedback
+* Review and resolve feedback
+* Request client approval
+* Track pending approvals
+* Store approval responses
+* Keep records connected to projects
 
 ### Client Portal
 
 * Client-only dashboard
 * View assigned projects
-* Track project progress
-* See visible milestones and tasks
+* Track progress
 * Download shared files
 * Review payment status
 * Submit feedback
-* Respond to approval requests
+* Respond to approvals
 
 ### Security and Quality
 
 * Supabase authentication
 * Role-based admin and client access
-* Protected app routes
+* Protected routes
 * User-scoped project access
 * Private file handling
 * Server-side data access
@@ -201,7 +175,6 @@ For service providers, it creates a better delivery experience, reduces confusio
 * TanStack Table
 * React Hook Form
 * Zod
-* Sonner
 
 ### Backend and Database
 
@@ -212,9 +185,8 @@ For service providers, it creates a better delivery experience, reduces confusio
 * Supabase Auth
 * Supabase Storage
 * Supabase SSR
-* postgres.js
 
-### Security, Monitoring, and Tooling
+### Tooling
 
 * Arcjet
 * Sentry
@@ -243,44 +215,14 @@ Auth and Role Layer
 Server and Data Layer
   |-- Server Actions / API Routes
   |-- Drizzle ORM / PostgreSQL
-  |-- Clients / Projects / Tasks / Milestones
+  |-- Clients / Projects / Tasks / Files / Payments
 
 Delivery Workflow Layer
-  |-- Updates / Files / Feedback / Approvals / Payments
-  |-- Client Visibility Controls
-  |-- Project Activity History
-
-Security and Operations Layer
-  |-- Supabase Storage / Signed File Access
-  |-- Arcjet Protection
-  |-- Sentry Monitoring
-  |-- Vitest / Playwright / TypeScript Checks
+  |-- Feedback / Approvals / Client Visibility
+  |-- Project Activity / Protected File Access
 ```
 
 DeliverFlow keeps client data project-scoped, protects dashboard routes by role, stores delivery records in PostgreSQL, and uses Supabase Storage for project files.
-
----
-
-## Database Models
-
-DeliverFlow includes database models for:
-
-* Profiles
-* Clients
-* Client invitations
-* Projects
-* Project assignments
-* Milestones
-* Tasks
-* Project updates
-* Feedback
-* Approvals
-* Payments
-* Project files
-* Project activity
-* Project view events
-
-The schema is designed around a real delivery workflow where one client can be connected to projects, and each project can contain tasks, milestones, updates, files, payments, approvals, and feedback.
 
 ---
 
@@ -346,8 +288,6 @@ npm run start        # Start production server
 npm run lint         # Run ESLint
 npm run typecheck    # Run TypeScript checks
 npm run test         # Run Vitest tests
-npm run test:watch   # Run Vitest in watch mode
-npm run test:auth    # Run auth/route protection tests
 npm run test:e2e     # Run Playwright tests
 npm run db:generate  # Generate Drizzle migrations
 npm run db:migrate   # Run Drizzle migrations
@@ -365,21 +305,14 @@ npm run format       # Format code with Prettier
 * Playwright validates core end-to-end behavior
 * TypeScript catches type-level regressions
 * ESLint keeps code quality consistent
-* Prettier keeps formatting clean
 * Sentry supports production monitoring
 
-Run main checks:
+Run checks:
 
 ```bash
 npm run lint
 npm run typecheck
 npm run test
-```
-
-Run browser tests:
-
-```bash
-npm run test:e2e
 ```
 
 ---
