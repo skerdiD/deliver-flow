@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { routes } from "@/config/routes";
+import { FileRecordActions } from "@/features/admin/operations/record-actions";
 import {
   formatDateTimeLabel,
   formatFileSize,
@@ -77,6 +78,7 @@ export function AdminFilesPage({ data }: AdminFilesPageProps) {
                   <TableHead>Type</TableHead>
                   <TableHead>Visibility</TableHead>
                   <TableHead>Uploaded</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -119,6 +121,12 @@ export function AdminFilesPage({ data }: AdminFilesPageProps) {
                       </TableCell>
                       <TableCell>
                         {formatDateTimeLabel(file.createdAt)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <FileRecordActions
+                          fileId={file.id}
+                          fileName={file.fileName}
+                        />
                       </TableCell>
                     </TableRow>
                   );

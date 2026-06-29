@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { routes } from "@/config/routes";
+import { ApprovalRecordActions } from "@/features/admin/operations/record-actions";
 import {
   formatDateTimeLabel,
   getApprovalStatusMeta,
@@ -70,6 +71,7 @@ export function AdminApprovalsPage({ data }: AdminApprovalsPageProps) {
                   <TableHead>Status</TableHead>
                   <TableHead>Response note</TableHead>
                   <TableHead>Responded</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -113,6 +115,9 @@ export function AdminApprovalsPage({ data }: AdminApprovalsPageProps) {
                       </TableCell>
                       <TableCell>
                         {formatDateTimeLabel(approval.respondedAt, "Waiting")}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <ApprovalRecordActions approvalId={approval.id} />
                       </TableCell>
                     </TableRow>
                   );

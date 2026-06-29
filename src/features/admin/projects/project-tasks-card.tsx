@@ -18,6 +18,7 @@ import type { AdminProjectTask } from "@/features/admin/projects/types";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { TaskRecordActions } from "@/features/admin/operations/record-actions";
 import {
   Form,
   FormControl,
@@ -155,6 +156,14 @@ export function ProjectTasksCard({ projectId, tasks }: ProjectTasksCardProps) {
                     Mark complete
                   </Button>
                 ) : null}
+                <TaskRecordActions
+                  taskId={task.id}
+                  projectId={projectId}
+                  title={task.title}
+                  description={task.description}
+                  dueDate={task.dueDate}
+                  status={task.status}
+                />
               </div>
             </div>
           ))}

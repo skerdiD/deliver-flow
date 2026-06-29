@@ -61,7 +61,8 @@ export default async function EditProjectPage({ params }: EditProjectPageProps) 
           deadline: project.deadline,
           liveDemoUrl: project.liveDemoUrl,
           repositoryUrl: project.repositoryUrl,
-          paymentStatus: project.paymentStatus,
+          paymentStatus:
+            project.paymentStatus === "void" ? "unpaid" : project.paymentStatus,
           budgetDollars: project.budgetCents / 100,
           paidDollars: project.paidCents / 100,
         }}

@@ -95,7 +95,13 @@ export async function getAdminTasksPageData(): Promise<AdminTasksPageData> {
     .from(tasks)
     .innerJoin(projects, eq(tasks.projectId, projects.id))
     .leftJoin(milestones, eq(tasks.milestoneId, milestones.id))
-    .where(and(isNull(projects.archivedAt), isNull(projects.deletedAt)))
+    .where(
+      and(
+        isNull(tasks.deletedAt),
+        isNull(projects.archivedAt),
+        isNull(projects.deletedAt),
+      ),
+    )
     .orderBy(asc(tasks.dueDate), desc(tasks.updatedAt));
 
   const projectClientMap = await getProjectClientMap(
@@ -165,6 +171,8 @@ export async function getAdminFeedbackPageData(): Promise<AdminFeedbackPageData>
         isNull(projects.archivedAt),
         isNull(projects.deletedAt),
         isNull(clients.deletedAt),
+        isNull(feedback.archivedAt),
+        isNull(feedback.deletedAt),
       ),
     )
     .orderBy(desc(feedback.createdAt));
@@ -207,12 +215,20 @@ export async function getAdminPaymentsPageData(): Promise<AdminPaymentsPageData>
       status: payments.status,
       dueDate: payments.dueDate,
       paidAt: payments.paidAt,
+      voidedAt: payments.voidedAt,
+      voidReason: payments.voidReason,
       notes: payments.notes,
       createdAt: payments.createdAt,
     })
     .from(payments)
     .innerJoin(projects, eq(payments.projectId, projects.id))
-    .where(and(isNull(projects.archivedAt), isNull(projects.deletedAt)))
+    .where(
+      and(
+        isNull(payments.deletedAt),
+        isNull(projects.archivedAt),
+        isNull(projects.deletedAt),
+      ),
+    )
     .orderBy(asc(payments.dueDate), desc(payments.createdAt));
 
   const projectClientMap = await getProjectClientMap(
@@ -230,6 +246,8 @@ export async function getAdminPaymentsPageData(): Promise<AdminPaymentsPageData>
     status: row.status,
     dueDate: row.dueDate,
     paidAt: row.paidAt ? toIsoString(row.paidAt) : null,
+    voidedAt: row.voidedAt ? toIsoString(row.voidedAt) : null,
+    voidReason: row.voidReason,
     notes: row.notes,
   }));
 
@@ -240,7 +258,7 @@ export async function getAdminPaymentsPageData(): Promise<AdminPaymentsPageData>
         .filter((payment) => payment.status === "paid")
         .reduce((total, payment) => total + payment.amountCents, 0),
       outstandingCents: normalizedPayments
-        .filter((payment) => payment.status !== "paid")
+        .filter((payment) => payment.status !== "paid" && payment.status !== "void")
         .reduce((total, payment) => total + payment.amountCents, 0),
       overdueCount: normalizedPayments.filter((payment) => payment.status === "overdue")
         .length,
@@ -270,7 +288,13 @@ export async function getAdminFilesPageData(): Promise<AdminFilesPageData> {
     })
     .from(projectFiles)
     .innerJoin(projects, eq(projectFiles.projectId, projects.id))
-    .where(and(isNull(projects.archivedAt), isNull(projects.deletedAt)))
+    .where(
+      and(
+        isNull(projectFiles.deletedAt),
+        isNull(projects.archivedAt),
+        isNull(projects.deletedAt),
+      ),
+    )
     .orderBy(desc(projectFiles.createdAt));
 
   const projectClientMap = await getProjectClientMap(
@@ -328,7 +352,13 @@ export async function getAdminApprovalsPageData(): Promise<AdminApprovalsPageDat
     .from(approvals)
     .innerJoin(projects, eq(approvals.projectId, projects.id))
     .leftJoin(milestones, eq(approvals.milestoneId, milestones.id))
-    .where(and(isNull(projects.archivedAt), isNull(projects.deletedAt)))
+    .where(
+      and(
+        isNull(approvals.deletedAt),
+        isNull(projects.archivedAt),
+        isNull(projects.deletedAt),
+      ),
+    )
     .orderBy(desc(approvals.requestedAt));
 
   const projectClientMap = await getProjectClientMap(

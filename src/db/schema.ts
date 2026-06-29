@@ -84,6 +84,7 @@ export const approvalStatusEnum = pgEnum("approval_status", [
   "pending",
   "approved",
   "changes_requested",
+  "cancelled",
 ]);
 
 export const paymentStatusEnum = pgEnum("payment_status", [
@@ -91,6 +92,7 @@ export const paymentStatusEnum = pgEnum("payment_status", [
   "partial",
   "paid",
   "overdue",
+  "void",
 ]);
 
 export const projectFileCategoryEnum = pgEnum("project_file_category", [
@@ -430,10 +432,12 @@ export const tasks = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
   },
   (table) => ({
     projectIdIdx: index("tasks_project_id_idx").on(table.projectId),
     milestoneIdIdx: index("tasks_milestone_id_idx").on(table.milestoneId),
+    deletedAtIdx: index("tasks_deleted_at_idx").on(table.deletedAt),
     projectStatusIdx: index("tasks_project_status_idx").on(
       table.projectId,
       table.status,
@@ -498,6 +502,9 @@ export const feedback = pgTable(
     status: feedbackStatusEnum("status").notNull().default("open"),
     adminResponse: text("admin_response"),
     isVisibleToClient: boolean("is_visible_to_client").notNull().default(true),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -508,6 +515,9 @@ export const feedback = pgTable(
   (table) => ({
     projectIdIdx: index("feedback_project_id_idx").on(table.projectId),
     clientIdIdx: index("feedback_client_id_idx").on(table.clientId),
+    archivedAtIdx: index("feedback_archived_at_idx").on(table.archivedAt),
+    resolvedAtIdx: index("feedback_resolved_at_idx").on(table.resolvedAt),
+    deletedAtIdx: index("feedback_deleted_at_idx").on(table.deletedAt),
     projectClientCreatedAtIdx: index("feedback_project_client_created_at_idx").on(
       table.projectId,
       table.clientId,
@@ -542,10 +552,13 @@ export const approvals = pgTable(
       onDelete: "set null",
     }),
     responseNote: text("response_note"),
+    cancelReason: text("cancel_reason"),
     requestedAt: timestamp("requested_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
     respondedAt: timestamp("responded_at", { withTimezone: true }),
+    cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -556,6 +569,8 @@ export const approvals = pgTable(
   (table) => ({
     projectIdIdx: index("approvals_project_id_idx").on(table.projectId),
     milestoneIdIdx: index("approvals_milestone_id_idx").on(table.milestoneId),
+    cancelledAtIdx: index("approvals_cancelled_at_idx").on(table.cancelledAt),
+    deletedAtIdx: index("approvals_deleted_at_idx").on(table.deletedAt),
     projectStatusRequestedAtIdx: index(
       "approvals_project_status_requested_at_idx",
     ).on(table.projectId, table.status, table.requestedAt),
@@ -580,6 +595,9 @@ export const payments = pgTable(
     status: paymentStatusEnum("status").notNull().default("unpaid"),
     dueDate: date("due_date"),
     paidAt: timestamp("paid_at", { withTimezone: true }),
+    voidedAt: timestamp("voided_at", { withTimezone: true }),
+    voidReason: text("void_reason"),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
     notes: text("notes"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
@@ -594,6 +612,8 @@ export const payments = pgTable(
       sql`${table.amountCents} > 0`,
     ),
     projectIdIdx: index("payments_project_id_idx").on(table.projectId),
+    voidedAtIdx: index("payments_voided_at_idx").on(table.voidedAt),
+    deletedAtIdx: index("payments_deleted_at_idx").on(table.deletedAt),
     projectStatusDueDateIdx: index("payments_project_status_due_date_idx").on(
       table.projectId,
       table.status,
@@ -625,6 +645,7 @@ export const projectFiles = pgTable(
     fileSize: integer("file_size"),
     category: projectFileCategoryEnum("category").notNull().default("other"),
     isVisibleToClient: boolean("is_visible_to_client").notNull().default(true),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -638,6 +659,7 @@ export const projectFiles = pgTable(
       sql`${table.fileSize} IS NULL OR ${table.fileSize} >= 0`,
     ),
     projectIdIdx: index("project_files_project_id_idx").on(table.projectId),
+    deletedAtIdx: index("project_files_deleted_at_idx").on(table.deletedAt),
     projectVisibleCreatedAtIdx: index(
       "project_files_project_visible_created_at_idx",
     ).on(table.projectId, table.isVisibleToClient, table.createdAt),

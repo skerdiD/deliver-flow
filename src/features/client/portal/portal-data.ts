@@ -89,21 +89,29 @@ function derivePaymentStatus(
     return "unpaid";
   }
 
-  if (projectPayments.some((payment) => payment.status === "overdue")) {
+  const activePayments = projectPayments.filter(
+    (payment) => payment.status !== "void",
+  );
+
+  if (activePayments.length === 0) {
+    return "unpaid";
+  }
+
+  if (activePayments.some((payment) => payment.status === "overdue")) {
     return "overdue";
   }
 
-  if (projectPayments.every((payment) => payment.status === "paid")) {
+  if (activePayments.every((payment) => payment.status === "paid")) {
     return "paid";
   }
 
-  if (projectPayments.some((payment) => payment.status === "partial")) {
+  if (activePayments.some((payment) => payment.status === "partial")) {
     return "partial";
   }
 
   if (
-    projectPayments.some((payment) => payment.status === "paid") &&
-    projectPayments.some((payment) => payment.status === "unpaid")
+    activePayments.some((payment) => payment.status === "paid") &&
+    activePayments.some((payment) => payment.status === "unpaid")
   ) {
     return "partial";
   }
@@ -331,6 +339,7 @@ async function buildClientPortalProject(
         and(
           eq(tasks.projectId, assignment.projectId),
           eq(tasks.isVisibleToClient, true),
+          isNull(tasks.deletedAt),
         ),
       )
       .orderBy(asc(tasks.position), asc(tasks.createdAt)),
@@ -359,7 +368,13 @@ async function buildClientPortalProject(
         notes: payments.notes,
       })
       .from(payments)
-      .where(eq(payments.projectId, assignment.projectId))
+      .where(
+        and(
+          eq(payments.projectId, assignment.projectId),
+          isNull(payments.deletedAt),
+          isNull(payments.voidedAt),
+        ),
+      )
       .orderBy(asc(payments.dueDate), asc(payments.createdAt)),
     db
       .select({
@@ -377,6 +392,7 @@ async function buildClientPortalProject(
         and(
           eq(projectFiles.projectId, assignment.projectId),
           eq(projectFiles.isVisibleToClient, true),
+          isNull(projectFiles.deletedAt),
         ),
       )
       .orderBy(desc(projectFiles.createdAt)),
@@ -394,6 +410,8 @@ async function buildClientPortalProject(
           eq(feedback.projectId, assignment.projectId),
           eq(feedback.clientId, assignment.clientId),
           eq(feedback.isVisibleToClient, true),
+          isNull(feedback.archivedAt),
+          isNull(feedback.deletedAt),
         ),
       )
       .orderBy(desc(feedback.createdAt)),
@@ -412,7 +430,12 @@ async function buildClientPortalProject(
       .from(approvals)
       .innerJoin(projects, eq(approvals.projectId, projects.id))
       .leftJoin(milestones, eq(approvals.milestoneId, milestones.id))
-      .where(eq(approvals.projectId, assignment.projectId))
+      .where(
+        and(
+          eq(approvals.projectId, assignment.projectId),
+          isNull(approvals.deletedAt),
+        ),
+      )
       .orderBy(desc(approvals.requestedAt)),
     db
       .select({
@@ -693,6 +716,7 @@ export async function respondToClientApproval(input: {
         eq(approvals.id, input.approvalId),
         eq(approvals.projectId, assignment.projectId),
         eq(approvals.status, "pending"),
+        isNull(approvals.deletedAt),
       ),
     )
     .limit(1);
@@ -716,6 +740,7 @@ export async function respondToClientApproval(input: {
           eq(approvals.id, pendingApproval.id),
           eq(approvals.projectId, assignment.projectId),
           eq(approvals.status, "pending"),
+          isNull(approvals.deletedAt),
         ),
       )
       .returning({

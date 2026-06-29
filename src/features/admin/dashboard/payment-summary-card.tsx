@@ -19,6 +19,7 @@ function getPaymentStatusLabel(status: PaymentStatus) {
     unpaid: "Unpaid",
     partial: "Partial",
     overdue: "Overdue",
+    void: "Void",
   };
 
   return labels[status];
@@ -33,6 +34,7 @@ function getPaymentStatusTone(status: PaymentStatus) {
     unpaid: "yellow",
     partial: "blue",
     overdue: "red",
+    void: "slate",
   };
 
   return tones[status];
@@ -40,7 +42,7 @@ function getPaymentStatusTone(status: PaymentStatus) {
 
 export function PaymentSummaryCard({ payments }: PaymentSummaryCardProps) {
   const outstandingCents = payments
-    .filter((payment) => payment.status !== "paid")
+    .filter((payment) => payment.status !== "paid" && payment.status !== "void")
     .reduce((total, payment) => total + payment.amountCents, 0);
 
   return (

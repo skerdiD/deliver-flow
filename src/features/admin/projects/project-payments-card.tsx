@@ -21,6 +21,7 @@ import {
   addProjectPaymentAction,
   updateProjectPaymentStatusAction,
 } from "@/features/admin/projects/actions";
+import { PaymentRecordActions } from "@/features/admin/operations/record-actions";
 import type {
   AdminPaymentStatus,
   AdminProjectPayment,
@@ -232,11 +233,17 @@ export function ProjectPaymentsCard({
                         <SelectItem value="partial">Partial</SelectItem>
                         <SelectItem value="paid">Paid</SelectItem>
                         <SelectItem value="overdue">Overdue</SelectItem>
+                        <SelectItem value="void">Void</SelectItem>
                       </SelectContent>
                     </Select>
                     <span className="text-xs text-slate-500">
                       Paid {formatNullableDate(payment.paidAt, "not yet")}
                     </span>
+                    <PaymentRecordActions
+                      paymentId={payment.id}
+                      projectId={projectId}
+                      status={payment.status}
+                    />
                   </div>
                 </div>
               </div>
@@ -250,7 +257,7 @@ export function ProjectPaymentsCard({
 
 function getPaymentStatusMeta(status: AdminPaymentStatus): {
   label: string;
-  tone: "blue" | "green" | "yellow" | "red";
+  tone: "blue" | "green" | "yellow" | "red" | "slate";
 } {
   if (status === "paid") {
     return { label: "Paid", tone: "green" };
@@ -262,6 +269,10 @@ function getPaymentStatusMeta(status: AdminPaymentStatus): {
 
   if (status === "overdue") {
     return { label: "Overdue", tone: "red" };
+  }
+
+  if (status === "void") {
+    return { label: "Void", tone: "slate" };
   }
 
   return { label: "Unpaid", tone: "yellow" };

@@ -25,6 +25,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { updateAdminFeedbackStatusAction } from "@/features/admin/operations/actions";
+import { FeedbackRecordActions } from "@/features/admin/operations/record-actions";
 import {
   formatDateTimeLabel,
   getFeedbackStatusMeta,
@@ -168,6 +169,7 @@ export function AdminFeedbackPage({ data }: AdminFeedbackPageProps) {
                               Response saved: {item.adminResponse}
                             </p>
                           ) : null}
+                          <FeedbackRecordActions feedbackId={item.id} />
                         </div>
                       </TableCell>
                       <TableCell>

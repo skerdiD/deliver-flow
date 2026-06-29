@@ -11,15 +11,19 @@ export function PaymentStatusBadge({ status }: PaymentStatusBadgeProps) {
     unpaid: "Unpaid",
     partial: "Partial",
     overdue: "Overdue",
+    void: "Void",
   };
 
-  const tones: Record<AdminPaymentStatus, "blue" | "green" | "yellow" | "red"> =
-    {
-      paid: "green",
-      unpaid: "yellow",
-      partial: "blue",
-      overdue: "red",
-    };
+  const tones: Record<
+    AdminPaymentStatus,
+    "blue" | "green" | "yellow" | "red" | "slate"
+  > = {
+    paid: "green",
+    unpaid: "yellow",
+    partial: "blue",
+    overdue: "red",
+    void: "slate",
+  };
 
   return <StatusBadge label={labels[status]} tone={tones[status]} />;
 }

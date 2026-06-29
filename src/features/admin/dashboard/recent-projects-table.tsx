@@ -53,6 +53,7 @@ function getPaymentStatusLabel(status: PaymentStatus) {
     unpaid: "Unpaid",
     partial: "Partial",
     overdue: "Overdue",
+    void: "Void",
   };
 
   return labels[status];
@@ -67,6 +68,7 @@ function getPaymentStatusTone(status: PaymentStatus) {
     unpaid: "yellow",
     partial: "blue",
     overdue: "red",
+    void: "slate",
   };
 
   return tones[status];

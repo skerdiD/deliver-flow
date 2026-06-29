@@ -1,15 +1,22 @@
 "use server";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { routes } from "@/config/routes";
 import { db } from "@/db";
-import { feedback, tasks } from "@/db/schema";
+import {
+  approvals,
+  feedback,
+  payments,
+  projectFiles,
+  tasks,
+} from "@/db/schema";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireRole } from "@/lib/supabase/auth";
 
-type AdminOperationActionResult = {
+export type AdminOperationActionResult = {
   success: boolean;
   message: string;
 };
@@ -23,6 +30,65 @@ const updateAdminFeedbackStatusSchema = z.object({
   feedbackId: z.string().uuid("Feedback id is invalid."),
   status: z.enum(["reviewed", "resolved"]),
 });
+
+const taskIdSchema = z.object({
+  taskId: z.string().uuid("Task id is invalid."),
+});
+
+const taskUpdateSchema = taskIdSchema.extend({
+  title: z.string().trim().min(1).max(160),
+  description: z.string().trim().min(1).max(1200),
+  dueDate: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/),
+});
+
+const fileIdSchema = z.object({
+  fileId: z.string().uuid("File id is invalid."),
+});
+
+const paymentIdSchema = z.object({
+  paymentId: z.string().uuid("Payment id is invalid."),
+});
+
+const paymentVoidSchema = paymentIdSchema.extend({
+  reason: z.string().trim().max(500).optional(),
+});
+
+const feedbackIdSchema = z.object({
+  feedbackId: z.string().uuid("Feedback id is invalid."),
+});
+
+const approvalIdSchema = z.object({
+  approvalId: z.string().uuid("Approval id is invalid."),
+});
+
+const approvalCancelSchema = approvalIdSchema.extend({
+  reason: z.string().trim().max(500).optional(),
+});
+
+const fileRenameSchema = fileIdSchema.extend({
+  fileName: z.string().trim().min(1).max(255),
+});
+
+const approvalStatusSchema = approvalIdSchema.extend({
+  status: z.enum(["approved", "changes_requested"]),
+});
+
+function revalidateProjectOperations(projectId: string) {
+  revalidatePath(routes.admin.dashboard);
+  revalidatePath(routes.admin.tasks);
+  revalidatePath(routes.admin.files);
+  revalidatePath(routes.admin.payments);
+  revalidatePath(routes.admin.feedback);
+  revalidatePath(routes.admin.approvals);
+  revalidatePath(routes.admin.projects);
+  revalidatePath(`${routes.admin.projects}/${projectId}`);
+  revalidatePath(routes.client.dashboard);
+  revalidatePath(routes.client.project);
+  revalidatePath(`${routes.client.project}/${projectId}`);
+  revalidatePath(routes.client.files);
+  revalidatePath(routes.client.payments);
+  revalidatePath(routes.client.feedback);
+}
 
 export async function markAdminTaskCompleteAction(input: {
   taskId: string;
@@ -49,6 +115,7 @@ export async function markAdminTaskCompleteAction(input: {
         and(
           eq(tasks.id, parsed.data.taskId),
           eq(tasks.projectId, parsed.data.projectId),
+          isNull(tasks.deletedAt),
         ),
       )
       .returning({ id: tasks.id });
@@ -76,6 +143,265 @@ export async function markAdminTaskCompleteAction(input: {
   }
 }
 
+export async function deleteTaskAction(input: {
+  taskId: string;
+}): Promise<AdminOperationActionResult> {
+  await requireRole("admin");
+
+  const parsed = taskIdSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: "Task request is invalid.",
+    };
+  }
+
+  const deletedAt = new Date();
+  const [deletedTask] = await db
+    .update(tasks)
+    .set({
+      deletedAt,
+      updatedAt: deletedAt,
+    })
+    .where(and(eq(tasks.id, parsed.data.taskId), isNull(tasks.deletedAt)))
+    .returning({ id: tasks.id, projectId: tasks.projectId });
+
+  if (!deletedTask) {
+    return {
+      success: false,
+      message: "Task not found.",
+    };
+  }
+
+  revalidateProjectOperations(deletedTask.projectId);
+
+  return {
+    success: true,
+    message: "Task deleted.",
+  };
+}
+
+export async function updateTaskAction(input: {
+  taskId: string;
+  title: string;
+  description: string;
+  dueDate: string;
+}): Promise<AdminOperationActionResult> {
+  await requireRole("admin");
+
+  const parsed = taskUpdateSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: "Task details are invalid.",
+    };
+  }
+
+  const [task] = await db
+    .update(tasks)
+    .set({
+      title: parsed.data.title,
+      description: parsed.data.description,
+      dueDate: parsed.data.dueDate,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(tasks.id, parsed.data.taskId), isNull(tasks.deletedAt)))
+    .returning({ id: tasks.id, projectId: tasks.projectId });
+
+  if (!task) {
+    return {
+      success: false,
+      message: "Task not found.",
+    };
+  }
+
+  revalidateProjectOperations(task.projectId);
+
+  return {
+    success: true,
+    message: "Task updated.",
+  };
+}
+
+export async function deleteFileAction(input: {
+  fileId: string;
+}): Promise<AdminOperationActionResult> {
+  await requireRole("admin");
+
+  const parsed = fileIdSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: "File request is invalid.",
+    };
+  }
+
+  const [file] = await db
+    .select({
+      id: projectFiles.id,
+      projectId: projectFiles.projectId,
+      bucketName: projectFiles.bucketName,
+      storagePath: projectFiles.storagePath,
+    })
+    .from(projectFiles)
+    .where(and(eq(projectFiles.id, parsed.data.fileId), isNull(projectFiles.deletedAt)))
+    .limit(1);
+
+  if (!file) {
+    return {
+      success: false,
+      message: "File not found.",
+    };
+  }
+
+  if (file.bucketName && file.storagePath) {
+    const supabase = createSupabaseAdminClient();
+    const { error } = await supabase.storage
+      .from(file.bucketName)
+      .remove([file.storagePath]);
+
+    if (error) {
+      return {
+        success: false,
+        message: "Storage file could not be deleted.",
+      };
+    }
+  }
+
+  const deletedAt = new Date();
+  await db
+    .update(projectFiles)
+    .set({
+      deletedAt,
+      updatedAt: deletedAt,
+    })
+    .where(eq(projectFiles.id, file.id));
+
+  revalidateProjectOperations(file.projectId);
+
+  return {
+    success: true,
+    message: "File deleted.",
+  };
+}
+
+export async function renameFileAction(input: {
+  fileId: string;
+  fileName: string;
+}): Promise<AdminOperationActionResult> {
+  await requireRole("admin");
+
+  const parsed = fileRenameSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: "File name is invalid.",
+    };
+  }
+
+  const [file] = await db
+    .update(projectFiles)
+    .set({
+      fileName: parsed.data.fileName,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(projectFiles.id, parsed.data.fileId), isNull(projectFiles.deletedAt)))
+    .returning({ id: projectFiles.id, projectId: projectFiles.projectId });
+
+  if (!file) {
+    return {
+      success: false,
+      message: "File not found.",
+    };
+  }
+
+  revalidateProjectOperations(file.projectId);
+
+  return {
+    success: true,
+    message: "File renamed.",
+  };
+}
+
+export async function voidPaymentAction(input: {
+  paymentId: string;
+  reason?: string;
+}): Promise<AdminOperationActionResult> {
+  await requireRole("admin");
+
+  const parsed = paymentVoidSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: "Payment request is invalid.",
+    };
+  }
+
+  const voidedAt = new Date();
+  const [payment] = await db
+    .update(payments)
+    .set({
+      status: "void",
+      voidedAt,
+      voidReason: parsed.data.reason?.trim() || null,
+      updatedAt: voidedAt,
+    })
+    .where(and(eq(payments.id, parsed.data.paymentId), isNull(payments.deletedAt)))
+    .returning({ id: payments.id, projectId: payments.projectId });
+
+  if (!payment) {
+    return {
+      success: false,
+      message: "Payment not found.",
+    };
+  }
+
+  revalidateProjectOperations(payment.projectId);
+
+  return {
+    success: true,
+    message: "Payment voided.",
+  };
+}
+
+export async function deletePaymentAction(input: {
+  paymentId: string;
+}): Promise<AdminOperationActionResult> {
+  await requireRole("admin");
+
+  const parsed = paymentIdSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: "Payment request is invalid.",
+    };
+  }
+
+  const deletedAt = new Date();
+  const [payment] = await db
+    .update(payments)
+    .set({
+      deletedAt,
+      updatedAt: deletedAt,
+    })
+    .where(and(eq(payments.id, parsed.data.paymentId), isNull(payments.deletedAt)))
+    .returning({ id: payments.id, projectId: payments.projectId });
+
+  if (!payment) {
+    return {
+      success: false,
+      message: "Payment not found.",
+    };
+  }
+
+  revalidateProjectOperations(payment.projectId);
+
+  return {
+    success: true,
+    message: "Payment deleted.",
+  };
+}
+
 export async function updateAdminFeedbackStatusAction(input: {
   feedbackId: string;
   status: "reviewed" | "resolved";
@@ -95,10 +421,11 @@ export async function updateAdminFeedbackStatusAction(input: {
       .update(feedback)
       .set({
         status: parsed.data.status,
+        resolvedAt: parsed.data.status === "resolved" ? new Date() : null,
         updatedAt: new Date(),
       })
-      .where(eq(feedback.id, parsed.data.feedbackId))
-      .returning({ id: feedback.id });
+      .where(and(eq(feedback.id, parsed.data.feedbackId), isNull(feedback.deletedAt)))
+      .returning({ id: feedback.id, projectId: feedback.projectId });
 
     if (!updatedFeedback) {
       return {
@@ -107,7 +434,7 @@ export async function updateAdminFeedbackStatusAction(input: {
       };
     }
 
-    revalidatePath(routes.admin.feedback);
+    revalidateProjectOperations(updatedFeedback.projectId);
 
     return {
       success: true,
@@ -119,4 +446,229 @@ export async function updateAdminFeedbackStatusAction(input: {
       message: "Feedback status could not be updated.",
     };
   }
+}
+
+export async function archiveFeedbackAction(input: {
+  feedbackId: string;
+}): Promise<AdminOperationActionResult> {
+  await requireRole("admin");
+
+  const parsed = feedbackIdSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: "Feedback request is invalid.",
+    };
+  }
+
+  const archivedAt = new Date();
+  const [archivedFeedback] = await db
+    .update(feedback)
+    .set({
+      archivedAt,
+      updatedAt: archivedAt,
+    })
+    .where(and(eq(feedback.id, parsed.data.feedbackId), isNull(feedback.deletedAt)))
+    .returning({ id: feedback.id, projectId: feedback.projectId });
+
+  if (!archivedFeedback) {
+    return {
+      success: false,
+      message: "Feedback not found.",
+    };
+  }
+
+  revalidateProjectOperations(archivedFeedback.projectId);
+
+  return {
+    success: true,
+    message: "Feedback archived.",
+  };
+}
+
+export async function resolveFeedbackAction(input: {
+  feedbackId: string;
+}): Promise<AdminOperationActionResult> {
+  return updateAdminFeedbackStatusAction({
+    feedbackId: input.feedbackId,
+    status: "resolved",
+  });
+}
+
+export async function deleteFeedbackAction(input: {
+  feedbackId: string;
+}): Promise<AdminOperationActionResult> {
+  await requireRole("admin");
+
+  const parsed = feedbackIdSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: "Feedback request is invalid.",
+    };
+  }
+
+  const deletedAt = new Date();
+  const [deletedFeedback] = await db
+    .update(feedback)
+    .set({
+      deletedAt,
+      updatedAt: deletedAt,
+    })
+    .where(and(eq(feedback.id, parsed.data.feedbackId), isNull(feedback.deletedAt)))
+    .returning({ id: feedback.id, projectId: feedback.projectId });
+
+  if (!deletedFeedback) {
+    return {
+      success: false,
+      message: "Feedback not found.",
+    };
+  }
+
+  revalidateProjectOperations(deletedFeedback.projectId);
+
+  return {
+    success: true,
+    message: "Feedback deleted.",
+  };
+}
+
+export async function cancelApprovalAction(input: {
+  approvalId: string;
+  reason?: string;
+}): Promise<AdminOperationActionResult> {
+  await requireRole("admin");
+
+  const parsed = approvalCancelSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: "Approval request is invalid.",
+    };
+  }
+
+  const cancelledAt = new Date();
+  const [approval] = await db
+    .update(approvals)
+    .set({
+      status: "cancelled",
+      cancelReason: parsed.data.reason?.trim() || null,
+      cancelledAt,
+      updatedAt: cancelledAt,
+    })
+    .where(and(eq(approvals.id, parsed.data.approvalId), isNull(approvals.deletedAt)))
+    .returning({ id: approvals.id, projectId: approvals.projectId });
+
+  if (!approval) {
+    return {
+      success: false,
+      message: "Approval not found.",
+    };
+  }
+
+  revalidateProjectOperations(approval.projectId);
+
+  return {
+    success: true,
+    message: "Approval cancelled.",
+  };
+}
+
+export async function updateApprovalStatusAction(input: {
+  approvalId: string;
+  status: "approved" | "changes_requested";
+}): Promise<AdminOperationActionResult> {
+  await requireRole("admin");
+
+  const parsed = approvalStatusSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: "Approval request is invalid.",
+    };
+  }
+
+  const respondedAt = new Date();
+  const [approval] = await db
+    .update(approvals)
+    .set({
+      status: parsed.data.status,
+      respondedAt,
+      updatedAt: respondedAt,
+    })
+    .where(and(eq(approvals.id, parsed.data.approvalId), isNull(approvals.deletedAt)))
+    .returning({ id: approvals.id, projectId: approvals.projectId });
+
+  if (!approval) {
+    return {
+      success: false,
+      message: "Approval not found.",
+    };
+  }
+
+  revalidateProjectOperations(approval.projectId);
+
+  return {
+    success: true,
+    message:
+      parsed.data.status === "approved"
+        ? "Approval marked approved."
+        : "Approval marked as changes requested.",
+  };
+}
+
+export async function approveApprovalAction(input: {
+  approvalId: string;
+}): Promise<AdminOperationActionResult> {
+  return updateApprovalStatusAction({
+    approvalId: input.approvalId,
+    status: "approved",
+  });
+}
+
+export async function rejectApprovalAction(input: {
+  approvalId: string;
+}): Promise<AdminOperationActionResult> {
+  return updateApprovalStatusAction({
+    approvalId: input.approvalId,
+    status: "changes_requested",
+  });
+}
+
+export async function deleteApprovalAction(input: {
+  approvalId: string;
+}): Promise<AdminOperationActionResult> {
+  await requireRole("admin");
+
+  const parsed = approvalIdSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: "Approval request is invalid.",
+    };
+  }
+
+  const deletedAt = new Date();
+  const [approval] = await db
+    .update(approvals)
+    .set({
+      deletedAt,
+      updatedAt: deletedAt,
+    })
+    .where(and(eq(approvals.id, parsed.data.approvalId), isNull(approvals.deletedAt)))
+    .returning({ id: approvals.id, projectId: approvals.projectId });
+
+  if (!approval) {
+    return {
+      success: false,
+      message: "Approval not found.",
+    };
+  }
+
+  revalidateProjectOperations(approval.projectId);
+
+  return {
+    success: true,
+    message: "Approval deleted.",
+  };
 }

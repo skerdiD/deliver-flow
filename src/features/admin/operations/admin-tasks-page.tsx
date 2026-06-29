@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/table";
 import { routes } from "@/config/routes";
 import { markAdminTaskCompleteAction } from "@/features/admin/operations/actions";
+import { TaskRecordActions } from "@/features/admin/operations/record-actions";
 import {
   formatDateLabel,
   getFileVisibilityMeta,
@@ -274,6 +275,14 @@ export function AdminTasksPage({ data }: AdminTasksPageProps) {
                             <CheckCircle2 className="size-4" />
                           </Button>
                         )}
+                        <TaskRecordActions
+                          taskId={task.id}
+                          projectId={task.projectId}
+                          title={task.title}
+                          description={task.description}
+                          dueDate={task.dueDate}
+                          status={task.status}
+                        />
                       </TableCell>
                     </TableRow>
                   );

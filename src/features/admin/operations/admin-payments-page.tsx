@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { routes } from "@/config/routes";
+import { PaymentRecordActions } from "@/features/admin/operations/record-actions";
 import {
   formatDateLabel,
   formatDateTimeLabel,
@@ -77,6 +78,7 @@ export function AdminPaymentsPage({ data }: AdminPaymentsPageProps) {
                   <TableHead>Due date</TableHead>
                   <TableHead>Paid date</TableHead>
                   <TableHead>Notes</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -114,6 +116,13 @@ export function AdminPaymentsPage({ data }: AdminPaymentsPageProps) {
                       </TableCell>
                       <TableCell className="max-w-sm whitespace-normal text-sm text-slate-500">
                         {payment.notes ?? "No note added."}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <PaymentRecordActions
+                          paymentId={payment.id}
+                          projectId={payment.projectId}
+                          status={payment.status}
+                        />
                       </TableCell>
                     </TableRow>
                   );

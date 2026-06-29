@@ -17,12 +17,18 @@ export type ClientTaskStatus =
   | "blocked"
   | "completed";
 
-export type ClientPaymentStatus = "paid" | "partial" | "unpaid" | "overdue";
+export type ClientPaymentStatus =
+  | "paid"
+  | "partial"
+  | "unpaid"
+  | "overdue"
+  | "void";
 
 export type ClientApprovalStatus =
   | "pending"
   | "approved"
-  | "changes_requested";
+  | "changes_requested"
+  | "cancelled";
 
 export type ClientFeedbackStatus = "open" | "reviewed" | "resolved";
 

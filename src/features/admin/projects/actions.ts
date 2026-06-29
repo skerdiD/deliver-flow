@@ -57,7 +57,7 @@ export type ProjectApprovalRequestValues = {
 
 export type ProjectPaymentValues = {
   amountDollars: number;
-  status: "unpaid" | "partial" | "paid" | "overdue";
+  status: "unpaid" | "partial" | "paid" | "overdue" | "void";
   dueDate?: string;
   notes?: string;
 };
@@ -85,7 +85,7 @@ const paymentRecordSchema = z.object({
 const paymentStatusSchema = z.object({
   projectId: uuidSchema,
   paymentId: uuidSchema,
-  status: z.enum(["unpaid", "partial", "paid", "overdue"]),
+  status: z.enum(["unpaid", "partial", "paid", "overdue", "void"]),
 });
 
 const projectFileCategorySchema = z.enum([
@@ -822,7 +822,7 @@ export async function addProjectPaymentAction(
 export async function updateProjectPaymentStatusAction(input: {
   projectId: string;
   paymentId: string;
-  status: "unpaid" | "partial" | "paid" | "overdue";
+  status: "unpaid" | "partial" | "paid" | "overdue" | "void";
 }): Promise<ProjectActionResult> {
   const adminProfile = await requireRole("admin");
 
@@ -844,6 +844,7 @@ export async function updateProjectPaymentStatusAction(input: {
         eq(payments.id, parsed.data.paymentId),
         eq(payments.projectId, parsed.data.projectId),
         isNull(projects.deletedAt),
+        isNull(payments.deletedAt),
       ),
     )
     .limit(1);
@@ -860,6 +861,8 @@ export async function updateProjectPaymentStatusAction(input: {
     .set({
       status: parsed.data.status,
       paidAt: parsed.data.status === "paid" ? new Date() : null,
+      voidedAt: parsed.data.status === "void" ? new Date() : null,
+      voidReason: parsed.data.status === "void" ? "Voided from status menu" : null,
       updatedAt: new Date(),
     })
     .where(

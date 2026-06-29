@@ -89,16 +89,18 @@ export function ClientPaymentStatusBadge({
     partial: "Partial",
     unpaid: "Unpaid",
     overdue: "Overdue",
+    void: "Void",
   };
 
   const tones: Record<
     ClientPaymentStatus,
-    "blue" | "green" | "yellow" | "red"
+    "blue" | "green" | "yellow" | "red" | "slate"
   > = {
     paid: "green",
     partial: "blue",
     unpaid: "yellow",
     overdue: "red",
+    void: "slate",
   };
 
   return <StatusBadge label={labels[status]} tone={tones[status]} />;
@@ -113,12 +115,17 @@ export function ClientApprovalStatusBadge({
     pending: "Approval needed",
     approved: "Approved",
     changes_requested: "Changes requested",
+    cancelled: "Cancelled",
   };
 
-  const tones: Record<ClientApprovalStatus, "blue" | "green" | "yellow"> = {
+  const tones: Record<
+    ClientApprovalStatus,
+    "blue" | "green" | "yellow" | "slate"
+  > = {
     pending: "blue",
     approved: "green",
     changes_requested: "yellow",
+    cancelled: "slate",
   };
 
   return <StatusBadge label={labels[status]} tone={tones[status]} />;

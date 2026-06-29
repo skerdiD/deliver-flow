@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { uploadProjectFileAction } from "@/features/admin/projects/actions";
+import { FileRecordActions } from "@/features/admin/operations/record-actions";
 import type { AdminProjectFile } from "@/features/admin/projects/types";
 import { formatRelativeTime, formatShortDate } from "@/lib/format";
 
@@ -161,6 +162,7 @@ export function ProjectFilesCard({ projectId, files }: ProjectFilesCardProps) {
                   <span className="text-xs text-slate-500">
                     {formatShortDate(file.createdAt)}
                   </span>
+                  <FileRecordActions fileId={file.id} fileName={file.fileName} />
                 </div>
               </div>
             </div>

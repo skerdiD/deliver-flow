@@ -127,19 +127,23 @@ function getSafeProjectStatus(status: string): ProjectStatus {
 function getDerivedProjectPaymentStatus(
   projectPayments: Array<{ status: PaymentStatus }>,
 ): PaymentStatus {
-  if (projectPayments.some((payment) => payment.status === "overdue")) {
+  const activePayments = projectPayments.filter(
+    (payment) => payment.status !== "void",
+  );
+
+  if (activePayments.some((payment) => payment.status === "overdue")) {
     return "overdue";
   }
 
-  if (projectPayments.some((payment) => payment.status === "partial")) {
+  if (activePayments.some((payment) => payment.status === "partial")) {
     return "partial";
   }
 
-  if (projectPayments.some((payment) => payment.status === "unpaid")) {
+  if (activePayments.some((payment) => payment.status === "unpaid")) {
     return "unpaid";
   }
 
-  if (projectPayments.some((payment) => payment.status === "paid")) {
+  if (activePayments.some((payment) => payment.status === "paid")) {
     return "paid";
   }
 
@@ -201,7 +205,12 @@ async function getProjectSupportMaps(projectIds: string[]) {
         status: payments.status,
       })
       .from(payments)
-      .where(inArray(payments.projectId, projectIds)),
+      .where(
+        and(
+          inArray(payments.projectId, projectIds),
+          isNull(payments.deletedAt),
+        ),
+      ),
   ]);
 
   const clientByProjectId = new Map<string, string>();
@@ -261,7 +270,7 @@ async function getProjectSupportMaps(projectIds: string[]) {
   for (const projectId of projectIds) {
     const items = paymentsByProjectId.get(projectId) ?? [];
     const openAmountCents = items
-      .filter((item) => item.status !== "paid")
+      .filter((item) => item.status !== "paid" && item.status !== "void")
       .reduce((total, item) => total + item.amountCents, 0);
     const paidAmountCents = items
       .filter((item) => item.status === "paid")
@@ -379,6 +388,8 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       .where(
         and(
           eq(feedback.status, "open"),
+          isNull(feedback.archivedAt),
+          isNull(feedback.deletedAt),
           isNull(projects.archivedAt),
           isNull(projects.deletedAt),
           isNull(clients.deletedAt),
@@ -402,6 +413,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       .where(
         and(
           inArray(payments.status, outstandingPaymentStatuses),
+          isNull(payments.deletedAt),
           isNull(projects.archivedAt),
           isNull(projects.deletedAt),
         ),
@@ -462,6 +474,8 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
           isNull(projects.archivedAt),
           isNull(projects.deletedAt),
           isNull(clients.deletedAt),
+          isNull(feedback.archivedAt),
+          isNull(feedback.deletedAt),
         ),
       )
       .orderBy(desc(feedback.createdAt))
@@ -478,7 +492,13 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       })
       .from(approvals)
       .innerJoin(projects, eq(approvals.projectId, projects.id))
-      .where(and(isNull(projects.archivedAt), isNull(projects.deletedAt)))
+      .where(
+        and(
+          isNull(approvals.deletedAt),
+          isNull(projects.archivedAt),
+          isNull(projects.deletedAt),
+        ),
+      )
       .orderBy(desc(approvals.requestedAt))
       .limit(4),
     db
@@ -507,7 +527,13 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       })
       .from(payments)
       .innerJoin(projects, eq(payments.projectId, projects.id))
-      .where(and(isNull(projects.archivedAt), isNull(projects.deletedAt)))
+      .where(
+        and(
+          isNull(payments.deletedAt),
+          isNull(projects.archivedAt),
+          isNull(projects.deletedAt),
+        ),
+      )
       .orderBy(asc(payments.dueDate), desc(payments.createdAt))
       .limit(6),
   ]);

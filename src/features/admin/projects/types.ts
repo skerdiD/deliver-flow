@@ -5,7 +5,12 @@ export type AdminProjectStatus =
   | "completed"
   | "archived";
 
-export type AdminPaymentStatus = "paid" | "unpaid" | "partial" | "overdue";
+export type AdminPaymentStatus =
+  | "paid"
+  | "unpaid"
+  | "partial"
+  | "overdue"
+  | "void";
 
 export type AdminTaskStatus = "todo" | "in_progress" | "completed";
 
@@ -19,7 +24,8 @@ export type AdminMilestoneStatus =
 export type AdminApprovalStatus =
   | "pending"
   | "approved"
-  | "changes_requested";
+  | "changes_requested"
+  | "cancelled";
 
 export type AdminFeedbackStatus = "open" | "reviewed" | "resolved";
 
@@ -108,6 +114,8 @@ export type AdminProjectPayment = {
   status: AdminPaymentStatus;
   dueDate: string | null;
   paidAt: string | null;
+  voidedAt?: string | null;
+  voidReason?: string | null;
   notes: string | null;
   viewedAt?: string | null;
 };

@@ -41,9 +41,13 @@ export type ProjectUpdateType =
 
 export type FeedbackStatus = "open" | "reviewed" | "resolved";
 
-export type ApprovalStatus = "pending" | "approved" | "changes_requested";
+export type ApprovalStatus =
+  | "pending"
+  | "approved"
+  | "changes_requested"
+  | "cancelled";
 
-export type PaymentStatus = "unpaid" | "partial" | "paid" | "overdue";
+export type PaymentStatus = "unpaid" | "partial" | "paid" | "overdue" | "void";
 
 export type ProjectFileCategory =
   | "brief"
@@ -264,6 +268,7 @@ export type Database = {
           created_by: string | null;
           created_at: string;
           updated_at: string;
+          deleted_at: string | null;
         };
         Insert: {
           id?: string;
@@ -277,6 +282,7 @@ export type Database = {
           created_by?: string | null;
           created_at?: string;
           updated_at?: string;
+          deleted_at?: string | null;
         };
         Update: {
           id?: string;
@@ -290,6 +296,7 @@ export type Database = {
           created_by?: string | null;
           created_at?: string;
           updated_at?: string;
+          deleted_at?: string | null;
         };
       };
 
@@ -387,6 +394,9 @@ export type Database = {
           status: FeedbackStatus;
           admin_response: string | null;
           is_visible_to_client: boolean;
+          archived_at: string | null;
+          resolved_at: string | null;
+          deleted_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -399,6 +409,9 @@ export type Database = {
           status?: FeedbackStatus;
           admin_response?: string | null;
           is_visible_to_client?: boolean;
+          archived_at?: string | null;
+          resolved_at?: string | null;
+          deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -411,6 +424,9 @@ export type Database = {
           status?: FeedbackStatus;
           admin_response?: string | null;
           is_visible_to_client?: boolean;
+          archived_at?: string | null;
+          resolved_at?: string | null;
+          deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -427,8 +443,11 @@ export type Database = {
           requested_by: string | null;
           responded_by: string | null;
           response_note: string | null;
+          cancel_reason: string | null;
           requested_at: string;
           responded_at: string | null;
+          cancelled_at: string | null;
+          deleted_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -442,8 +461,11 @@ export type Database = {
           requested_by?: string | null;
           responded_by?: string | null;
           response_note?: string | null;
+          cancel_reason?: string | null;
           requested_at?: string;
           responded_at?: string | null;
+          cancelled_at?: string | null;
+          deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -457,8 +479,11 @@ export type Database = {
           requested_by?: string | null;
           responded_by?: string | null;
           response_note?: string | null;
+          cancel_reason?: string | null;
           requested_at?: string;
           responded_at?: string | null;
+          cancelled_at?: string | null;
+          deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -473,6 +498,9 @@ export type Database = {
           status: PaymentStatus;
           due_date: string | null;
           paid_at: string | null;
+          voided_at: string | null;
+          void_reason: string | null;
+          deleted_at: string | null;
           notes: string | null;
           created_at: string;
           updated_at: string;
@@ -485,6 +513,9 @@ export type Database = {
           status?: PaymentStatus;
           due_date?: string | null;
           paid_at?: string | null;
+          voided_at?: string | null;
+          void_reason?: string | null;
+          deleted_at?: string | null;
           notes?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -497,6 +528,9 @@ export type Database = {
           status?: PaymentStatus;
           due_date?: string | null;
           paid_at?: string | null;
+          voided_at?: string | null;
+          void_reason?: string | null;
+          deleted_at?: string | null;
           notes?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -515,6 +549,7 @@ export type Database = {
           file_size: number | null;
           category: ProjectFileCategory;
           is_visible_to_client: boolean;
+          deleted_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -529,6 +564,7 @@ export type Database = {
           file_size?: number | null;
           category?: ProjectFileCategory;
           is_visible_to_client?: boolean;
+          deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -543,6 +579,7 @@ export type Database = {
           file_size?: number | null;
           category?: ProjectFileCategory;
           is_visible_to_client?: boolean;
+          deleted_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };

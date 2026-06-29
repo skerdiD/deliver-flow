@@ -8,7 +8,7 @@ export type ProjectStatus =
 
 export type FeedbackStatus = "open" | "reviewed" | "resolved";
 
-export type PaymentStatus = "paid" | "unpaid" | "partial" | "overdue";
+export type PaymentStatus = "paid" | "unpaid" | "partial" | "overdue" | "void";
 
 export type ActivityType =
   | "project"
@@ -74,7 +74,7 @@ export type DashboardApproval = {
   project: string;
   client: string;
   title: string;
-  status: "pending" | "approved" | "changes_requested";
+  status: "pending" | "approved" | "changes_requested" | "cancelled";
   requestedAt: string;
   respondedAt?: string | null;
 };

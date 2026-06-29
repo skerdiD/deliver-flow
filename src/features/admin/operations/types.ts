@@ -64,6 +64,8 @@ export type AdminPaymentRecord = AdminProjectContext & {
   status: PaymentStatus;
   dueDate: string | null;
   paidAt: string | null;
+  voidedAt: string | null;
+  voidReason: string | null;
   notes: string | null;
 };
 
@@ -181,6 +183,8 @@ export function getPaymentStatusMeta(status: PaymentStatus): {
       return { label: "Partial", tone: "blue" };
     case "overdue":
       return { label: "Overdue", tone: "red" };
+    case "void":
+      return { label: "Void", tone: "slate" };
     default:
       return { label: "Unpaid", tone: "yellow" };
   }
@@ -195,6 +199,8 @@ export function getApprovalStatusMeta(status: ApprovalStatus): {
       return { label: "Approved", tone: "green" };
     case "changes_requested":
       return { label: "Changes requested", tone: "yellow" };
+    case "cancelled":
+      return { label: "Cancelled", tone: "slate" };
     default:
       return { label: "Pending", tone: "purple" };
   }

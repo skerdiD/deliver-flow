@@ -103,6 +103,7 @@ export async function GET(
       and(
         eq(projectFiles.id, parsed.data.fileId),
         eq(projectFiles.isVisibleToClient, true),
+        isNull(projectFiles.deletedAt),
         ne(projects.status, "archived"),
         isNull(projects.archivedAt),
         isNull(projects.deletedAt),

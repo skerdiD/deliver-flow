@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { requestProjectApprovalAction } from "@/features/admin/projects/actions";
+import { ApprovalRecordActions } from "@/features/admin/operations/record-actions";
 import type {
   AdminProjectApproval,
   AdminProjectMilestone,
@@ -187,16 +188,21 @@ function ApprovalRow({ approval }: { approval: AdminProjectApproval }) {
                   ? "Approved"
                   : approval.status === "changes_requested"
                     ? "Changes requested"
-                    : "Pending"
+                    : approval.status === "cancelled"
+                      ? "Cancelled"
+                      : "Pending"
               }
               tone={
                 approval.status === "approved"
                   ? "green"
                   : approval.status === "changes_requested"
                     ? "yellow"
-                    : "purple"
+                    : approval.status === "cancelled"
+                      ? "slate"
+                      : "purple"
               }
             />
+            <ApprovalRecordActions approvalId={approval.id} />
           </div>
 
           {approval.milestoneTitle ? (

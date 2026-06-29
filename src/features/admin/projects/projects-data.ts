@@ -66,22 +66,26 @@ function slugify(value: string) {
 }
 
 function derivePaymentStatus(projectPayments: AdminProjectPayment[]) {
-  if (projectPayments.length === 0) {
+  const activePayments = projectPayments.filter(
+    (payment) => payment.status !== "void",
+  );
+
+  if (activePayments.length === 0) {
     return "unpaid";
   }
 
-  if (projectPayments.some((payment) => payment.status === "overdue")) {
+  if (activePayments.some((payment) => payment.status === "overdue")) {
     return "overdue";
   }
 
-  if (projectPayments.every((payment) => payment.status === "paid")) {
+  if (activePayments.every((payment) => payment.status === "paid")) {
     return "paid";
   }
 
   if (
-    projectPayments.some((payment) => payment.status === "partial") ||
-    (projectPayments.some((payment) => payment.status === "paid") &&
-      projectPayments.some((payment) => payment.status === "unpaid"))
+    activePayments.some((payment) => payment.status === "partial") ||
+    (activePayments.some((payment) => payment.status === "paid") &&
+      activePayments.some((payment) => payment.status === "unpaid"))
   ) {
     return "partial";
   }
@@ -180,7 +184,7 @@ async function getProjectParts(projectId: string) {
         isVisibleToClient: tasks.isVisibleToClient,
       })
       .from(tasks)
-      .where(eq(tasks.projectId, projectId))
+      .where(and(eq(tasks.projectId, projectId), isNull(tasks.deletedAt)))
       .orderBy(asc(tasks.position), asc(tasks.createdAt)),
     db
       .select({
@@ -206,7 +210,9 @@ async function getProjectParts(projectId: string) {
         createdAt: projectFiles.createdAt,
       })
       .from(projectFiles)
-      .where(eq(projectFiles.projectId, projectId))
+      .where(
+        and(eq(projectFiles.projectId, projectId), isNull(projectFiles.deletedAt)),
+      )
       .orderBy(desc(projectFiles.createdAt)),
     db
       .select({
@@ -216,10 +222,12 @@ async function getProjectParts(projectId: string) {
         status: payments.status,
         dueDate: payments.dueDate,
         paidAt: payments.paidAt,
+        voidedAt: payments.voidedAt,
+        voidReason: payments.voidReason,
         notes: payments.notes,
       })
       .from(payments)
-      .where(eq(payments.projectId, projectId))
+      .where(and(eq(payments.projectId, projectId), isNull(payments.deletedAt)))
       .orderBy(asc(payments.dueDate), asc(payments.createdAt)),
     db
       .select({
@@ -231,7 +239,13 @@ async function getProjectParts(projectId: string) {
       })
       .from(feedback)
       .innerJoin(clients, eq(feedback.clientId, clients.id))
-      .where(eq(feedback.projectId, projectId))
+      .where(
+        and(
+          eq(feedback.projectId, projectId),
+          isNull(feedback.archivedAt),
+          isNull(feedback.deletedAt),
+        ),
+      )
       .orderBy(desc(feedback.createdAt)),
     db
       .select({
@@ -246,7 +260,7 @@ async function getProjectParts(projectId: string) {
       })
       .from(approvals)
       .leftJoin(milestones, eq(approvals.milestoneId, milestones.id))
-      .where(eq(approvals.projectId, projectId))
+      .where(and(eq(approvals.projectId, projectId), isNull(approvals.deletedAt)))
       .orderBy(desc(approvals.requestedAt)),
     db
       .select({
@@ -289,6 +303,8 @@ async function getProjectParts(projectId: string) {
     status: payment.status,
     dueDate: payment.dueDate,
     paidAt: payment.paidAt ? toIsoString(payment.paidAt) : null,
+    voidedAt: payment.voidedAt ? toIsoString(payment.voidedAt) : null,
+    voidReason: payment.voidReason,
     notes: payment.notes,
     viewedAt: getViewedAt(viewMap, "payment", payment.id),
   }));
@@ -394,11 +410,14 @@ async function mapProject(row: {
   }
 
   const parts = await getProjectParts(row.id);
-  const budgetCents = parts.payments.reduce(
+  const activePayments = parts.payments.filter(
+    (payment) => payment.status !== "void",
+  );
+  const budgetCents = activePayments.reduce(
     (sum, payment) => sum + payment.amountCents,
     0,
   );
-  const paidCents = parts.payments
+  const paidCents = activePayments
     .filter((payment) => payment.status === "paid")
     .reduce((sum, payment) => sum + payment.amountCents, 0);
 
@@ -562,7 +581,13 @@ async function replaceProjectPaymentSummary(
   const budgetCents = Math.round(input.budgetDollars * 100);
   const paidCents = Math.round(input.paidDollars * 100);
 
-  await db.delete(payments).where(eq(payments.projectId, projectId));
+  await db
+    .update(payments)
+    .set({
+      deletedAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(and(eq(payments.projectId, projectId), isNull(payments.deletedAt)));
 
   if (budgetCents <= 0) {
     return;
@@ -795,7 +820,13 @@ export async function markProjectTaskComplete(projectId: string, taskId: string)
       status: "completed",
       updatedAt: new Date(),
     })
-    .where(and(eq(tasks.id, taskId), eq(tasks.projectId, projectId)));
+    .where(
+      and(
+        eq(tasks.id, taskId),
+        eq(tasks.projectId, projectId),
+        isNull(tasks.deletedAt),
+      ),
+    );
 }
 
 export async function addProjectMilestone(
