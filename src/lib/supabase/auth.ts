@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 
@@ -115,7 +115,14 @@ export const getAuthState = cache(async (): Promise<AuthState> => {
     const [clientRow] = await db
       .select({ id: clients.id })
       .from(clients)
-      .where(and(eq(clients.profileId, user.id), eq(clients.status, "active")))
+      .where(
+        and(
+          eq(clients.profileId, user.id),
+          eq(clients.status, "active"),
+          isNull(clients.archivedAt),
+          isNull(clients.deletedAt),
+        ),
+      )
       .limit(1);
 
     if (!clientRow) {

@@ -1,5 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { db } from "@/db";
@@ -97,7 +97,14 @@ export async function updateSession(request: NextRequest) {
     const [client] = await db
       .select({ id: clients.id })
       .from(clients)
-      .where(and(eq(clients.profileId, user.id), eq(clients.status, "active")))
+      .where(
+        and(
+          eq(clients.profileId, user.id),
+          eq(clients.status, "active"),
+          isNull(clients.archivedAt),
+          isNull(clients.deletedAt),
+        ),
+      )
       .limit(1);
 
     if (!client) {

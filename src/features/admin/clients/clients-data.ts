@@ -1,4 +1,4 @@
-import { desc, eq, inArray, ne } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import {
@@ -67,7 +67,13 @@ async function getClientProjects(clientId: string): Promise<AdminClientProject[]
     })
     .from(projectAssignments)
     .innerJoin(projects, eq(projectAssignments.projectId, projects.id))
-    .where(eq(projectAssignments.clientId, clientId))
+    .where(
+      and(
+        eq(projectAssignments.clientId, clientId),
+        isNull(projects.archivedAt),
+        isNull(projects.deletedAt),
+      ),
+    )
     .orderBy(desc(projectAssignments.assignedAt));
 
   if (projectRows.length === 0) {
@@ -130,6 +136,7 @@ async function mapClient(row: {
   email: string;
   status: "active" | "inactive" | "archived";
   createdAt: Date | string;
+  archivedAt: Date | string | null;
 }): Promise<AdminClient> {
   const clientProjects = await getClientProjects(row.id);
   const totalPaidCents = clientProjects.reduce(
@@ -152,6 +159,7 @@ async function mapClient(row: {
         ? `${clientProjects.length} project${clientProjects.length === 1 ? "" : "s"} assigned`
         : "Client profile ready",
     createdAt: toIsoString(row.createdAt),
+    archivedAt: row.archivedAt ? toIsoString(row.archivedAt) : null,
     projects: clientProjects,
   };
 }
@@ -165,9 +173,10 @@ export async function getAdminClients() {
       email: clients.email,
       status: clients.status,
       createdAt: clients.createdAt,
+      archivedAt: clients.archivedAt,
     })
     .from(clients)
-    .where(ne(clients.status, "archived"))
+    .where(isNull(clients.deletedAt))
     .orderBy(desc(clients.createdAt));
 
   return Promise.all(rows.map(mapClient));
@@ -182,9 +191,10 @@ export async function getAdminClientById(id: string) {
       email: clients.email,
       status: clients.status,
       createdAt: clients.createdAt,
+      archivedAt: clients.archivedAt,
     })
     .from(clients)
-    .where(eq(clients.id, id))
+    .where(and(eq(clients.id, id), isNull(clients.deletedAt)))
     .limit(1);
 
   return row ? mapClient(row) : null;
@@ -203,6 +213,8 @@ export async function createAdminClient(input: {
       email: normalizeEmail(input.email),
       companyName: input.company?.trim() || "Independent client",
       status: mapClientStatusForDb(input.status),
+      archivedAt: input.status === "archived" ? new Date() : null,
+      deletedAt: null,
     })
     .returning({
       id: clients.id,
@@ -211,6 +223,7 @@ export async function createAdminClient(input: {
       email: clients.email,
       status: clients.status,
       createdAt: clients.createdAt,
+      archivedAt: clients.archivedAt,
     });
 
   return mapClient(client);
@@ -232,9 +245,10 @@ export async function updateAdminClient(
       email: normalizeEmail(input.email),
       companyName: input.company?.trim() || "Independent client",
       status: mapClientStatusForDb(input.status),
+      archivedAt: input.status === "archived" ? new Date() : null,
       updatedAt: new Date(),
     })
-    .where(eq(clients.id, id))
+    .where(and(eq(clients.id, id), isNull(clients.deletedAt)))
     .returning({
       id: clients.id,
       companyName: clients.companyName,
@@ -242,6 +256,52 @@ export async function updateAdminClient(
       email: clients.email,
       status: clients.status,
       createdAt: clients.createdAt,
+      archivedAt: clients.archivedAt,
+    });
+
+  return client ? mapClient(client) : null;
+}
+
+export async function archiveAdminClient(id: string): Promise<AdminClient | null> {
+  const archivedAt = new Date();
+  const [client] = await db
+    .update(clients)
+    .set({
+      status: "archived",
+      archivedAt,
+      updatedAt: archivedAt,
+    })
+    .where(and(eq(clients.id, id), isNull(clients.deletedAt)))
+    .returning({
+      id: clients.id,
+      companyName: clients.companyName,
+      contactName: clients.contactName,
+      email: clients.email,
+      status: clients.status,
+      createdAt: clients.createdAt,
+      archivedAt: clients.archivedAt,
+    });
+
+  return client ? mapClient(client) : null;
+}
+
+export async function deleteAdminClient(id: string): Promise<AdminClient | null> {
+  const deletedAt = new Date();
+  const [client] = await db
+    .update(clients)
+    .set({
+      deletedAt,
+      updatedAt: deletedAt,
+    })
+    .where(and(eq(clients.id, id), isNull(clients.deletedAt)))
+    .returning({
+      id: clients.id,
+      companyName: clients.companyName,
+      contactName: clients.contactName,
+      email: clients.email,
+      status: clients.status,
+      createdAt: clients.createdAt,
+      archivedAt: clients.archivedAt,
     });
 
   return client ? mapClient(client) : null;

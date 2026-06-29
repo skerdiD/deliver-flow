@@ -1,4 +1,4 @@
-import { and, eq, ne } from "drizzle-orm";
+import { and, eq, isNull, ne } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import { z } from "zod";
@@ -104,8 +104,12 @@ export async function GET(
         eq(projectFiles.id, parsed.data.fileId),
         eq(projectFiles.isVisibleToClient, true),
         ne(projects.status, "archived"),
+        isNull(projects.archivedAt),
+        isNull(projects.deletedAt),
         eq(clients.profileId, profile.id),
         eq(clients.status, "active"),
+        isNull(clients.archivedAt),
+        isNull(clients.deletedAt),
       ),
     )
     .limit(1);

@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import {
@@ -133,7 +133,12 @@ async function getProjectClient(projectId: string): Promise<AdminProjectClient |
     })
     .from(projectAssignments)
     .innerJoin(clients, eq(projectAssignments.clientId, clients.id))
-    .where(eq(projectAssignments.projectId, projectId))
+    .where(
+      and(
+        eq(projectAssignments.projectId, projectId),
+        isNull(clients.deletedAt),
+      ),
+    )
     .orderBy(desc(projectAssignments.assignedAt))
     .limit(1);
 
@@ -380,6 +385,7 @@ async function mapProject(row: {
   liveDemoUrl: string | null;
   repositoryUrl: string | null;
   createdAt: Date | string;
+  archivedAt: Date | string | null;
 }): Promise<AdminProject | null> {
   const client = await getProjectClient(row.id);
 
@@ -428,6 +434,7 @@ async function mapProject(row: {
     activity: parts.activity,
     clientLastSeenAt: parts.clientLastSeenAt,
     createdAt: toIsoString(row.createdAt),
+    archivedAt: row.archivedAt ? toIsoString(row.archivedAt) : null,
   };
 }
 
@@ -443,8 +450,10 @@ export async function getAdminProjects() {
       liveDemoUrl: projects.liveDemoUrl,
       repositoryUrl: projects.repositoryUrl,
       createdAt: projects.createdAt,
+      archivedAt: projects.archivedAt,
     })
     .from(projects)
+    .where(isNull(projects.deletedAt))
     .orderBy(desc(projects.createdAt));
 
   const mapped = await Promise.all(rows.map(mapProject));
@@ -464,9 +473,10 @@ export async function getAdminProjectById(id: string) {
       liveDemoUrl: projects.liveDemoUrl,
       repositoryUrl: projects.repositoryUrl,
       createdAt: projects.createdAt,
+      archivedAt: projects.archivedAt,
     })
     .from(projects)
-    .where(eq(projects.id, id))
+    .where(and(eq(projects.id, id), isNull(projects.deletedAt)))
     .limit(1);
 
   return row ? mapProject(row) : null;
@@ -481,7 +491,13 @@ export async function getProjectClientOptions() {
       email: clients.email,
     })
     .from(clients)
-    .where(inArray(clients.status, ["active", "inactive"]))
+    .where(
+      and(
+        inArray(clients.status, ["active", "inactive"]),
+        isNull(clients.archivedAt),
+        isNull(clients.deletedAt),
+      ),
+    )
     .orderBy(asc(clients.companyName), asc(clients.contactName));
 
   return rows satisfies AdminProjectClient[];
@@ -501,7 +517,14 @@ export async function getAdminQuickActionProjects() {
         eq(projectAssignments.projectId, projects.id),
       )
       .innerJoin(clients, eq(projectAssignments.clientId, clients.id))
-      .where(inArray(projects.status, ["active", "in_progress", "waiting_feedback"]))
+      .where(
+        and(
+          inArray(projects.status, ["active", "in_progress", "waiting_feedback"]),
+          isNull(projects.archivedAt),
+          isNull(projects.deletedAt),
+          isNull(clients.deletedAt),
+        ),
+      )
       .orderBy(asc(projects.name)),
     db
       .select({
@@ -592,7 +615,13 @@ export async function createAdminProject(input: {
   const [client] = await db
     .select({ id: clients.id })
     .from(clients)
-    .where(eq(clients.id, input.clientId))
+    .where(
+      and(
+        eq(clients.id, input.clientId),
+        isNull(clients.archivedAt),
+        isNull(clients.deletedAt),
+      ),
+    )
     .limit(1);
 
   if (!client) {
@@ -611,6 +640,8 @@ export async function createAdminProject(input: {
         deadline: input.deadline,
         liveDemoUrl: input.liveDemoUrl?.trim() || null,
         repositoryUrl: input.repositoryUrl?.trim() || null,
+        archivedAt: input.status === "archived" ? new Date() : null,
+        deletedAt: null,
       })
       .returning({ id: projects.id });
 
@@ -660,7 +691,13 @@ export async function updateAdminProject(
   const [client] = await db
     .select({ id: clients.id })
     .from(clients)
-    .where(eq(clients.id, input.clientId))
+    .where(
+      and(
+        eq(clients.id, input.clientId),
+        isNull(clients.archivedAt),
+        isNull(clients.deletedAt),
+      ),
+    )
     .limit(1);
 
   if (!client) {
@@ -677,9 +714,10 @@ export async function updateAdminProject(
       deadline: input.deadline,
       liveDemoUrl: input.liveDemoUrl?.trim() || null,
       repositoryUrl: input.repositoryUrl?.trim() || null,
+      archivedAt: input.status === "archived" ? new Date() : null,
       updatedAt: new Date(),
     })
-    .where(eq(projects.id, id))
+    .where(and(eq(projects.id, id), isNull(projects.deletedAt)))
     .returning({ id: projects.id });
 
   if (!updatedProject) {
@@ -711,9 +749,10 @@ export async function updateProjectProgress(
     .set({
       progress: input.progress,
       status: input.status,
+      archivedAt: input.status === "archived" ? new Date() : null,
       updatedAt: new Date(),
     })
-    .where(eq(projects.id, id))
+    .where(and(eq(projects.id, id), isNull(projects.deletedAt)))
     .returning({ id: projects.id });
 
   return updatedProject ? getAdminProjectById(id) : null;
@@ -730,7 +769,7 @@ export async function addProjectTask(
   const [project] = await db
     .select({ id: projects.id })
     .from(projects)
-    .where(eq(projects.id, projectId))
+    .where(and(eq(projects.id, projectId), isNull(projects.deletedAt)))
     .limit(1);
 
   if (!project) {
@@ -770,7 +809,7 @@ export async function addProjectMilestone(
   const [project] = await db
     .select({ id: projects.id })
     .from(projects)
-    .where(eq(projects.id, projectId))
+    .where(and(eq(projects.id, projectId), isNull(projects.deletedAt)))
     .limit(1);
 
   if (!project) {
@@ -818,7 +857,7 @@ export async function addProjectUpdate(
   const [project] = await db
     .select({ id: projects.id })
     .from(projects)
-    .where(eq(projects.id, projectId))
+    .where(and(eq(projects.id, projectId), isNull(projects.deletedAt)))
     .limit(1);
 
   if (!project) {
@@ -834,4 +873,48 @@ export async function addProjectUpdate(
   });
 
   return getAdminProjectById(projectId);
+}
+
+export async function archiveAdminProject(
+  id: string,
+): Promise<AdminProject | null> {
+  const archivedAt = new Date();
+  const [project] = await db
+    .update(projects)
+    .set({
+      status: "archived",
+      archivedAt,
+      updatedAt: archivedAt,
+    })
+    .where(and(eq(projects.id, id), isNull(projects.deletedAt)))
+    .returning({ id: projects.id });
+
+  return project ? getAdminProjectById(project.id) : null;
+}
+
+export async function deleteAdminProject(
+  id: string,
+): Promise<AdminProject | null> {
+  const deletedAt = new Date();
+  const [project] = await db
+    .update(projects)
+    .set({
+      deletedAt,
+      updatedAt: deletedAt,
+    })
+    .where(and(eq(projects.id, id), isNull(projects.deletedAt)))
+    .returning({
+      id: projects.id,
+      name: projects.name,
+      description: projects.description,
+      status: projects.status,
+      progress: projects.progress,
+      deadline: projects.deadline,
+      liveDemoUrl: projects.liveDemoUrl,
+      repositoryUrl: projects.repositoryUrl,
+      createdAt: projects.createdAt,
+      archivedAt: projects.archivedAt,
+    });
+
+  return project ? mapProject(project) : null;
 }

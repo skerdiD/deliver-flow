@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, desc, eq, inArray, ne } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, ne } from "drizzle-orm";
 import { cache } from "react";
 
 import { db } from "@/db";
@@ -238,6 +238,10 @@ async function getClientPortalAssignments(
       and(
         eq(clients.profileId, profileId),
         ne(projects.status, "archived"),
+        isNull(clients.archivedAt),
+        isNull(clients.deletedAt),
+        isNull(projects.archivedAt),
+        isNull(projects.deletedAt),
       ),
     )
     .orderBy(desc(projectAssignments.assignedAt));
@@ -275,6 +279,10 @@ async function getClientPortalAssignmentById(
         eq(clients.profileId, profileId),
         eq(projects.id, parsedProjectId.data),
         ne(projects.status, "archived"),
+        isNull(clients.archivedAt),
+        isNull(clients.deletedAt),
+        isNull(projects.archivedAt),
+        isNull(projects.deletedAt),
       ),
     )
     .limit(1);

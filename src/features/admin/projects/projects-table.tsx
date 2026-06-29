@@ -1,12 +1,29 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { Archive, Loader2, MoreHorizontal, Search, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useMemo, useState, useTransition } from "react";
 
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -24,6 +41,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  archiveProjectAction,
+  deleteProjectAction,
+  type ProjectActionResult,
+} from "@/features/admin/projects/actions";
 import { PaymentStatusBadge } from "@/features/admin/projects/payment-status-badge";
 import { ProjectStatusBadge } from "@/features/admin/projects/project-status-badge";
 import type {
@@ -36,11 +58,155 @@ type ProjectsTableProps = {
   projects: AdminProject[];
 };
 
-type StatusFilter = AdminProjectStatus | "all";
+type StatusFilter = AdminProjectStatus | "current";
+
+type ProjectRowActionsProps = {
+  project: AdminProject;
+};
+
+function ProjectRowActions({ project }: ProjectRowActionsProps) {
+  const router = useRouter();
+  const [archiveOpen, setArchiveOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const [result, setResult] = useState<ProjectActionResult | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  function runAction(action: () => Promise<ProjectActionResult>) {
+    setResult(null);
+
+    startTransition(async () => {
+      const actionResult = await action();
+      setResult(actionResult);
+
+      if (!actionResult.success) {
+        return;
+      }
+
+      setArchiveOpen(false);
+      setDeleteOpen(false);
+      setDeleteConfirmation("");
+      router.refresh();
+    });
+  }
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="icon-sm" aria-label="Project actions">
+            <MoreHorizontal className="size-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-44">
+          <DropdownMenuItem
+            onSelect={(event) => {
+              event.preventDefault();
+              setResult(null);
+              setArchiveOpen(true);
+            }}
+          >
+            <Archive className="size-4" />
+            Archive project
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            variant="destructive"
+            onSelect={(event) => {
+              event.preventDefault();
+              setResult(null);
+              setDeleteOpen(true);
+            }}
+          >
+            <Trash2 className="size-4" />
+            Delete project
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <Dialog open={archiveOpen} onOpenChange={setArchiveOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Archive project?</DialogTitle>
+            <DialogDescription>
+              This hides {project.name} from current project lists while keeping
+              every task, file, payment, approval, and note intact.
+            </DialogDescription>
+          </DialogHeader>
+          {result?.success === false ? (
+            <p className="text-sm text-red-600">{result.message}</p>
+          ) : null}
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline" disabled={isPending}>
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button
+              disabled={isPending}
+              onClick={() => runAction(() => archiveProjectAction(project.id))}
+            >
+              {isPending ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Archiving...
+                </>
+              ) : (
+                "Archive project"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete project?</DialogTitle>
+            <DialogDescription>
+              This will hide this record and preserve history. Type DELETE to
+              confirm.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            value={deleteConfirmation}
+            onChange={(event) => setDeleteConfirmation(event.target.value)}
+            placeholder="DELETE"
+            autoComplete="off"
+          />
+          {result?.success === false ? (
+            <p className="text-sm text-red-600">{result.message}</p>
+          ) : null}
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline" disabled={isPending}>
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button
+              variant="destructive"
+              disabled={isPending || deleteConfirmation !== "DELETE"}
+              onClick={() => runAction(() => deleteProjectAction(project.id))}
+            >
+              {isPending ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete project"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
 
 export function ProjectsTable({ projects }: ProjectsTableProps) {
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState<StatusFilter>("all");
+  const [status, setStatus] = useState<StatusFilter>("current");
 
   const filteredProjects = useMemo(() => {
     const query = search.toLowerCase().trim();
@@ -51,7 +217,8 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
         project.client.company.toLowerCase().includes(query) ||
         project.client.name.toLowerCase().includes(query);
 
-      const matchesStatus = status === "all" || project.status === status;
+      const matchesStatus =
+        status === "current" ? !project.archivedAt : project.status === status;
 
       return matchesSearch && matchesStatus;
     });
@@ -86,7 +253,7 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
+              <SelectItem value="current">Current</SelectItem>
               <SelectItem value="active">Active</SelectItem>
               <SelectItem value="in_progress">In progress</SelectItem>
               <SelectItem value="waiting_feedback">Waiting feedback</SelectItem>
@@ -182,6 +349,7 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
                             Edit
                           </Link>
                         </Button>
+                        <ProjectRowActions project={project} />
                       </div>
                     </TableCell>
                   </TableRow>

@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
 
 import { routes } from "@/config/routes";
@@ -17,7 +17,9 @@ import {
   addProjectMilestone,
   addProjectTask,
   addProjectUpdate,
+  archiveAdminProject,
   createAdminProject,
+  deleteAdminProject,
   markProjectMilestoneComplete,
   markProjectTaskComplete,
   updateAdminProject,
@@ -136,14 +138,18 @@ function getActorName(profile: { full_name: string | null; email: string }) {
 }
 
 function revalidateProjectWorkflow(projectId: string) {
+  revalidatePath(routes.admin.dashboard);
   revalidatePath(routes.admin.projects);
   revalidatePath(`${routes.admin.projects}/${projectId}`);
   revalidatePath(routes.admin.approvals);
+  revalidatePath(routes.admin.feedback);
   revalidatePath(routes.admin.files);
   revalidatePath(routes.admin.payments);
+  revalidatePath(routes.admin.tasks);
   revalidatePath(routes.client.dashboard);
   revalidatePath(routes.client.project);
   revalidatePath(`${routes.client.project}/${projectId}`);
+  revalidatePath(routes.client.feedback);
   revalidatePath(routes.client.files);
   revalidatePath(routes.client.payments);
 }
@@ -241,6 +247,92 @@ export async function updateProjectAction(
       message: getActionErrorMessage(error, "Project could not be saved."),
     };
   }
+}
+
+export async function archiveProjectAction(
+  id: string,
+): Promise<ProjectActionResult> {
+  const adminProfile = await requireRole("admin");
+
+  const idParsed = projectIdActionSchema.safeParse({ projectId: id });
+  if (!idParsed.success) {
+    return {
+      success: false,
+      message: "Project id is invalid.",
+    };
+  }
+
+  const project = await archiveAdminProject(idParsed.data.projectId);
+
+  if (!project) {
+    return {
+      success: false,
+      message: "Project not found.",
+    };
+  }
+
+  await logProjectActivity({
+    projectId: idParsed.data.projectId,
+    actorId: adminProfile.id,
+    actorName: getActorName(adminProfile),
+    actorRole: "admin",
+    type: "project_archived",
+    message: "Project archived.",
+    metadata: {
+      projectName: project.name,
+    },
+  });
+
+  revalidateProjectWorkflow(idParsed.data.projectId);
+
+  return {
+    success: true,
+    message: "Project archived.",
+    projectId: project.id,
+  };
+}
+
+export async function deleteProjectAction(
+  id: string,
+): Promise<ProjectActionResult> {
+  const adminProfile = await requireRole("admin");
+
+  const idParsed = projectIdActionSchema.safeParse({ projectId: id });
+  if (!idParsed.success) {
+    return {
+      success: false,
+      message: "Project id is invalid.",
+    };
+  }
+
+  const project = await deleteAdminProject(idParsed.data.projectId);
+
+  if (!project) {
+    return {
+      success: false,
+      message: "Project not found.",
+    };
+  }
+
+  await logProjectActivity({
+    projectId: idParsed.data.projectId,
+    actorId: adminProfile.id,
+    actorName: getActorName(adminProfile),
+    actorRole: "admin",
+    type: "project_deleted",
+    message: "Project deleted.",
+    metadata: {
+      projectName: project.name,
+    },
+  });
+
+  revalidateProjectWorkflow(idParsed.data.projectId);
+
+  return {
+    success: true,
+    message: "Project deleted.",
+    projectId: project.id,
+  };
 }
 
 export async function updateProjectProgressAction(
@@ -554,7 +646,12 @@ export async function requestProjectApprovalAction(
   const [project] = await db
     .select({ id: projects.id })
     .from(projects)
-    .where(eq(projects.id, projectIdParsed.data))
+    .where(
+      and(
+        eq(projects.id, projectIdParsed.data),
+        isNull(projects.deletedAt),
+      ),
+    )
     .limit(1);
 
   if (!project) {
@@ -664,6 +761,24 @@ export async function addProjectPaymentAction(
     };
   }
 
+  const [project] = await db
+    .select({ id: projects.id })
+    .from(projects)
+    .where(
+      and(
+        eq(projects.id, projectIdParsed.data),
+        isNull(projects.deletedAt),
+      ),
+    )
+    .limit(1);
+
+  if (!project) {
+    return {
+      success: false,
+      message: "Project not found.",
+    };
+  }
+
   const amountCents = Math.round(parsed.data.amountDollars * 100);
 
   const [payment] = await db
@@ -723,13 +838,22 @@ export async function updateProjectPaymentStatusAction(input: {
   const [paymentBeforeUpdate] = await db
     .select({ status: payments.status })
     .from(payments)
+    .innerJoin(projects, eq(payments.projectId, projects.id))
     .where(
       and(
         eq(payments.id, parsed.data.paymentId),
         eq(payments.projectId, parsed.data.projectId),
+        isNull(projects.deletedAt),
       ),
     )
     .limit(1);
+
+  if (!paymentBeforeUpdate) {
+    return {
+      success: false,
+      message: "Payment not found.",
+    };
+  }
 
   const [payment] = await db
     .update(payments)
@@ -810,6 +934,24 @@ export async function uploadProjectFileAction(
     return {
       success: false,
       message: "Choose a file to upload.",
+    };
+  }
+
+  const [project] = await db
+    .select({ id: projects.id })
+    .from(projects)
+    .where(
+      and(
+        eq(projects.id, projectIdParsed.data),
+        isNull(projects.deletedAt),
+      ),
+    )
+    .limit(1);
+
+  if (!project) {
+    return {
+      success: false,
+      message: "Project not found.",
     };
   }
 

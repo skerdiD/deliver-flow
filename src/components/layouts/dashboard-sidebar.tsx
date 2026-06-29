@@ -45,7 +45,7 @@ export function DashboardSidebar({
     <TooltipProvider>
       <aside
         className={cn(
-          "dashboard-sidebar-shell h-screen shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-white transition-[width] duration-300 ease-in-out",
+          "dashboard-sidebar-shell h-dvh shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-white transition-[width] duration-300 ease-in-out",
           isCollapsed ? "w-20" : expandedWidthClass,
         )}
       >

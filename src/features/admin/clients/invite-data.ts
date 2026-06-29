@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, desc, eq, gt, lte } from "drizzle-orm";
+import { and, desc, eq, gt, isNull, lte } from "drizzle-orm";
 
 import { db } from "@/db";
 import { clientInvitations, clients } from "@/db/schema";
@@ -60,7 +60,10 @@ export async function getAdminClientInvites(): Promise<AdminClientInvite[]> {
       companyName: clients.companyName,
     })
     .from(clientInvitations)
-    .leftJoin(clients, eq(clientInvitations.clientId, clients.id))
+    .leftJoin(
+      clients,
+      and(eq(clientInvitations.clientId, clients.id), isNull(clients.deletedAt)),
+    )
     .orderBy(desc(clientInvitations.createdAt))
     .limit(25);
 
@@ -111,10 +114,17 @@ export async function createClientInvite(
       id: clients.id,
       profileId: clients.profileId,
       status: clients.status,
+      deletedAt: clients.deletedAt,
     })
     .from(clients)
     .where(eq(clients.email, email))
     .limit(1);
+
+  if (existingClient?.deletedAt) {
+    throw new Error(
+      "This email belongs to a deleted client record. Restore or update that record before sending a new invite.",
+    );
+  }
 
   if (existingClient?.profileId) {
     throw new Error(
@@ -130,11 +140,13 @@ export async function createClientInvite(
           .insert(clients)
           .values({
             email,
-            contactName: input.name,
-            companyName: input.company?.trim() || "Independent client",
-            status: "inactive",
-            createdBy: inviter.id,
-          })
+          contactName: input.name,
+          companyName: input.company?.trim() || "Independent client",
+          status: "inactive",
+          archivedAt: null,
+          deletedAt: null,
+          createdBy: inviter.id,
+        })
           .returning({ id: clients.id })
       )[0]?.id;
 
@@ -149,6 +161,7 @@ export async function createClientInvite(
           contactName: input.name,
           companyName: input.company?.trim() || "Independent client",
           status: "inactive",
+          archivedAt: null,
           updatedAt: now,
         })
         .where(eq(clients.id, preparedClientId));

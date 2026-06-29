@@ -155,11 +155,15 @@ export const clients = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
   },
   (table) => ({
     profileIdIdx: index("clients_profile_id_idx").on(table.profileId),
     createdByIdx: index("clients_created_by_idx").on(table.createdBy),
     statusIdx: index("clients_status_idx").on(table.status),
+    archivedAtIdx: index("clients_archived_at_idx").on(table.archivedAt),
+    deletedAtIdx: index("clients_deleted_at_idx").on(table.deletedAt),
     createdAtIdx: index("clients_created_at_idx").on(table.createdAt),
   }),
 );
@@ -229,6 +233,8 @@ export const projects = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
   },
   (table) => ({
     progressCheck: check(
@@ -237,6 +243,8 @@ export const projects = pgTable(
     ),
     createdByIdx: index("projects_created_by_idx").on(table.createdBy),
     statusIdx: index("projects_status_idx").on(table.status),
+    archivedAtIdx: index("projects_archived_at_idx").on(table.archivedAt),
+    deletedAtIdx: index("projects_deleted_at_idx").on(table.deletedAt),
     statusUpdatedAtIdx: index("projects_status_updated_at_idx").on(
       table.status,
       table.updatedAt,

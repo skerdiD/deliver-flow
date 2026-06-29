@@ -136,4 +136,5 @@ export type AdminProject = {
   activity: AdminProjectActivity[];
   clientLastSeenAt: string | null;
   createdAt: string;
+  archivedAt: string | null;
 };

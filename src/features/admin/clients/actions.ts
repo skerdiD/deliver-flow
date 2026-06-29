@@ -3,7 +3,9 @@
 import { revalidatePath } from "next/cache";
 
 import {
+  archiveAdminClient,
   createAdminClient,
+  deleteAdminClient,
   updateAdminClient,
 } from "@/features/admin/clients/clients-data";
 import {
@@ -127,4 +129,72 @@ export async function updateClientAction(
       message: "Client could not be saved.",
     };
   }
+}
+
+export async function archiveClientAction(
+  id: string,
+): Promise<ClientActionResult> {
+  await requireRole("admin");
+
+  const idParsed = clientIdActionSchema.safeParse({ clientId: id });
+  if (!idParsed.success) {
+    return {
+      success: false,
+      message: "Client id is invalid.",
+    };
+  }
+
+  const client = await archiveAdminClient(idParsed.data.clientId);
+
+  if (!client) {
+    return {
+      success: false,
+      message: "Client not found.",
+    };
+  }
+
+  revalidatePath("/admin/clients");
+  revalidatePath(`/admin/clients/${idParsed.data.clientId}`);
+  revalidatePath("/client/dashboard");
+  revalidatePath("/client/project");
+
+  return {
+    success: true,
+    message: "Client archived.",
+    clientId: client.id,
+  };
+}
+
+export async function deleteClientAction(
+  id: string,
+): Promise<ClientActionResult> {
+  await requireRole("admin");
+
+  const idParsed = clientIdActionSchema.safeParse({ clientId: id });
+  if (!idParsed.success) {
+    return {
+      success: false,
+      message: "Client id is invalid.",
+    };
+  }
+
+  const client = await deleteAdminClient(idParsed.data.clientId);
+
+  if (!client) {
+    return {
+      success: false,
+      message: "Client not found.",
+    };
+  }
+
+  revalidatePath("/admin/clients");
+  revalidatePath(`/admin/clients/${idParsed.data.clientId}`);
+  revalidatePath("/client/dashboard");
+  revalidatePath("/client/project");
+
+  return {
+    success: true,
+    message: "Client deleted.",
+    clientId: client.id,
+  };
 }

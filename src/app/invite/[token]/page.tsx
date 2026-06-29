@@ -52,7 +52,7 @@ export default async function InvitePage({ params }: InvitePageProps) {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10 text-slate-950">
+    <main className="flex min-h-dvh items-center justify-center bg-slate-50 px-4 py-10 text-slate-950">
       <AcceptInviteCard
         token={parsedToken.data}
         email={preview.email}
@@ -70,7 +70,7 @@ function InviteStateCard(props: {
   actionLabel?: string;
 }) {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10 text-slate-950">
+    <main className="flex min-h-dvh items-center justify-center bg-slate-50 px-4 py-10 text-slate-950">
       <Card className="w-full max-w-md rounded-xl border-slate-200 shadow-sm">
         <CardHeader>
           <CardTitle>{props.title}</CardTitle>

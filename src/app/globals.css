@@ -40,10 +40,12 @@
 }
 
 html {
+  min-height: 100%;
   scroll-behavior: smooth;
 }
 
 body {
+  min-height: 100dvh;
   background: hsl(210 40% 98%);
   color: hsl(var(--foreground));
   font-feature-settings:

@@ -27,5 +27,6 @@ export type AdminClient = {
   totalPaidCents: number;
   latestActivity: string;
   createdAt: string;
+  archivedAt: string | null;
   projects: AdminClientProject[];
 };

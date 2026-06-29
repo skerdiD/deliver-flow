@@ -1,6 +1,6 @@
 import "server-only";
 
-import { asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import {
@@ -55,7 +55,12 @@ async function getProjectClientMap(projectIds: string[]) {
     })
     .from(projectAssignments)
     .innerJoin(clients, eq(projectAssignments.clientId, clients.id))
-    .where(inArray(projectAssignments.projectId, projectIds))
+    .where(
+      and(
+        inArray(projectAssignments.projectId, projectIds),
+        isNull(clients.deletedAt),
+      ),
+    )
     .orderBy(desc(projectAssignments.assignedAt));
 
   for (const row of assignmentRows) {
@@ -90,6 +95,7 @@ export async function getAdminTasksPageData(): Promise<AdminTasksPageData> {
     .from(tasks)
     .innerJoin(projects, eq(tasks.projectId, projects.id))
     .leftJoin(milestones, eq(tasks.milestoneId, milestones.id))
+    .where(and(isNull(projects.archivedAt), isNull(projects.deletedAt)))
     .orderBy(asc(tasks.dueDate), desc(tasks.updatedAt));
 
   const projectClientMap = await getProjectClientMap(
@@ -154,6 +160,13 @@ export async function getAdminFeedbackPageData(): Promise<AdminFeedbackPageData>
     .from(feedback)
     .innerJoin(projects, eq(feedback.projectId, projects.id))
     .innerJoin(clients, eq(feedback.clientId, clients.id))
+    .where(
+      and(
+        isNull(projects.archivedAt),
+        isNull(projects.deletedAt),
+        isNull(clients.deletedAt),
+      ),
+    )
     .orderBy(desc(feedback.createdAt));
 
   const normalizedFeedback: AdminFeedbackRecord[] = feedbackRows.map((row) => ({
@@ -199,6 +212,7 @@ export async function getAdminPaymentsPageData(): Promise<AdminPaymentsPageData>
     })
     .from(payments)
     .innerJoin(projects, eq(payments.projectId, projects.id))
+    .where(and(isNull(projects.archivedAt), isNull(projects.deletedAt)))
     .orderBy(asc(payments.dueDate), desc(payments.createdAt));
 
   const projectClientMap = await getProjectClientMap(
@@ -256,6 +270,7 @@ export async function getAdminFilesPageData(): Promise<AdminFilesPageData> {
     })
     .from(projectFiles)
     .innerJoin(projects, eq(projectFiles.projectId, projects.id))
+    .where(and(isNull(projects.archivedAt), isNull(projects.deletedAt)))
     .orderBy(desc(projectFiles.createdAt));
 
   const projectClientMap = await getProjectClientMap(
@@ -313,6 +328,7 @@ export async function getAdminApprovalsPageData(): Promise<AdminApprovalsPageDat
     .from(approvals)
     .innerJoin(projects, eq(approvals.projectId, projects.id))
     .leftJoin(milestones, eq(approvals.milestoneId, milestones.id))
+    .where(and(isNull(projects.archivedAt), isNull(projects.deletedAt)))
     .orderBy(desc(approvals.requestedAt));
 
   const projectClientMap = await getProjectClientMap(

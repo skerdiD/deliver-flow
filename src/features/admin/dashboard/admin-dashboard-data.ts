@@ -17,6 +17,7 @@ import {
   desc,
   eq,
   inArray,
+  isNull,
   ne,
   sum,
 } from "drizzle-orm";
@@ -175,7 +176,12 @@ async function getProjectSupportMaps(projectIds: string[]) {
       })
       .from(projectAssignments)
       .innerJoin(clients, eq(projectAssignments.clientId, clients.id))
-      .where(inArray(projectAssignments.projectId, projectIds))
+      .where(
+        and(
+          inArray(projectAssignments.projectId, projectIds),
+          isNull(clients.deletedAt),
+        ),
+      )
       .orderBy(desc(projectAssignments.assignedAt)),
     db
       .select({
@@ -358,19 +364,48 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     db
       .select({ value: count() })
       .from(projects)
-      .where(inArray(projects.status, activeProjectStatuses)),
+      .where(
+        and(
+          inArray(projects.status, activeProjectStatuses),
+          isNull(projects.archivedAt),
+          isNull(projects.deletedAt),
+        ),
+      ),
     db
       .select({ value: count() })
       .from(feedback)
-      .where(eq(feedback.status, "open")),
+      .innerJoin(projects, eq(feedback.projectId, projects.id))
+      .innerJoin(clients, eq(feedback.clientId, clients.id))
+      .where(
+        and(
+          eq(feedback.status, "open"),
+          isNull(projects.archivedAt),
+          isNull(projects.deletedAt),
+          isNull(clients.deletedAt),
+        ),
+      ),
     db
       .select({ value: count() })
       .from(milestones)
-      .where(inArray(milestones.status, completedMilestoneStatuses)),
+      .innerJoin(projects, eq(milestones.projectId, projects.id))
+      .where(
+        and(
+          inArray(milestones.status, completedMilestoneStatuses),
+          isNull(projects.archivedAt),
+          isNull(projects.deletedAt),
+        ),
+      ),
     db
       .select({ value: sum(payments.amountCents) })
       .from(payments)
-      .where(inArray(payments.status, outstandingPaymentStatuses)),
+      .innerJoin(projects, eq(payments.projectId, projects.id))
+      .where(
+        and(
+          inArray(payments.status, outstandingPaymentStatuses),
+          isNull(projects.archivedAt),
+          isNull(projects.deletedAt),
+        ),
+      ),
     db
       .select({
         id: projects.id,
@@ -385,6 +420,8 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
         and(
           ne(projects.status, "draft"),
           ne(projects.status, "archived"),
+          isNull(projects.archivedAt),
+          isNull(projects.deletedAt),
         ),
       )
       .orderBy(desc(projects.updatedAt))
@@ -399,7 +436,13 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
         updatedAt: projects.updatedAt,
       })
       .from(projects)
-      .where(inArray(projects.status, activeProjectStatuses))
+      .where(
+        and(
+          inArray(projects.status, activeProjectStatuses),
+          isNull(projects.archivedAt),
+          isNull(projects.deletedAt),
+        ),
+      )
       .orderBy(asc(projects.deadline), desc(projects.updatedAt))
       .limit(4),
     db
@@ -414,6 +457,13 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       .from(feedback)
       .innerJoin(clients, eq(feedback.clientId, clients.id))
       .innerJoin(projects, eq(feedback.projectId, projects.id))
+      .where(
+        and(
+          isNull(projects.archivedAt),
+          isNull(projects.deletedAt),
+          isNull(clients.deletedAt),
+        ),
+      )
       .orderBy(desc(feedback.createdAt))
       .limit(4),
     db
@@ -428,6 +478,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       })
       .from(approvals)
       .innerJoin(projects, eq(approvals.projectId, projects.id))
+      .where(and(isNull(projects.archivedAt), isNull(projects.deletedAt)))
       .orderBy(desc(approvals.requestedAt))
       .limit(4),
     db
@@ -441,6 +492,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       })
       .from(projectUpdates)
       .innerJoin(projects, eq(projectUpdates.projectId, projects.id))
+      .where(and(isNull(projects.archivedAt), isNull(projects.deletedAt)))
       .orderBy(desc(projectUpdates.createdAt))
       .limit(4),
     db
@@ -455,6 +507,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       })
       .from(payments)
       .innerJoin(projects, eq(payments.projectId, projects.id))
+      .where(and(isNull(projects.archivedAt), isNull(projects.deletedAt)))
       .orderBy(asc(payments.dueDate), desc(payments.createdAt))
       .limit(6),
   ]);

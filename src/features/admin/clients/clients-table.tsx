@@ -1,12 +1,29 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { Archive, Loader2, MoreHorizontal, Search, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useMemo, useState, useTransition } from "react";
 
 import { EmptyState } from "@/components/shared/empty-state";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -23,6 +40,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  archiveClientAction,
+  deleteClientAction,
+  type ClientActionResult,
+} from "@/features/admin/clients/actions";
 import { ClientStatusBadge } from "@/features/admin/clients/client-status-badge";
 import type {
   AdminClient,
@@ -34,11 +56,155 @@ type ClientsTableProps = {
   clients: AdminClient[];
 };
 
-type StatusFilter = AdminClientStatus | "all";
+type StatusFilter = AdminClientStatus | "current";
+
+type ClientRowActionsProps = {
+  client: AdminClient;
+};
+
+function ClientRowActions({ client }: ClientRowActionsProps) {
+  const router = useRouter();
+  const [archiveOpen, setArchiveOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const [result, setResult] = useState<ClientActionResult | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  function runAction(action: () => Promise<ClientActionResult>) {
+    setResult(null);
+
+    startTransition(async () => {
+      const actionResult = await action();
+      setResult(actionResult);
+
+      if (!actionResult.success) {
+        return;
+      }
+
+      setArchiveOpen(false);
+      setDeleteOpen(false);
+      setDeleteConfirmation("");
+      router.refresh();
+    });
+  }
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="icon-sm" aria-label="Client actions">
+            <MoreHorizontal className="size-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-44">
+          <DropdownMenuItem
+            onSelect={(event) => {
+              event.preventDefault();
+              setResult(null);
+              setArchiveOpen(true);
+            }}
+          >
+            <Archive className="size-4" />
+            Archive client
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            variant="destructive"
+            onSelect={(event) => {
+              event.preventDefault();
+              setResult(null);
+              setDeleteOpen(true);
+            }}
+          >
+            <Trash2 className="size-4" />
+            Delete client
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <Dialog open={archiveOpen} onOpenChange={setArchiveOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Archive client?</DialogTitle>
+            <DialogDescription>
+              This hides {client.company ?? client.name} from current client
+              lists while keeping their projects and history intact.
+            </DialogDescription>
+          </DialogHeader>
+          {result?.success === false ? (
+            <p className="text-sm text-red-600">{result.message}</p>
+          ) : null}
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline" disabled={isPending}>
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button
+              disabled={isPending}
+              onClick={() => runAction(() => archiveClientAction(client.id))}
+            >
+              {isPending ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Archiving...
+                </>
+              ) : (
+                "Archive client"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete client?</DialogTitle>
+            <DialogDescription>
+              This will hide this record and preserve history. Type DELETE to
+              confirm.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            value={deleteConfirmation}
+            onChange={(event) => setDeleteConfirmation(event.target.value)}
+            placeholder="DELETE"
+            autoComplete="off"
+          />
+          {result?.success === false ? (
+            <p className="text-sm text-red-600">{result.message}</p>
+          ) : null}
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline" disabled={isPending}>
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button
+              variant="destructive"
+              disabled={isPending || deleteConfirmation !== "DELETE"}
+              onClick={() => runAction(() => deleteClientAction(client.id))}
+            >
+              {isPending ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete client"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
 
 export function ClientsTable({ clients }: ClientsTableProps) {
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState<StatusFilter>("all");
+  const [status, setStatus] = useState<StatusFilter>("current");
 
   const filteredClients = useMemo(() => {
     const query = search.toLowerCase().trim();
@@ -49,7 +215,8 @@ export function ClientsTable({ clients }: ClientsTableProps) {
         client.email.toLowerCase().includes(query) ||
         client.company?.toLowerCase().includes(query);
 
-      const matchesStatus = status === "all" || client.status === status;
+      const matchesStatus =
+        status === "current" ? !client.archivedAt : client.status === status;
 
       return matchesSearch && matchesStatus;
     });
@@ -84,7 +251,7 @@ export function ClientsTable({ clients }: ClientsTableProps) {
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
+              <SelectItem value="current">Current</SelectItem>
               <SelectItem value="active">Active</SelectItem>
               <SelectItem value="paused">Paused</SelectItem>
               <SelectItem value="archived">Archived</SelectItem>
@@ -157,14 +324,15 @@ export function ClientsTable({ clients }: ClientsTableProps) {
                       <div className="flex flex-wrap justify-end gap-2">
                         <Button variant="outline" className="h-9 px-3" asChild>
                           <Link href={`/admin/clients/${client.id}`}>
-                            View Profile
+                            View
                           </Link>
                         </Button>
                         <Button variant="outline" className="h-9 px-3" asChild>
                           <Link href={`/admin/clients/${client.id}/edit`}>
-                            Edit Client
+                            Edit
                           </Link>
                         </Button>
+                        <ClientRowActions client={client} />
                       </div>
                     </TableCell>
                   </TableRow>

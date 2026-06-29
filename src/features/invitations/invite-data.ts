@@ -156,8 +156,17 @@ export async function acceptClientInvite(
     .from(clients)
     .where(
       invite.clientId
-        ? and(eq(clients.profileId, user.id), ne(clients.id, invite.clientId))
-        : eq(clients.profileId, user.id),
+        ? and(
+            eq(clients.profileId, user.id),
+            ne(clients.id, invite.clientId),
+            isNull(clients.archivedAt),
+            isNull(clients.deletedAt),
+          )
+        : and(
+            eq(clients.profileId, user.id),
+            isNull(clients.archivedAt),
+            isNull(clients.deletedAt),
+          ),
     )
     .limit(1);
 
@@ -178,7 +187,13 @@ export async function acceptClientInvite(
             profileId: clients.profileId,
           })
           .from(clients)
-          .where(eq(clients.id, invite.clientId))
+          .where(
+            and(
+              eq(clients.id, invite.clientId),
+              isNull(clients.archivedAt),
+              isNull(clients.deletedAt),
+            ),
+          )
           .limit(1)
       )[0]
     : null;
@@ -215,6 +230,8 @@ export async function acceptClientInvite(
             user.user_metadata?.full_name?.toString() ?? invite.email,
           companyName: "Independent client",
           status: "inactive",
+          archivedAt: null,
+          deletedAt: null,
         })
         .returning({ id: clients.id })
     )[0]?.id;
@@ -256,6 +273,8 @@ export async function acceptClientInvite(
         and(
           eq(clients.id, clientId),
           eq(clients.email, invite.email),
+          isNull(clients.archivedAt),
+          isNull(clients.deletedAt),
           or(isNull(clients.profileId), eq(clients.profileId, user.id)),
         ),
       )
@@ -342,7 +361,13 @@ export async function acceptClientInviteWithPassword(input: {
       profileId: clients.profileId,
     })
     .from(clients)
-    .where(eq(clients.id, invite.clientId))
+    .where(
+      and(
+        eq(clients.id, invite.clientId),
+        isNull(clients.archivedAt),
+        isNull(clients.deletedAt),
+      ),
+    )
     .limit(1);
 
   if (!invitedClient || normalizeEmail(invitedClient.email) !== invite.email) {
@@ -421,6 +446,8 @@ export async function acceptClientInviteWithPassword(input: {
           and(
             eq(clients.id, invitedClient.id),
             eq(clients.email, invite.email),
+            isNull(clients.archivedAt),
+            isNull(clients.deletedAt),
             or(isNull(clients.profileId), eq(clients.profileId, userId)),
           ),
         )
