@@ -8,22 +8,6 @@ It helps freelancers and small agencies manage clients, projects, tasks, files, 
 
 ---
 
-## Demo Account
-
-Use the demo credentials below to explore the platform.
-
-```txt
-Admin Email: demo@deliverflow.app
-Password: Demo1234!
-
-Client Email: client@deliverflow.app
-Password: Demo1234!
-```
-
-The demo data is fake and may be reset at any time.
-
----
-
 ## Preview
 
 Explore the deployed app: [deliver-flow.vercel.app](https://deliver-flow.vercel.app/)
