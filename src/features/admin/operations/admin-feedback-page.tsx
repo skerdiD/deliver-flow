@@ -5,6 +5,12 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 
 import { EmptyState } from "@/components/shared/empty-state";
+import {
+  MobileRecordActions,
+  MobileRecordCard,
+  MobileRecordList,
+  MobileRecordMeta,
+} from "@/components/shared/mobile-record";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -138,77 +144,153 @@ export function AdminFeedbackPage({ data }: AdminFeedbackPageProps) {
               description="Client notes will appear here once someone replies through the portal."
             />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Message</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              <MobileRecordList>
                 {filteredFeedback.map((item) => {
                   const statusMeta = getFeedbackStatusMeta(item.status);
 
                   return (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-medium text-slate-950">
-                        {item.clientName}
-                      </TableCell>
-                      <TableCell>{item.projectName}</TableCell>
-                      <TableCell className="max-w-xl whitespace-normal">
-                        <div className="space-y-1">
-                          <p className="text-sm text-slate-700">
-                            {item.message}
+                    <MobileRecordCard key={item.id}>
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0">
+                          <p className="break-words font-medium text-slate-950">
+                            {item.clientName}
                           </p>
-                          {item.adminResponse ? (
-                            <p className="text-xs text-slate-500">
-                              Response saved: {item.adminResponse}
-                            </p>
-                          ) : null}
-                          <FeedbackRecordActions feedbackId={item.id} />
+                          <p className="mt-1 break-words text-sm text-slate-500">
+                            {item.projectName}
+                          </p>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        {formatDateTimeLabel(item.createdAt)}
-                      </TableCell>
-                      <TableCell>
                         <StatusBadge
                           label={statusMeta.label}
                           tone={statusMeta.tone}
                         />
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          {item.status === "open" ? (
-                            <Button
-                              variant="outline"
-                              disabled={isPending}
-                              onClick={() => updateStatus(item.id, "reviewed")}
-                            >
-                              Mark reviewed
-                            </Button>
-                          ) : null}
+                      </div>
 
-                          {item.status !== "resolved" ? (
-                            <Button
-                              variant="outline"
-                              disabled={isPending}
-                              onClick={() => updateStatus(item.id, "resolved")}
-                            >
-                              Resolve
-                            </Button>
-                          ) : null}
-                        </div>
-                      </TableCell>
-                    </TableRow>
+                      <div className="mt-4 grid gap-3">
+                        <MobileRecordMeta label="Message">
+                          <p className="break-words leading-6">
+                            {item.message}
+                          </p>
+                        </MobileRecordMeta>
+                        {item.adminResponse ? (
+                          <MobileRecordMeta label="Response saved">
+                            <p className="break-words leading-6">
+                              {item.adminResponse}
+                            </p>
+                          </MobileRecordMeta>
+                        ) : null}
+                        <MobileRecordMeta label="Date">
+                          {formatDateTimeLabel(item.createdAt)}
+                        </MobileRecordMeta>
+                      </div>
+
+                      <MobileRecordActions>
+                        <FeedbackRecordActions feedbackId={item.id} />
+                        {item.status === "open" ? (
+                          <Button
+                            variant="outline"
+                            disabled={isPending}
+                            onClick={() => updateStatus(item.id, "reviewed")}
+                            className="w-full sm:w-auto"
+                          >
+                            Mark reviewed
+                          </Button>
+                        ) : null}
+
+                        {item.status !== "resolved" ? (
+                          <Button
+                            variant="outline"
+                            disabled={isPending}
+                            onClick={() => updateStatus(item.id, "resolved")}
+                            className="w-full sm:w-auto"
+                          >
+                            Resolve
+                          </Button>
+                        ) : null}
+                      </MobileRecordActions>
+                    </MobileRecordCard>
                   );
                 })}
-              </TableBody>
-            </Table>
+              </MobileRecordList>
+
+              <div className="hidden lg:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Client</TableHead>
+                      <TableHead>Project</TableHead>
+                      <TableHead>Message</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredFeedback.map((item) => {
+                      const statusMeta = getFeedbackStatusMeta(item.status);
+
+                      return (
+                        <TableRow key={item.id}>
+                          <TableCell className="font-medium text-slate-950">
+                            {item.clientName}
+                          </TableCell>
+                          <TableCell>{item.projectName}</TableCell>
+                          <TableCell className="max-w-xl whitespace-normal">
+                            <div className="space-y-1">
+                              <p className="text-sm text-slate-700">
+                                {item.message}
+                              </p>
+                              {item.adminResponse ? (
+                                <p className="text-xs text-slate-500">
+                                  Response saved: {item.adminResponse}
+                                </p>
+                              ) : null}
+                              <FeedbackRecordActions feedbackId={item.id} />
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {formatDateTimeLabel(item.createdAt)}
+                          </TableCell>
+                          <TableCell>
+                            <StatusBadge
+                              label={statusMeta.label}
+                              tone={statusMeta.tone}
+                            />
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              {item.status === "open" ? (
+                                <Button
+                                  variant="outline"
+                                  disabled={isPending}
+                                  onClick={() =>
+                                    updateStatus(item.id, "reviewed")
+                                  }
+                                >
+                                  Mark reviewed
+                                </Button>
+                              ) : null}
+
+                              {item.status !== "resolved" ? (
+                                <Button
+                                  variant="outline"
+                                  disabled={isPending}
+                                  onClick={() =>
+                                    updateStatus(item.id, "resolved")
+                                  }
+                                >
+                                  Resolve
+                                </Button>
+                              ) : null}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

@@ -38,8 +38,12 @@ export function ClientFilesGrid({ files }: ClientFilesGridProps) {
                 <Icon className="size-6" />
               </div>
 
-              <p className="mt-4 font-semibold text-slate-950">{file.name}</p>
-              <p className="mt-1 text-sm text-slate-500">{file.category}</p>
+              <p className="mt-4 break-words font-semibold text-slate-950">
+                {file.name}
+              </p>
+              <p className="mt-1 break-words text-sm text-slate-500">
+                {file.category}
+              </p>
 
               <div className="mt-4 space-y-1 text-sm text-slate-600">
                 <p>Type: {file.type.toUpperCase()}</p>

@@ -49,16 +49,16 @@ export function ClientPaymentSummary({ project }: ClientPaymentSummaryProps) {
                 key={payment.id}
                 className="flex flex-col gap-4 rounded-lg border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between"
               >
-                <div className="flex items-start gap-3">
+                <div className="flex min-w-0 items-start gap-3">
                   <div className="grid size-10 place-items-center rounded-lg bg-slate-100 text-slate-700">
                     <CreditCard className="size-4" />
                   </div>
 
-                  <div>
-                    <p className="font-semibold text-slate-950">
+                  <div className="min-w-0">
+                    <p className="break-words font-semibold text-slate-950">
                       {payment.label}
                     </p>
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="mt-1 break-words text-sm text-slate-500">
                       Due {formatShortDate(payment.dueDate)}
                       {payment.paidAt
                         ? ` / Paid ${formatShortDate(payment.paidAt)}`

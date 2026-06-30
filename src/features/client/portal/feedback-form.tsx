@@ -57,7 +57,7 @@ export function FeedbackForm({ projectId, feedback }: FeedbackFormProps) {
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
+    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(320px,420px)]">
       <Card className="rounded-lg border-slate-200 shadow-sm">
         <CardHeader>
           <CardTitle>Send feedback</CardTitle>
@@ -94,7 +94,11 @@ export function FeedbackForm({ projectId, feedback }: FeedbackFormProps) {
                 )}
               />
 
-              <Button type="submit" disabled={isPending}>
+              <Button
+                type="submit"
+                disabled={isPending}
+                className="w-full sm:w-auto"
+              >
                 {isPending ? (
                   <Loader2 className="mr-2 size-4 animate-spin" />
                 ) : (
@@ -126,7 +130,7 @@ export function FeedbackForm({ projectId, feedback }: FeedbackFormProps) {
                 key={item.id}
                 className="rounded-lg border border-slate-200 p-4"
               >
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <StatusBadge
                     label={
                       item.status === "open"
@@ -148,7 +152,7 @@ export function FeedbackForm({ projectId, feedback }: FeedbackFormProps) {
                   </span>
                 </div>
 
-                <p className="mt-3 text-sm leading-6 text-slate-600">
+                <p className="mt-3 break-words text-sm leading-6 text-slate-600">
                   {item.message}
                 </p>
 
@@ -157,7 +161,7 @@ export function FeedbackForm({ projectId, feedback }: FeedbackFormProps) {
                     <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
                       Reply from your freelancer
                     </p>
-                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                    <p className="mt-2 break-words text-sm leading-6 text-slate-600">
                       {item.adminResponse}
                     </p>
                   </div>

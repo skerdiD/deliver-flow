@@ -2,6 +2,12 @@ import { CreditCard } from "lucide-react";
 import Link from "next/link";
 
 import { EmptyState } from "@/components/shared/empty-state";
+import {
+  MobileRecordActions,
+  MobileRecordCard,
+  MobileRecordList,
+  MobileRecordMeta,
+} from "@/components/shared/mobile-record";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -68,67 +74,137 @@ export function AdminPaymentsPage({ data }: AdminPaymentsPageProps) {
               description="Payment records will show here with status and due dates."
             />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Due date</TableHead>
-                  <TableHead>Paid date</TableHead>
-                  <TableHead>Notes</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              <MobileRecordList>
                 {data.payments.map((payment) => {
                   const statusMeta = getPaymentStatusMeta(payment.status);
 
                   return (
-                    <TableRow key={payment.id}>
-                      <TableCell className="font-medium text-slate-950">
-                        {payment.clientName}
-                      </TableCell>
-                      <TableCell>
-                        <Link
-                          href={`${routes.admin.projects}/${payment.projectId}`}
-                          className="font-medium text-slate-950 hover:text-blue-700"
-                        >
-                          {payment.projectName}
-                        </Link>
-                      </TableCell>
-                      <TableCell>
-                        {formatPaymentAmount(
-                          payment.amountCents,
-                          payment.currency,
-                        )}
-                      </TableCell>
-                      <TableCell>
+                    <MobileRecordCard key={payment.id}>
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0">
+                          <p className="break-words font-medium text-slate-950">
+                            {payment.clientName}
+                          </p>
+                          <Link
+                            href={`${routes.admin.projects}/${payment.projectId}`}
+                            className="mt-1 block break-words text-sm font-medium text-slate-700 hover:text-blue-700"
+                          >
+                            {payment.projectName}
+                          </Link>
+                        </div>
                         <StatusBadge
                           label={statusMeta.label}
                           tone={statusMeta.tone}
                         />
-                      </TableCell>
-                      <TableCell>{formatDateLabel(payment.dueDate)}</TableCell>
-                      <TableCell>
-                        {formatDateTimeLabel(payment.paidAt, "Not paid yet")}
-                      </TableCell>
-                      <TableCell className="max-w-sm whitespace-normal text-sm text-slate-500">
-                        {payment.notes ?? "No note added."}
-                      </TableCell>
-                      <TableCell className="text-right">
+                      </div>
+
+                      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                        <MobileRecordMeta label="Amount">
+                          <span className="font-medium text-slate-950">
+                            {formatPaymentAmount(
+                              payment.amountCents,
+                              payment.currency,
+                            )}
+                          </span>
+                        </MobileRecordMeta>
+                        <MobileRecordMeta label="Due date">
+                          {formatDateLabel(payment.dueDate)}
+                        </MobileRecordMeta>
+                        <MobileRecordMeta label="Paid date">
+                          {formatDateTimeLabel(payment.paidAt, "Not paid yet")}
+                        </MobileRecordMeta>
+                        <MobileRecordMeta
+                          label="Notes"
+                          className="sm:col-span-2"
+                        >
+                          <span className="break-words">
+                            {payment.notes ?? "No note added."}
+                          </span>
+                        </MobileRecordMeta>
+                      </div>
+
+                      <MobileRecordActions className="justify-end">
                         <PaymentRecordActions
                           paymentId={payment.id}
                           projectId={payment.projectId}
                           status={payment.status}
                         />
-                      </TableCell>
-                    </TableRow>
+                      </MobileRecordActions>
+                    </MobileRecordCard>
                   );
                 })}
-              </TableBody>
-            </Table>
+              </MobileRecordList>
+
+              <div className="hidden lg:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Client</TableHead>
+                      <TableHead>Project</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Due date</TableHead>
+                      <TableHead>Paid date</TableHead>
+                      <TableHead>Notes</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {data.payments.map((payment) => {
+                      const statusMeta = getPaymentStatusMeta(payment.status);
+
+                      return (
+                        <TableRow key={payment.id}>
+                          <TableCell className="font-medium text-slate-950">
+                            {payment.clientName}
+                          </TableCell>
+                          <TableCell>
+                            <Link
+                              href={`${routes.admin.projects}/${payment.projectId}`}
+                              className="font-medium text-slate-950 hover:text-blue-700"
+                            >
+                              {payment.projectName}
+                            </Link>
+                          </TableCell>
+                          <TableCell>
+                            {formatPaymentAmount(
+                              payment.amountCents,
+                              payment.currency,
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <StatusBadge
+                              label={statusMeta.label}
+                              tone={statusMeta.tone}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            {formatDateLabel(payment.dueDate)}
+                          </TableCell>
+                          <TableCell>
+                            {formatDateTimeLabel(
+                              payment.paidAt,
+                              "Not paid yet",
+                            )}
+                          </TableCell>
+                          <TableCell className="max-w-sm whitespace-normal text-sm text-slate-500">
+                            {payment.notes ?? "No note added."}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <PaymentRecordActions
+                              paymentId={payment.id}
+                              projectId={payment.projectId}
+                              status={payment.status}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

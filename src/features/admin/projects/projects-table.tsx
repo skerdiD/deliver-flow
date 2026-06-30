@@ -6,6 +6,12 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 
 import { EmptyState } from "@/components/shared/empty-state";
+import {
+  MobileRecordActions,
+  MobileRecordCard,
+  MobileRecordList,
+  MobileRecordMeta,
+} from "@/components/shared/mobile-record";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -239,14 +245,14 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
   return (
     <Card className="rounded-lg border-slate-200 shadow-sm">
       <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
+        <div className="min-w-0">
           <CardTitle>Projects</CardTitle>
           <p className="mt-1 text-sm text-slate-500">
             Manage delivery progress, milestones, tasks, updates, and approvals.
           </p>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_190px]">
+        <div className="grid w-full gap-3 sm:grid-cols-[minmax(0,1fr)_190px] lg:w-auto">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
             <Input
@@ -283,51 +289,43 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
             description="Try changing the search or status filter. New projects will appear here after you create them."
           />
         ) : (
-          <div className="overflow-hidden rounded-lg border border-slate-200">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-slate-50">
-                  <TableHead>Project</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Progress</TableHead>
-                  <TableHead>Payment</TableHead>
-                  <TableHead className="text-right">Deadline</TableHead>
-                  <TableHead className="min-w-[250px] text-right">
-                    Actions
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-
-              <TableBody>
-                {filteredProjects.map((project) => (
-                  <TableRow key={project.id}>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium text-slate-950">
-                          {project.name}
-                        </p>
-                        <p className="mt-1 max-w-[320px] truncate text-xs text-slate-500">
-                          {project.description}
-                        </p>
-                      </div>
-                    </TableCell>
-
-                    <TableCell>
-                      <p className="font-medium text-slate-900">
-                        {project.client.company}
+          <>
+            <MobileRecordList>
+              {filteredProjects.map((project) => (
+                <MobileRecordCard key={project.id}>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <p className="break-words font-medium text-slate-950">
+                        {project.name}
                       </p>
-                      <p className="mt-1 text-xs text-slate-500">
+                      <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-500">
+                        {project.description}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      <ProjectStatusBadge status={project.status} />
+                      <PaymentStatusBadge status={project.paymentStatus} />
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    <MobileRecordMeta label="Client">
+                      <span className="break-words font-medium text-slate-950">
+                        {project.client.company}
+                      </span>
+                      <p className="mt-1 break-words text-xs text-slate-500">
                         {project.client.name}
                       </p>
-                    </TableCell>
-
-                    <TableCell>
-                      <ProjectStatusBadge status={project.status} />
-                    </TableCell>
-
-                    <TableCell>
-                      <div className="min-w-32">
+                    </MobileRecordMeta>
+                    <MobileRecordMeta label="Deadline">
+                      {formatShortDate(project.deadline)}
+                    </MobileRecordMeta>
+                    <MobileRecordMeta
+                      label="Progress"
+                      className="sm:col-span-2"
+                    >
+                      <div className="min-w-0">
                         <div className="mb-2 flex items-center justify-between text-xs">
                           <span className="text-slate-500">Progress</span>
                           <span className="font-medium text-slate-700">
@@ -336,49 +334,136 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
                         </div>
                         <Progress value={project.progress} />
                       </div>
-                    </TableCell>
+                    </MobileRecordMeta>
+                    <MobileRecordMeta label="Paid">
+                      <span className="font-medium text-slate-950">
+                        {formatCurrencyFromCents(project.paidCents)}
+                      </span>
+                    </MobileRecordMeta>
+                  </div>
 
-                    <TableCell>
-                      <div className="space-y-1">
-                        <PaymentStatusBadge status={project.paymentStatus} />
-                        <p className="text-xs text-slate-500">
-                          {formatCurrencyFromCents(project.paidCents)} paid
-                        </p>
-                      </div>
-                    </TableCell>
+                  <MobileRecordActions>
+                    <Button
+                      variant="outline"
+                      className="h-10 w-full px-4 hover:border-slate-400 hover:bg-slate-100 sm:w-auto"
+                      asChild
+                    >
+                      <Link href={`/admin/projects/${project.id}`}>View</Link>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="h-10 w-full px-4 hover:border-slate-400 hover:bg-slate-100 sm:w-auto"
+                      asChild
+                    >
+                      <Link href={`/admin/projects/${project.id}/edit`}>
+                        Edit
+                      </Link>
+                    </Button>
+                    <div className="self-start sm:ml-auto">
+                      <ProjectRowActions project={project} />
+                    </div>
+                  </MobileRecordActions>
+                </MobileRecordCard>
+              ))}
+            </MobileRecordList>
 
-                    <TableCell className="text-right text-slate-600">
-                      {formatShortDate(project.deadline)}
-                    </TableCell>
-
-                    <TableCell className="text-right">
-                      <div className="inline-flex min-w-[250px] items-center justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          className="h-10 px-4 hover:border-slate-400 hover:bg-slate-100"
-                          asChild
-                        >
-                          <Link href={`/admin/projects/${project.id}`}>
-                            View
-                          </Link>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="h-10 px-4 hover:border-slate-400 hover:bg-slate-100"
-                          asChild
-                        >
-                          <Link href={`/admin/projects/${project.id}/edit`}>
-                            Edit
-                          </Link>
-                        </Button>
-                        <ProjectRowActions project={project} />
-                      </div>
-                    </TableCell>
+            <div className="hidden overflow-hidden rounded-lg border border-slate-200 lg:block">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-slate-50">
+                    <TableHead>Project</TableHead>
+                    <TableHead>Client</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Progress</TableHead>
+                    <TableHead>Payment</TableHead>
+                    <TableHead className="text-right">Deadline</TableHead>
+                    <TableHead className="min-w-[250px] text-right">
+                      Actions
+                    </TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+
+                <TableBody>
+                  {filteredProjects.map((project) => (
+                    <TableRow key={project.id}>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium text-slate-950">
+                            {project.name}
+                          </p>
+                          <p className="mt-1 max-w-[320px] truncate text-xs text-slate-500">
+                            {project.description}
+                          </p>
+                        </div>
+                      </TableCell>
+
+                      <TableCell>
+                        <p className="font-medium text-slate-900">
+                          {project.client.company}
+                        </p>
+                        <p className="mt-1 text-xs text-slate-500">
+                          {project.client.name}
+                        </p>
+                      </TableCell>
+
+                      <TableCell>
+                        <ProjectStatusBadge status={project.status} />
+                      </TableCell>
+
+                      <TableCell>
+                        <div className="min-w-32">
+                          <div className="mb-2 flex items-center justify-between text-xs">
+                            <span className="text-slate-500">Progress</span>
+                            <span className="font-medium text-slate-700">
+                              {project.progress}%
+                            </span>
+                          </div>
+                          <Progress value={project.progress} />
+                        </div>
+                      </TableCell>
+
+                      <TableCell>
+                        <div className="space-y-1">
+                          <PaymentStatusBadge status={project.paymentStatus} />
+                          <p className="text-xs text-slate-500">
+                            {formatCurrencyFromCents(project.paidCents)} paid
+                          </p>
+                        </div>
+                      </TableCell>
+
+                      <TableCell className="text-right text-slate-600">
+                        {formatShortDate(project.deadline)}
+                      </TableCell>
+
+                      <TableCell className="text-right">
+                        <div className="inline-flex min-w-[250px] items-center justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            className="h-10 px-4 hover:border-slate-400 hover:bg-slate-100"
+                            asChild
+                          >
+                            <Link href={`/admin/projects/${project.id}`}>
+                              View
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="h-10 px-4 hover:border-slate-400 hover:bg-slate-100"
+                            asChild
+                          >
+                            <Link href={`/admin/projects/${project.id}/edit`}>
+                              Edit
+                            </Link>
+                          </Button>
+                          <ProjectRowActions project={project} />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </>
         )}
       </CardContent>
     </Card>

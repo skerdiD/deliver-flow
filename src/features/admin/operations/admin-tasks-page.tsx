@@ -6,6 +6,12 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 
 import { EmptyState } from "@/components/shared/empty-state";
+import {
+  MobileRecordActions,
+  MobileRecordCard,
+  MobileRecordList,
+  MobileRecordMeta,
+} from "@/components/shared/mobile-record";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -191,20 +197,8 @@ export function AdminTasksPage({ data }: AdminTasksPageProps) {
               description="Try another status or project filter, or add new tasks from a project detail page."
             />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Task</TableHead>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Priority</TableHead>
-                  <TableHead>Due date</TableHead>
-                  <TableHead>Visibility</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              <MobileRecordList>
                 {filteredTasks.map((task) => {
                   const statusMeta = getTaskStatusMeta(task.status);
                   const priorityMeta = getTaskPriorityMeta(task.priority);
@@ -213,82 +207,193 @@ export function AdminTasksPage({ data }: AdminTasksPageProps) {
                   );
 
                   return (
-                    <TableRow key={task.id}>
-                      <TableCell className="whitespace-normal">
-                        <div className="space-y-1">
-                          <p className="font-medium text-slate-950">
+                    <MobileRecordCard key={task.id}>
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0">
+                          <p className="break-words font-medium text-slate-950">
                             {task.title}
                           </p>
                           {task.description ? (
-                            <p className="text-sm text-slate-500">
+                            <p className="mt-1 break-words text-sm leading-6 text-slate-500">
                               {task.description}
                             </p>
                           ) : null}
                           {task.milestoneTitle ? (
-                            <p className="text-xs text-slate-500">
+                            <p className="mt-1 break-words text-xs text-slate-500">
                               Milestone: {task.milestoneTitle}
                             </p>
                           ) : null}
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <Link
-                          href={`${routes.admin.projects}/${task.projectId}`}
-                          className="font-medium text-slate-950 hover:text-blue-700"
-                        >
-                          {task.projectName}
-                        </Link>
-                      </TableCell>
-                      <TableCell>{task.clientName}</TableCell>
-                      <TableCell>
                         <StatusBadge
                           label={statusMeta.label}
                           tone={statusMeta.tone}
                         />
-                      </TableCell>
-                      <TableCell>
-                        <StatusBadge
-                          label={priorityMeta.label}
-                          tone={priorityMeta.tone}
-                        />
-                      </TableCell>
-                      <TableCell>{formatDateLabel(task.dueDate)}</TableCell>
-                      <TableCell>
-                        <StatusBadge
-                          label={visibilityMeta.label}
-                          tone={visibilityMeta.tone}
-                        />
-                      </TableCell>
-                      <TableCell className="text-right">
+                      </div>
+
+                      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                        <MobileRecordMeta label="Project">
+                          <Link
+                            href={`${routes.admin.projects}/${task.projectId}`}
+                            className="break-words font-medium text-slate-950 hover:text-blue-700"
+                          >
+                            {task.projectName}
+                          </Link>
+                        </MobileRecordMeta>
+                        <MobileRecordMeta label="Client">
+                          <span className="break-words">{task.clientName}</span>
+                        </MobileRecordMeta>
+                        <MobileRecordMeta label="Priority">
+                          <StatusBadge
+                            label={priorityMeta.label}
+                            tone={priorityMeta.tone}
+                          />
+                        </MobileRecordMeta>
+                        <MobileRecordMeta label="Due date">
+                          {formatDateLabel(task.dueDate)}
+                        </MobileRecordMeta>
+                        <MobileRecordMeta label="Visibility">
+                          <StatusBadge
+                            label={visibilityMeta.label}
+                            tone={visibilityMeta.tone}
+                          />
+                        </MobileRecordMeta>
+                      </div>
+
+                      <MobileRecordActions>
                         {task.status === "completed" ? (
                           <span className="text-sm text-slate-500">Done</span>
                         ) : (
                           <Button
                             variant="outline"
-                            size="icon-sm"
                             disabled={isPending}
                             onClick={() =>
                               handleMarkComplete(task.id, task.projectId)
                             }
-                            aria-label={`Mark ${task.title} complete`}
+                            className="h-10 w-full sm:w-auto"
                           >
                             <CheckCircle2 className="size-4" />
+                            Mark complete
                           </Button>
                         )}
-                        <TaskRecordActions
-                          taskId={task.id}
-                          projectId={task.projectId}
-                          title={task.title}
-                          description={task.description}
-                          dueDate={task.dueDate}
-                          status={task.status}
-                        />
-                      </TableCell>
-                    </TableRow>
+                        <div className="self-start sm:ml-auto">
+                          <TaskRecordActions
+                            taskId={task.id}
+                            projectId={task.projectId}
+                            title={task.title}
+                            description={task.description}
+                            dueDate={task.dueDate}
+                            status={task.status}
+                          />
+                        </div>
+                      </MobileRecordActions>
+                    </MobileRecordCard>
                   );
                 })}
-              </TableBody>
-            </Table>
+              </MobileRecordList>
+
+              <div className="hidden lg:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Task</TableHead>
+                      <TableHead>Project</TableHead>
+                      <TableHead>Client</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Priority</TableHead>
+                      <TableHead>Due date</TableHead>
+                      <TableHead>Visibility</TableHead>
+                      <TableHead className="text-right">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredTasks.map((task) => {
+                      const statusMeta = getTaskStatusMeta(task.status);
+                      const priorityMeta = getTaskPriorityMeta(task.priority);
+                      const visibilityMeta = getFileVisibilityMeta(
+                        task.isVisibleToClient,
+                      );
+
+                      return (
+                        <TableRow key={task.id}>
+                          <TableCell className="whitespace-normal">
+                            <div className="space-y-1">
+                              <p className="font-medium text-slate-950">
+                                {task.title}
+                              </p>
+                              {task.description ? (
+                                <p className="text-sm text-slate-500">
+                                  {task.description}
+                                </p>
+                              ) : null}
+                              {task.milestoneTitle ? (
+                                <p className="text-xs text-slate-500">
+                                  Milestone: {task.milestoneTitle}
+                                </p>
+                              ) : null}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Link
+                              href={`${routes.admin.projects}/${task.projectId}`}
+                              className="font-medium text-slate-950 hover:text-blue-700"
+                            >
+                              {task.projectName}
+                            </Link>
+                          </TableCell>
+                          <TableCell>{task.clientName}</TableCell>
+                          <TableCell>
+                            <StatusBadge
+                              label={statusMeta.label}
+                              tone={statusMeta.tone}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <StatusBadge
+                              label={priorityMeta.label}
+                              tone={priorityMeta.tone}
+                            />
+                          </TableCell>
+                          <TableCell>{formatDateLabel(task.dueDate)}</TableCell>
+                          <TableCell>
+                            <StatusBadge
+                              label={visibilityMeta.label}
+                              tone={visibilityMeta.tone}
+                            />
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {task.status === "completed" ? (
+                              <span className="text-sm text-slate-500">
+                                Done
+                              </span>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="icon-sm"
+                                disabled={isPending}
+                                onClick={() =>
+                                  handleMarkComplete(task.id, task.projectId)
+                                }
+                                aria-label={`Mark ${task.title} complete`}
+                              >
+                                <CheckCircle2 className="size-4" />
+                              </Button>
+                            )}
+                            <TaskRecordActions
+                              taskId={task.id}
+                              projectId={task.projectId}
+                              title={task.title}
+                              description={task.description}
+                              dueDate={task.dueDate}
+                              status={task.status}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

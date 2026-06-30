@@ -43,17 +43,17 @@ export function ClientDashboardProjectCard({
     <Card className="rounded-lg border-slate-200 shadow-sm">
       <CardContent className="p-5">
         <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-start">
-          <div className="max-w-3xl">
+          <div className="min-w-0 max-w-3xl">
             <div className="flex flex-wrap items-center gap-2">
               <ClientProjectStatusBadge status={project.status} />
               <ClientPaymentStatusBadge status={project.paymentStatus} />
             </div>
 
-            <h2 className="mt-4 text-2xl font-semibold leading-8 text-slate-950">
+            <h2 className="mt-4 break-words text-2xl font-semibold leading-8 text-slate-950">
               {project.name}
             </h2>
 
-            <p className="mt-2 text-sm leading-6 text-slate-600">
+            <p className="mt-2 break-words text-sm leading-6 text-slate-600">
               {project.description}
             </p>
 
@@ -74,7 +74,7 @@ export function ClientDashboardProjectCard({
                 <p className="text-xs font-medium text-slate-500">
                   Current milestone
                 </p>
-                <p className="mt-1 text-sm font-semibold text-slate-950">
+                <p className="mt-1 break-words text-sm font-semibold text-slate-950">
                   {project.currentMilestone}
                 </p>
               </div>
@@ -152,7 +152,7 @@ export function ClientDashboardProjectCard({
             <p className="text-sm font-semibold text-slate-950">
               Latest update from freelancer
             </p>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
+            <p className="mt-2 break-words text-sm leading-6 text-slate-600">
               {latestUpdate
                 ? latestUpdate.body
                 : "No updates have been shared yet."}
@@ -179,7 +179,10 @@ export function ClientDashboardProjectCard({
             <ul className="mt-3 space-y-2">
               {nextTasks.length > 0 ? (
                 nextTasks.slice(0, 3).map((task) => (
-                  <li key={task.id} className="text-sm text-slate-600">
+                  <li
+                    key={task.id}
+                    className="break-words text-sm text-slate-600"
+                  >
                     {task.title}
                   </li>
                 ))

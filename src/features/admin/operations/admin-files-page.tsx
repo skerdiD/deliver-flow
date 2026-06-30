@@ -2,6 +2,12 @@ import { Files } from "lucide-react";
 import Link from "next/link";
 
 import { EmptyState } from "@/components/shared/empty-state";
+import {
+  MobileRecordActions,
+  MobileRecordCard,
+  MobileRecordList,
+  MobileRecordMeta,
+} from "@/components/shared/mobile-record";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -69,70 +75,139 @@ export function AdminFilesPage({ data }: AdminFilesPageProps) {
               description="Project files from the database will show up here once uploads start."
             />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>File</TableHead>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Visibility</TableHead>
-                  <TableHead>Uploaded</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              <MobileRecordList>
                 {data.files.map((file) => {
                   const visibilityMeta = getFileVisibilityMeta(
                     file.isVisibleToClient,
                   );
 
                   return (
-                    <TableRow key={file.id}>
-                      <TableCell className="max-w-sm whitespace-normal">
-                        <div className="space-y-1">
-                          <p className="font-medium text-slate-950">
+                    <MobileRecordCard key={file.id}>
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0">
+                          <p className="break-words font-medium text-slate-950">
                             {file.fileName}
                           </p>
-                          <p className="text-xs text-slate-500">
+                          <p className="mt-1 break-words text-xs text-slate-500">
                             {getFileCategoryLabel(file.category)} -{" "}
                             {formatFileSize(file.fileSize)}
                           </p>
-                          <p className="text-xs text-slate-500">
-                            {file.bucketName}/{file.storagePath}
-                          </p>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <Link
-                          href={`${routes.admin.projects}/${file.projectId}`}
-                          className="font-medium text-slate-950 hover:text-blue-700"
-                        >
-                          {file.projectName}
-                        </Link>
-                      </TableCell>
-                      <TableCell>{file.clientName}</TableCell>
-                      <TableCell>{file.fileType ?? "Unknown type"}</TableCell>
-                      <TableCell>
                         <StatusBadge
                           label={visibilityMeta.label}
                           tone={visibilityMeta.tone}
                         />
-                      </TableCell>
-                      <TableCell>
-                        {formatDateTimeLabel(file.createdAt)}
-                      </TableCell>
-                      <TableCell className="text-right">
+                      </div>
+
+                      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                        <MobileRecordMeta label="Project">
+                          <Link
+                            href={`${routes.admin.projects}/${file.projectId}`}
+                            className="break-words font-medium text-slate-950 hover:text-blue-700"
+                          >
+                            {file.projectName}
+                          </Link>
+                        </MobileRecordMeta>
+                        <MobileRecordMeta label="Client">
+                          <span className="break-words">{file.clientName}</span>
+                        </MobileRecordMeta>
+                        <MobileRecordMeta label="Type">
+                          {file.fileType ?? "Unknown type"}
+                        </MobileRecordMeta>
+                        <MobileRecordMeta label="Uploaded">
+                          {formatDateTimeLabel(file.createdAt)}
+                        </MobileRecordMeta>
+                        <MobileRecordMeta
+                          label="Storage"
+                          className="sm:col-span-2"
+                        >
+                          <span className="break-all">
+                            {file.bucketName}/{file.storagePath}
+                          </span>
+                        </MobileRecordMeta>
+                      </div>
+
+                      <MobileRecordActions className="justify-end">
                         <FileRecordActions
                           fileId={file.id}
                           fileName={file.fileName}
                         />
-                      </TableCell>
-                    </TableRow>
+                      </MobileRecordActions>
+                    </MobileRecordCard>
                   );
                 })}
-              </TableBody>
-            </Table>
+              </MobileRecordList>
+
+              <div className="hidden lg:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>File</TableHead>
+                      <TableHead>Project</TableHead>
+                      <TableHead>Client</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Visibility</TableHead>
+                      <TableHead>Uploaded</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {data.files.map((file) => {
+                      const visibilityMeta = getFileVisibilityMeta(
+                        file.isVisibleToClient,
+                      );
+
+                      return (
+                        <TableRow key={file.id}>
+                          <TableCell className="max-w-sm whitespace-normal">
+                            <div className="space-y-1">
+                              <p className="font-medium text-slate-950">
+                                {file.fileName}
+                              </p>
+                              <p className="text-xs text-slate-500">
+                                {getFileCategoryLabel(file.category)} -{" "}
+                                {formatFileSize(file.fileSize)}
+                              </p>
+                              <p className="text-xs text-slate-500">
+                                {file.bucketName}/{file.storagePath}
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Link
+                              href={`${routes.admin.projects}/${file.projectId}`}
+                              className="font-medium text-slate-950 hover:text-blue-700"
+                            >
+                              {file.projectName}
+                            </Link>
+                          </TableCell>
+                          <TableCell>{file.clientName}</TableCell>
+                          <TableCell>
+                            {file.fileType ?? "Unknown type"}
+                          </TableCell>
+                          <TableCell>
+                            <StatusBadge
+                              label={visibilityMeta.label}
+                              tone={visibilityMeta.tone}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            {formatDateTimeLabel(file.createdAt)}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <FileRecordActions
+                              fileId={file.id}
+                              fileName={file.fileName}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

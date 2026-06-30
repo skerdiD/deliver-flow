@@ -2,6 +2,12 @@ import { BadgeCheck } from "lucide-react";
 import Link from "next/link";
 
 import { EmptyState } from "@/components/shared/empty-state";
+import {
+  MobileRecordActions,
+  MobileRecordCard,
+  MobileRecordList,
+  MobileRecordMeta,
+} from "@/components/shared/mobile-record";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -62,68 +68,136 @@ export function AdminApprovalsPage({ data }: AdminApprovalsPageProps) {
               description="When a milestone is sent for review, it will appear here with the client response."
             />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Request</TableHead>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Response note</TableHead>
-                  <TableHead>Responded</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              <MobileRecordList>
                 {data.approvals.map((approval) => {
                   const statusMeta = getApprovalStatusMeta(approval.status);
 
                   return (
-                    <TableRow key={approval.id}>
-                      <TableCell className="max-w-sm whitespace-normal">
-                        <div className="space-y-1">
-                          <p className="font-medium text-slate-950">
+                    <MobileRecordCard key={approval.id}>
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0">
+                          <p className="break-words font-medium text-slate-950">
                             {approval.title}
                           </p>
-                          <p className="text-sm text-slate-500">
+                          <p className="mt-1 break-words text-sm text-slate-500">
                             {approval.milestoneTitle ??
                               "General approval request"}
                           </p>
-                          <p className="text-xs text-slate-500">
+                          <p className="mt-1 text-xs text-slate-500">
                             Requested{" "}
                             {formatDateTimeLabel(approval.requestedAt)}
                           </p>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <Link
-                          href={`${routes.admin.projects}/${approval.projectId}`}
-                          className="font-medium text-slate-950 hover:text-blue-700"
-                        >
-                          {approval.projectName}
-                        </Link>
-                      </TableCell>
-                      <TableCell>{approval.clientName}</TableCell>
-                      <TableCell>
                         <StatusBadge
                           label={statusMeta.label}
                           tone={statusMeta.tone}
                         />
-                      </TableCell>
-                      <TableCell className="max-w-sm whitespace-normal text-sm text-slate-500">
-                        {approval.responseNote ?? "No response note added."}
-                      </TableCell>
-                      <TableCell>
-                        {formatDateTimeLabel(approval.respondedAt, "Waiting")}
-                      </TableCell>
-                      <TableCell className="text-right">
+                      </div>
+
+                      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                        <MobileRecordMeta label="Project">
+                          <Link
+                            href={`${routes.admin.projects}/${approval.projectId}`}
+                            className="break-words font-medium text-slate-950 hover:text-blue-700"
+                          >
+                            {approval.projectName}
+                          </Link>
+                        </MobileRecordMeta>
+                        <MobileRecordMeta label="Client">
+                          <span className="break-words">
+                            {approval.clientName}
+                          </span>
+                        </MobileRecordMeta>
+                        <MobileRecordMeta label="Responded">
+                          {formatDateTimeLabel(approval.respondedAt, "Waiting")}
+                        </MobileRecordMeta>
+                        <MobileRecordMeta
+                          label="Response note"
+                          className="sm:col-span-2"
+                        >
+                          <span className="break-words">
+                            {approval.responseNote ?? "No response note added."}
+                          </span>
+                        </MobileRecordMeta>
+                      </div>
+
+                      <MobileRecordActions className="justify-end">
                         <ApprovalRecordActions approvalId={approval.id} />
-                      </TableCell>
-                    </TableRow>
+                      </MobileRecordActions>
+                    </MobileRecordCard>
                   );
                 })}
-              </TableBody>
-            </Table>
+              </MobileRecordList>
+
+              <div className="hidden lg:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Request</TableHead>
+                      <TableHead>Project</TableHead>
+                      <TableHead>Client</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Response note</TableHead>
+                      <TableHead>Responded</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {data.approvals.map((approval) => {
+                      const statusMeta = getApprovalStatusMeta(approval.status);
+
+                      return (
+                        <TableRow key={approval.id}>
+                          <TableCell className="max-w-sm whitespace-normal">
+                            <div className="space-y-1">
+                              <p className="font-medium text-slate-950">
+                                {approval.title}
+                              </p>
+                              <p className="text-sm text-slate-500">
+                                {approval.milestoneTitle ??
+                                  "General approval request"}
+                              </p>
+                              <p className="text-xs text-slate-500">
+                                Requested{" "}
+                                {formatDateTimeLabel(approval.requestedAt)}
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Link
+                              href={`${routes.admin.projects}/${approval.projectId}`}
+                              className="font-medium text-slate-950 hover:text-blue-700"
+                            >
+                              {approval.projectName}
+                            </Link>
+                          </TableCell>
+                          <TableCell>{approval.clientName}</TableCell>
+                          <TableCell>
+                            <StatusBadge
+                              label={statusMeta.label}
+                              tone={statusMeta.tone}
+                            />
+                          </TableCell>
+                          <TableCell className="max-w-sm whitespace-normal text-sm text-slate-500">
+                            {approval.responseNote ?? "No response note added."}
+                          </TableCell>
+                          <TableCell>
+                            {formatDateTimeLabel(
+                              approval.respondedAt,
+                              "Waiting",
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <ApprovalRecordActions approvalId={approval.id} />
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

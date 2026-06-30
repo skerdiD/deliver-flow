@@ -38,9 +38,11 @@ export function ClientTasksCard({ tasks }: ClientTasksCardProps) {
                 >
                   <div className="flex items-start gap-3">
                     <CheckCircle2 className="mt-0.5 size-5 text-emerald-600" />
-                    <div>
-                      <p className="font-medium text-slate-950">{task.title}</p>
-                      <p className="mt-1 text-sm leading-6 text-slate-600">
+                    <div className="min-w-0">
+                      <p className="break-words font-medium text-slate-950">
+                        {task.title}
+                      </p>
+                      <p className="mt-1 break-words text-sm leading-6 text-slate-600">
                         {task.description}
                       </p>
                     </div>
@@ -68,10 +70,12 @@ export function ClientTasksCard({ tasks }: ClientTasksCardProps) {
                   className="rounded-lg border border-slate-200 p-4"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="font-medium text-slate-950">{task.title}</p>
+                    <p className="break-words font-medium text-slate-950">
+                      {task.title}
+                    </p>
                     <ClientTaskStatusBadge status={task.status} />
                   </div>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                  <p className="mt-2 break-words text-sm leading-6 text-slate-600">
                     {task.description}
                   </p>
                 </div>

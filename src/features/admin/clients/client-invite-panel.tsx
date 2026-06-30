@@ -3,6 +3,11 @@
 import { Copy, Loader2, MailPlus } from "lucide-react";
 import { useState, useTransition } from "react";
 
+import {
+  MobileRecordCard,
+  MobileRecordList,
+  MobileRecordMeta,
+} from "@/components/shared/mobile-record";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -205,7 +210,45 @@ export function ClientInvitePanel({ invites }: ClientInvitePanelProps) {
           </div>
         ) : null}
 
-        <div className="overflow-hidden rounded-lg border border-slate-200">
+        {invites.length === 0 ? (
+          <p className="rounded-lg border border-slate-200 p-4 text-sm text-slate-500 lg:hidden">
+            No client invites yet.
+          </p>
+        ) : (
+          <MobileRecordList>
+            {invites.map((invite) => (
+              <MobileRecordCard key={invite.id}>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="break-all font-medium text-slate-950">
+                      {invite.email}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      Created {formatShortDate(invite.createdAt)}
+                    </p>
+                  </div>
+                  <InviteStatusBadge status={invite.status} />
+                </div>
+
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <MobileRecordMeta label="Client">
+                    <span className="break-words">{invite.clientName}</span>
+                  </MobileRecordMeta>
+                  <MobileRecordMeta label="Company">
+                    <span className="break-words">{invite.companyName}</span>
+                  </MobileRecordMeta>
+                  <MobileRecordMeta label="Expires" className="sm:col-span-2">
+                    {invite.acceptedAt
+                      ? `Accepted ${formatShortDate(invite.acceptedAt)}`
+                      : formatShortDate(invite.expiresAt)}
+                  </MobileRecordMeta>
+                </div>
+              </MobileRecordCard>
+            ))}
+          </MobileRecordList>
+        )}
+
+        <div className="hidden overflow-hidden rounded-lg border border-slate-200 lg:block">
           <Table>
             <TableHeader>
               <TableRow className="bg-slate-50">
