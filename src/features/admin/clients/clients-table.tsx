@@ -92,12 +92,23 @@ function ClientRowActions({ client }: ClientRowActionsProps) {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="icon-sm" aria-label="Client actions">
+          <Button
+            variant="outline"
+            size="icon"
+            aria-label="Client actions"
+            className="border-slate-300 bg-white text-slate-800 hover:border-slate-400 hover:bg-slate-100"
+          >
             <MoreHorizontal className="size-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-44">
+        <DropdownMenuContent
+          side="left"
+          align="start"
+          sideOffset={10}
+          className="w-56 p-2"
+        >
           <DropdownMenuItem
+            className="h-11 gap-3 px-3 text-[15px]"
             onSelect={(event) => {
               event.preventDefault();
               setResult(null);
@@ -107,9 +118,10 @@ function ClientRowActions({ client }: ClientRowActionsProps) {
             <Archive className="size-4" />
             Archive client
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
+          <DropdownMenuSeparator className="my-1.5" />
           <DropdownMenuItem
             variant="destructive"
+            className="h-11 gap-3 px-3 text-[15px]"
             onSelect={(event) => {
               event.preventDefault();
               setResult(null);
@@ -278,7 +290,9 @@ export function ClientsTable({ clients }: ClientsTableProps) {
                   <TableHead>Total paid</TableHead>
                   <TableHead>Latest activity</TableHead>
                   <TableHead className="text-right">Created</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="min-w-[250px] text-right">
+                    Actions
+                  </TableHead>
                 </TableRow>
               </TableHeader>
 
@@ -320,14 +334,22 @@ export function ClientsTable({ clients }: ClientsTableProps) {
                       {formatShortDate(client.createdAt)}
                     </TableCell>
 
-                    <TableCell>
-                      <div className="flex flex-wrap justify-end gap-2">
-                        <Button variant="outline" className="h-9 px-3" asChild>
+                    <TableCell className="text-right">
+                      <div className="inline-flex min-w-[250px] items-center justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          className="h-10 px-4 hover:border-slate-400 hover:bg-slate-100"
+                          asChild
+                        >
                           <Link href={`/admin/clients/${client.id}`}>
                             View
                           </Link>
                         </Button>
-                        <Button variant="outline" className="h-9 px-3" asChild>
+                        <Button
+                          variant="outline"
+                          className="h-10 px-4 hover:border-slate-400 hover:bg-slate-100"
+                          asChild
+                        >
                           <Link href={`/admin/clients/${client.id}/edit`}>
                             Edit
                           </Link>
