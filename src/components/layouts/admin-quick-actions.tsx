@@ -64,6 +64,15 @@ const initialUploadState: ProjectActionResult = {
   message: "",
 };
 
+const quickActionDialogClassName =
+  "gap-0 overflow-hidden border-slate-300 bg-white p-0 shadow-2xl sm:max-w-2xl";
+const quickActionHeaderClassName =
+  "border-b border-slate-200 bg-white px-6 py-5 pr-14";
+const quickActionFormClassName = "space-y-5 bg-white px-6 py-5";
+const quickActionFieldClassName =
+  "h-12 border-slate-300 bg-white text-base shadow-sm focus-visible:border-slate-500 focus-visible:ring-slate-950/15";
+const quickActionLabelClassName = "text-sm font-semibold text-slate-900";
+
 export function AdminQuickActions({ projects }: AdminQuickActionsProps) {
   const [uploadOpen, setUploadOpen] = useState(false);
   const [approvalOpen, setApprovalOpen] = useState(false);
@@ -155,67 +164,94 @@ function UploadDeliverableDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Upload deliverable</DialogTitle>
-          <DialogDescription>
-            Attach a finished file to a project so it appears in project files.
-          </DialogDescription>
+      <DialogContent className={quickActionDialogClassName}>
+        <DialogHeader className={quickActionHeaderClassName}>
+          <div className="flex items-start gap-3">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-slate-950 text-white">
+              <UploadCloud className="size-5" />
+            </span>
+            <div className="min-w-0">
+              <DialogTitle className="text-xl">Upload deliverable</DialogTitle>
+              <DialogDescription className="mt-2 text-base leading-6">
+                Attach a finished file to a project so it appears in project
+                files.
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
-        <form action={uploadAction} className="space-y-4">
+        <form action={uploadAction}>
           <input type="hidden" name="projectId" value={projectId} />
           <input type="hidden" name="category" value="deliverable" />
           <input type="hidden" name="isVisibleToClient" value="on" />
 
-          <div className="space-y-2">
-            <Label>Project</Label>
-            <Select value={projectId} onValueChange={setProjectId}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Choose project" />
-              </SelectTrigger>
-              <SelectContent>
-                {projects.map((project) => (
-                  <SelectItem key={project.id} value={project.id}>
-                    {project.name} - {project.clientCompany}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className={quickActionFormClassName}>
+            <div className="space-y-2">
+              <Label className={quickActionLabelClassName}>Project</Label>
+              <Select value={projectId} onValueChange={setProjectId}>
+                <SelectTrigger className={quickActionFieldClassName}>
+                  <SelectValue placeholder="Choose project" />
+                </SelectTrigger>
+                <SelectContent>
+                  {projects.map((project) => (
+                    <SelectItem key={project.id} value={project.id}>
+                      {project.name} - {project.clientCompany}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label
+                htmlFor="quick-upload-label"
+                className={quickActionLabelClassName}
+              >
+                Label
+              </Label>
+              <Input
+                id="quick-upload-label"
+                name="label"
+                placeholder="Final dashboard handoff"
+                disabled={isUploading}
+                className={quickActionFieldClassName}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label
+                htmlFor="quick-upload-file"
+                className={quickActionLabelClassName}
+              >
+                File
+              </Label>
+              <Input
+                id="quick-upload-file"
+                name="file"
+                type="file"
+                disabled={isUploading || projects.length === 0}
+                className="h-12 border-slate-300 bg-white text-base shadow-sm file:mr-3 file:rounded-md file:bg-slate-950 file:px-3 file:py-1.5 file:text-white hover:border-slate-400 focus-visible:border-slate-500"
+              />
+            </div>
+
+            <ActionMessage result={uploadState} />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="quick-upload-label">Label</Label>
-            <Input
-              id="quick-upload-label"
-              name="label"
-              placeholder="Final dashboard handoff"
-              disabled={isUploading}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="quick-upload-file">File</Label>
-            <Input
-              id="quick-upload-file"
-              name="file"
-              type="file"
-              disabled={isUploading || projects.length === 0}
-            />
-          </div>
-
-          <ActionMessage result={uploadState} />
-
-          <DialogFooter className="mt-2">
+          <DialogFooter className="m-0 rounded-none border-t border-slate-200 bg-slate-50 px-6 py-4">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={isUploading}
+              className="h-11 px-5"
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isUploading || !projectId}>
+            <Button
+              type="submit"
+              disabled={isUploading || !projectId}
+              className="h-11 px-5"
+            >
               {isUploading ? <Loader2 className="size-4 animate-spin" /> : null}
               Upload file
             </Button>
@@ -270,89 +306,114 @@ function RequestApprovalDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Request approval</DialogTitle>
-          <DialogDescription>
-            Send a clear review request to the assigned client.
-          </DialogDescription>
+      <DialogContent className={quickActionDialogClassName}>
+        <DialogHeader className={quickActionHeaderClassName}>
+          <div className="flex items-start gap-3">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-slate-950 text-white">
+              <BadgeCheck className="size-5" />
+            </span>
+            <div className="min-w-0">
+              <DialogTitle className="text-xl">Request approval</DialogTitle>
+              <DialogDescription className="mt-2 text-base leading-6">
+                Send a clear review request to the assigned client.
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
-        <form onSubmit={submitApprovalRequest} className="space-y-4">
-          <div className="space-y-2">
-            <Label>Project</Label>
-            <Select
-              value={projectId}
-              onValueChange={(value) => {
-                setProjectId(value);
-                setMilestoneId("none");
-              }}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Choose project" />
-              </SelectTrigger>
-              <SelectContent>
-                {projects.map((project) => (
-                  <SelectItem key={project.id} value={project.id}>
-                    {project.name} - {project.clientCompany}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        <form onSubmit={submitApprovalRequest}>
+          <div className={quickActionFormClassName}>
+            <div className="space-y-2">
+              <Label className={quickActionLabelClassName}>Project</Label>
+              <Select
+                value={projectId}
+                onValueChange={(value) => {
+                  setProjectId(value);
+                  setMilestoneId("none");
+                }}
+              >
+                <SelectTrigger className={quickActionFieldClassName}>
+                  <SelectValue placeholder="Choose project" />
+                </SelectTrigger>
+                <SelectContent>
+                  {projects.map((project) => (
+                    <SelectItem key={project.id} value={project.id}>
+                      {project.name} - {project.clientCompany}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label className={quickActionLabelClassName}>Milestone</Label>
+              <Select value={milestoneId} onValueChange={setMilestoneId}>
+                <SelectTrigger className={quickActionFieldClassName}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">General approval</SelectItem>
+                  {selectedProject?.milestones.map((milestone) => (
+                    <SelectItem key={milestone.id} value={milestone.id}>
+                      {milestone.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label
+                htmlFor="quick-approval-title"
+                className={quickActionLabelClassName}
+              >
+                Approval title
+              </Label>
+              <Input
+                id="quick-approval-title"
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                placeholder="Final deliverable review"
+                disabled={isPending}
+                className={quickActionFieldClassName}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label
+                htmlFor="quick-approval-message"
+                className={quickActionLabelClassName}
+              >
+                Message
+              </Label>
+              <Textarea
+                id="quick-approval-message"
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                placeholder="Please review the latest deliverable and approve it or request changes."
+                className="min-h-36 border-slate-300 bg-white text-base shadow-sm focus-visible:border-slate-500 focus-visible:ring-slate-950/15"
+                disabled={isPending}
+              />
+            </div>
+
+            <ActionMessage result={result} />
           </div>
 
-          <div className="space-y-2">
-            <Label>Milestone</Label>
-            <Select value={milestoneId} onValueChange={setMilestoneId}>
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">General approval</SelectItem>
-                {selectedProject?.milestones.map((milestone) => (
-                  <SelectItem key={milestone.id} value={milestone.id}>
-                    {milestone.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="quick-approval-title">Approval title</Label>
-            <Input
-              id="quick-approval-title"
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              placeholder="Final deliverable review"
-              disabled={isPending}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="quick-approval-message">Message</Label>
-            <Textarea
-              id="quick-approval-message"
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-              placeholder="Please review the latest deliverable and approve it or request changes."
-              className="min-h-28"
-              disabled={isPending}
-            />
-          </div>
-
-          <ActionMessage result={result} />
-
-          <DialogFooter className="mt-2">
+          <DialogFooter className="m-0 rounded-none border-t border-slate-200 bg-slate-50 px-6 py-4">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={isPending}
+              className="h-11 px-5"
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isPending || !projectId}>
+            <Button
+              type="submit"
+              disabled={isPending || !projectId}
+              className="h-11 px-5"
+            >
               {isPending ? <Loader2 className="size-4 animate-spin" /> : null}
               Request approval
             </Button>
