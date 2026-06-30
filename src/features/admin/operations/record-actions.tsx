@@ -100,6 +100,36 @@ function ResultMessage({
   return <p className="text-sm text-red-600">{result.message}</p>;
 }
 
+function RecordActionsTrigger({ label }: { label: string }) {
+  return (
+    <DropdownMenuTrigger asChild>
+      <Button
+        variant="outline"
+        size="icon"
+        aria-label={label}
+        className="border-slate-300 bg-white text-slate-800 hover:border-slate-400 hover:bg-slate-100"
+      >
+        <MoreHorizontal className="size-4" />
+      </Button>
+    </DropdownMenuTrigger>
+  );
+}
+
+function RecordActionsContent({ children }: { children: React.ReactNode }) {
+  return (
+    <DropdownMenuContent
+      side="left"
+      align="start"
+      sideOffset={10}
+      className="w-56 p-2"
+    >
+      {children}
+    </DropdownMenuContent>
+  );
+}
+
+const recordActionItemClassName = "h-11 gap-3 px-3 text-[15px]";
+
 export function TaskRecordActions(props: {
   taskId: string;
   projectId: string;
@@ -117,13 +147,10 @@ export function TaskRecordActions(props: {
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="icon-sm" aria-label="Task actions">
-            <MoreHorizontal className="size-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-44">
+        <RecordActionsTrigger label="Task actions" />
+        <RecordActionsContent>
           <DropdownMenuItem
+            className={recordActionItemClassName}
             onSelect={(event) => {
               event.preventDefault();
               setResult(null);
@@ -135,6 +162,7 @@ export function TaskRecordActions(props: {
           </DropdownMenuItem>
           {props.status !== "completed" ? (
             <DropdownMenuItem
+              className={recordActionItemClassName}
               onSelect={(event) => {
                 event.preventDefault();
                 run(() =>
@@ -149,9 +177,10 @@ export function TaskRecordActions(props: {
               Mark complete
             </DropdownMenuItem>
           ) : null}
-          <DropdownMenuSeparator />
+          <DropdownMenuSeparator className="my-1.5" />
           <DropdownMenuItem
             variant="destructive"
+            className={recordActionItemClassName}
             onSelect={(event) => {
               event.preventDefault();
               setResult(null);
@@ -159,9 +188,9 @@ export function TaskRecordActions(props: {
             }}
           >
             <Trash2 className="size-4" />
-            Delete
+            Delete task
           </DropdownMenuItem>
-        </DropdownMenuContent>
+        </RecordActionsContent>
       </DropdownMenu>
 
       <Dialog open={dialog === "task-edit"} onOpenChange={(open) => setDialog(open ? "task-edit" : null)}>
@@ -232,19 +261,16 @@ export function FileRecordActions(props: {
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="icon-sm" aria-label="File actions">
-            <MoreHorizontal className="size-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-44">
-          <DropdownMenuItem asChild>
+        <RecordActionsTrigger label="File actions" />
+        <RecordActionsContent>
+          <DropdownMenuItem asChild className={recordActionItemClassName}>
             <Link href={`/api/admin/files/${props.fileId}/download`}>
               <Download className="size-4" />
               Download
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem
+            className={recordActionItemClassName}
             onSelect={(event) => {
               event.preventDefault();
               setResult(null);
@@ -254,9 +280,10 @@ export function FileRecordActions(props: {
             <Edit3 className="size-4" />
             Rename
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
+          <DropdownMenuSeparator className="my-1.5" />
           <DropdownMenuItem
             variant="destructive"
+            className={recordActionItemClassName}
             onSelect={(event) => {
               event.preventDefault();
               setResult(null);
@@ -264,9 +291,9 @@ export function FileRecordActions(props: {
             }}
           >
             <Trash2 className="size-4" />
-            Delete
+            Delete file
           </DropdownMenuItem>
-        </DropdownMenuContent>
+        </RecordActionsContent>
       </DropdownMenu>
 
       <Dialog open={dialog === "file-rename"} onOpenChange={(open) => setDialog(open ? "file-rename" : null)}>
@@ -339,27 +366,30 @@ export function PaymentRecordActions(props: {
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="icon-sm" aria-label="Payment actions">
-            <MoreHorizontal className="size-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuItem asChild>
+        <RecordActionsTrigger label="Payment actions" />
+        <RecordActionsContent>
+          <DropdownMenuItem asChild className={recordActionItemClassName}>
             <Link href={`/admin/projects/${props.projectId}`}>
               <Edit3 className="size-4" />
               View/Edit
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => setPaymentStatus("paid")}>
+          <DropdownMenuItem
+            className={recordActionItemClassName}
+            onSelect={() => setPaymentStatus("paid")}
+          >
             <CheckCircle2 className="size-4" />
             Mark paid
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => setPaymentStatus("unpaid")}>
+          <DropdownMenuItem
+            className={recordActionItemClassName}
+            onSelect={() => setPaymentStatus("unpaid")}
+          >
             <RotateCcw className="size-4" />
             Mark unpaid
           </DropdownMenuItem>
           <DropdownMenuItem
+            className={recordActionItemClassName}
             onSelect={(event) => {
               event.preventDefault();
               setResult(null);
@@ -371,9 +401,10 @@ export function PaymentRecordActions(props: {
             <XCircle className="size-4" />
             Void payment
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
+          <DropdownMenuSeparator className="my-1.5" />
           <DropdownMenuItem
             variant="destructive"
+            className={recordActionItemClassName}
             onSelect={(event) => {
               event.preventDefault();
               setResult(null);
@@ -384,7 +415,7 @@ export function PaymentRecordActions(props: {
             <Trash2 className="size-4" />
             Delete payment
           </DropdownMenuItem>
-        </DropdownMenuContent>
+        </RecordActionsContent>
       </DropdownMenu>
 
       <StrongConfirmDialog
@@ -438,19 +469,17 @@ export function FeedbackRecordActions(props: { feedbackId: string }) {
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="icon-sm" aria-label="Feedback actions">
-            <MoreHorizontal className="size-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-44">
+        <RecordActionsTrigger label="Feedback actions" />
+        <RecordActionsContent>
           <DropdownMenuItem
+            className={recordActionItemClassName}
             onSelect={() => run(() => resolveFeedbackAction({ feedbackId: props.feedbackId }))}
           >
             <CheckCircle2 className="size-4" />
             Mark resolved
           </DropdownMenuItem>
           <DropdownMenuItem
+            className={recordActionItemClassName}
             onSelect={(event) => {
               event.preventDefault();
               setResult(null);
@@ -458,11 +487,12 @@ export function FeedbackRecordActions(props: { feedbackId: string }) {
             }}
           >
             <Archive className="size-4" />
-            Archive
+            Archive feedback
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
+          <DropdownMenuSeparator className="my-1.5" />
           <DropdownMenuItem
             variant="destructive"
+            className={recordActionItemClassName}
             onSelect={(event) => {
               event.preventDefault();
               setResult(null);
@@ -470,9 +500,9 @@ export function FeedbackRecordActions(props: { feedbackId: string }) {
             }}
           >
             <Trash2 className="size-4" />
-            Delete
+            Delete feedback
           </DropdownMenuItem>
-        </DropdownMenuContent>
+        </RecordActionsContent>
       </DropdownMenu>
 
       <SimpleConfirmDialog
@@ -517,21 +547,24 @@ export function ApprovalRecordActions(props: { approvalId: string }) {
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="icon-sm" aria-label="Approval actions">
-            <MoreHorizontal className="size-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuItem onSelect={() => run(() => approveApprovalAction({ approvalId: props.approvalId }))}>
+        <RecordActionsTrigger label="Approval actions" />
+        <RecordActionsContent>
+          <DropdownMenuItem
+            className={recordActionItemClassName}
+            onSelect={() => run(() => approveApprovalAction({ approvalId: props.approvalId }))}
+          >
             <CheckCircle2 className="size-4" />
             Approve
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => run(() => rejectApprovalAction({ approvalId: props.approvalId }))}>
+          <DropdownMenuItem
+            className={recordActionItemClassName}
+            onSelect={() => run(() => rejectApprovalAction({ approvalId: props.approvalId }))}
+          >
             <RotateCcw className="size-4" />
             Reject
           </DropdownMenuItem>
           <DropdownMenuItem
+            className={recordActionItemClassName}
             onSelect={(event) => {
               event.preventDefault();
               setResult(null);
@@ -542,9 +575,10 @@ export function ApprovalRecordActions(props: { approvalId: string }) {
             <XCircle className="size-4" />
             Cancel request
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
+          <DropdownMenuSeparator className="my-1.5" />
           <DropdownMenuItem
             variant="destructive"
+            className={recordActionItemClassName}
             onSelect={(event) => {
               event.preventDefault();
               setResult(null);
@@ -552,9 +586,9 @@ export function ApprovalRecordActions(props: { approvalId: string }) {
             }}
           >
             <Trash2 className="size-4" />
-            Delete
+            Delete approval
           </DropdownMenuItem>
-        </DropdownMenuContent>
+        </RecordActionsContent>
       </DropdownMenu>
 
       <Dialog open={dialog === "approval-cancel"} onOpenChange={(open) => setDialog(open ? "approval-cancel" : null)}>
