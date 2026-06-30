@@ -4,17 +4,17 @@ import { redirect } from "next/navigation";
 
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
-import { getLatestClientPortalProject } from "@/features/client/portal/portal-data";
+import { getLatestClientPortalProjectId } from "@/features/client/portal/portal-data";
 
 export const metadata: Metadata = {
   title: "Files",
 };
 
 export default async function ClientFilesPage() {
-  const project = await getLatestClientPortalProject();
+  const projectId = await getLatestClientPortalProjectId();
 
-  if (project) {
-    redirect(`/client/files/${project.id}`);
+  if (projectId) {
+    redirect(`/client/files/${projectId}`);
   }
 
   return (

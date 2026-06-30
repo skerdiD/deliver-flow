@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { after } from "next/server";
 
 import { PageHeader } from "@/components/shared/page-header";
 import { ClientFilesGrid } from "@/features/client/portal/client-files-grid";
@@ -24,7 +25,11 @@ export default async function ClientProjectFilesPage({
     notFound();
   }
 
-  await recordClientProjectFileViews(project);
+  after(() => {
+    void recordClientProjectFileViews(project).catch((error: unknown) => {
+      console.error("Failed to record client file views", error);
+    });
+  });
 
   return (
     <div className="space-y-6">

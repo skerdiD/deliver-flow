@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { after } from "next/server";
 
 import { PageHeader } from "@/components/shared/page-header";
 import { ClientPaymentSummary } from "@/features/client/portal/client-payment-summary";
@@ -24,7 +25,11 @@ export default async function ClientProjectPaymentsPage({
     notFound();
   }
 
-  await recordClientProjectPaymentViews(project);
+  after(() => {
+    void recordClientProjectPaymentViews(project).catch((error: unknown) => {
+      console.error("Failed to record client payment views", error);
+    });
+  });
 
   return (
     <div className="space-y-6">

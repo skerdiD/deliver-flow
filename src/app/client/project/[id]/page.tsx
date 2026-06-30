@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { after } from "next/server";
 
 import { PageHeader } from "@/components/shared/page-header";
 import { ApprovalActionsCard } from "@/features/client/portal/approval-actions-card";
@@ -30,7 +31,11 @@ export default async function ClientProjectDetailPage({
     notFound();
   }
 
-  await recordClientProjectDetailViews(project);
+  after(() => {
+    void recordClientProjectDetailViews(project).catch((error: unknown) => {
+      console.error("Failed to record client project views", error);
+    });
+  });
 
   return (
     <div className="space-y-6">

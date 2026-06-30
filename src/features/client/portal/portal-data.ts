@@ -629,6 +629,29 @@ export async function getLatestClientPortalProject() {
   return projectsList[0] ?? null;
 }
 
+export async function getLatestClientPortalProjectId() {
+  const access = await getClientPortalAccess();
+  const [assignment] = await db
+    .select({ projectId: projects.id })
+    .from(clients)
+    .innerJoin(projectAssignments, eq(projectAssignments.clientId, clients.id))
+    .innerJoin(projects, eq(projectAssignments.projectId, projects.id))
+    .where(
+      and(
+        eq(clients.profileId, access.profile.id),
+        ne(projects.status, "archived"),
+        isNull(clients.archivedAt),
+        isNull(clients.deletedAt),
+        isNull(projects.archivedAt),
+        isNull(projects.deletedAt),
+      ),
+    )
+    .orderBy(desc(projectAssignments.assignedAt))
+    .limit(1);
+
+  return assignment?.projectId ?? null;
+}
+
 export const getClientPortalProjectById = cache(
   async (projectId: string): Promise<ClientPortalProject | null> => {
     const access = await getClientPortalAccess();
