@@ -36,6 +36,28 @@ Explore the deployed app: [deliver-flow.vercel.app](https://deliver-flow.vercel.
 
 ---
 
+## Demo Accounts
+
+Use the demo accounts below to explore both sides of DeliverFlow.
+
+### Admin Demo
+
+Email: admin@deliverflow.demo  
+Password: Demo123456!
+
+The admin account can access the admin dashboard, clients, projects, tasks, files, payments, feedback, approvals, and settings.
+
+### Client Demo
+
+Email: client@deliverflow.demo  
+Password: Demo123456!
+
+The client account can access the private client portal, assigned projects, shared files, payments, feedback, and approval requests.
+
+> Demo accounts are for portfolio and testing purposes. Some destructive actions may be restricted or reset.
+
+---
+
 ## Overview
 
 Most freelance delivery workflows are scattered across email, chat, Google Drive, invoices, and task tools.
