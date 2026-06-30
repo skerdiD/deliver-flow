@@ -27,7 +27,9 @@ function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
-function mapClientStatus(status: "active" | "inactive" | "archived") {
+function mapClientStatus(
+  status: "active" | "inactive" | "archived",
+): AdminClientStatus {
   if (status === "inactive") {
     return "paused";
   }
@@ -56,7 +58,9 @@ function mapProjectStatus(status: string): AdminClientProjectStatus {
   return "active";
 }
 
-async function getClientProjects(clientId: string): Promise<AdminClientProject[]> {
+async function getClientProjects(
+  clientId: string,
+): Promise<AdminClientProject[]> {
   const projectRows = await db
     .select({
       id: projects.id,
@@ -179,7 +183,128 @@ export async function getAdminClients() {
     .where(isNull(clients.deletedAt))
     .orderBy(desc(clients.createdAt));
 
-  return Promise.all(rows.map(mapClient));
+  if (rows.length === 0) {
+    return [];
+  }
+
+  const clientIds = rows.map((client) => client.id);
+
+  const projectRows = await db
+    .select({
+      clientId: projectAssignments.clientId,
+      projectId: projects.id,
+      name: projects.name,
+      status: projects.status,
+      progress: projects.progress,
+      deadline: projects.deadline,
+      assignedAt: projectAssignments.assignedAt,
+    })
+    .from(projectAssignments)
+    .innerJoin(projects, eq(projectAssignments.projectId, projects.id))
+    .where(
+      and(
+        inArray(projectAssignments.clientId, clientIds),
+        isNull(projects.archivedAt),
+        isNull(projects.deletedAt),
+      ),
+    )
+    .orderBy(desc(projectAssignments.assignedAt));
+
+  const projectIds = projectRows.map((project) => project.projectId);
+
+  const [paymentRows, milestoneRows] =
+    projectIds.length > 0
+      ? await Promise.all([
+          db
+            .select({
+              projectId: payments.projectId,
+              amountCents: payments.amountCents,
+              status: payments.status,
+            })
+            .from(payments)
+            .where(
+              and(
+                inArray(payments.projectId, projectIds),
+                isNull(payments.deletedAt),
+              ),
+            ),
+          db
+            .select({
+              projectId: milestones.projectId,
+              title: milestones.title,
+              position: milestones.position,
+              createdAt: milestones.createdAt,
+            })
+            .from(milestones)
+            .where(inArray(milestones.projectId, projectIds))
+            .orderBy(milestones.position, milestones.createdAt),
+        ])
+      : [[], []];
+
+  const paymentsByProjectId = new Map<string, typeof paymentRows>();
+  for (const payment of paymentRows) {
+    const projectPayments = paymentsByProjectId.get(payment.projectId) ?? [];
+    projectPayments.push(payment);
+    paymentsByProjectId.set(payment.projectId, projectPayments);
+  }
+
+  const firstMilestoneByProjectId = new Map<string, string>();
+  for (const milestone of milestoneRows) {
+    if (!firstMilestoneByProjectId.has(milestone.projectId)) {
+      firstMilestoneByProjectId.set(milestone.projectId, milestone.title);
+    }
+  }
+
+  const projectsByClientId = new Map<string, AdminClientProject[]>();
+  for (const project of projectRows) {
+    const projectPayments = paymentsByProjectId.get(project.projectId) ?? [];
+    const clientProjects = projectsByClientId.get(project.clientId) ?? [];
+    clientProjects.push({
+      id: project.projectId,
+      name: project.name,
+      status: mapProjectStatus(project.status),
+      progress: project.progress,
+      budgetCents: projectPayments.reduce(
+        (sum, payment) => sum + payment.amountCents,
+        0,
+      ),
+      paidCents: projectPayments
+        .filter((payment) => payment.status === "paid")
+        .reduce((sum, payment) => sum + payment.amountCents, 0),
+      nextMilestone:
+        firstMilestoneByProjectId.get(project.projectId) ??
+        "No milestone added yet",
+      deadline: project.deadline ?? "",
+    });
+    projectsByClientId.set(project.clientId, clientProjects);
+  }
+
+  return rows.map((row) => {
+    const clientProjects = projectsByClientId.get(row.id) ?? [];
+    const totalPaidCents = clientProjects.reduce(
+      (sum, project) => sum + project.paidCents,
+      0,
+    );
+
+    return {
+      id: row.id,
+      name: row.contactName,
+      company: row.companyName,
+      email: row.email,
+      status: mapClientStatus(row.status),
+      activeProjects: clientProjects.filter(
+        (project) => project.status !== "completed",
+      ).length,
+      totalPaidCents,
+      latestActivity:
+        clientProjects.length > 0
+          ? `${clientProjects.length} project${clientProjects.length === 1 ? "" : "s"} assigned`
+          : "Client profile ready",
+      createdAt: toIsoString(row.createdAt),
+      archivedAt: row.archivedAt ? toIsoString(row.archivedAt) : null,
+      projects: clientProjects,
+    };
+  });
 }
 
 export async function getAdminClientById(id: string) {
@@ -262,7 +387,9 @@ export async function updateAdminClient(
   return client ? mapClient(client) : null;
 }
 
-export async function archiveAdminClient(id: string): Promise<AdminClient | null> {
+export async function archiveAdminClient(
+  id: string,
+): Promise<AdminClient | null> {
   const archivedAt = new Date();
   const [client] = await db
     .update(clients)
@@ -285,7 +412,9 @@ export async function archiveAdminClient(id: string): Promise<AdminClient | null
   return client ? mapClient(client) : null;
 }
 
-export async function deleteAdminClient(id: string): Promise<AdminClient | null> {
+export async function deleteAdminClient(
+  id: string,
+): Promise<AdminClient | null> {
   const deletedAt = new Date();
   const [client] = await db
     .update(clients)

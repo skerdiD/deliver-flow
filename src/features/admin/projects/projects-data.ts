@@ -127,7 +127,9 @@ function mapApproval(row: {
   };
 }
 
-async function getProjectClient(projectId: string): Promise<AdminProjectClient | null> {
+async function getProjectClient(
+  projectId: string,
+): Promise<AdminProjectClient | null> {
   const [assignment] = await db
     .select({
       id: clients.id,
@@ -211,7 +213,10 @@ async function getProjectParts(projectId: string) {
       })
       .from(projectFiles)
       .where(
-        and(eq(projectFiles.projectId, projectId), isNull(projectFiles.deletedAt)),
+        and(
+          eq(projectFiles.projectId, projectId),
+          isNull(projectFiles.deletedAt),
+        ),
       )
       .orderBy(desc(projectFiles.createdAt)),
     db
@@ -260,7 +265,9 @@ async function getProjectParts(projectId: string) {
       })
       .from(approvals)
       .leftJoin(milestones, eq(approvals.milestoneId, milestones.id))
-      .where(and(eq(approvals.projectId, projectId), isNull(approvals.deletedAt)))
+      .where(
+        and(eq(approvals.projectId, projectId), isNull(approvals.deletedAt)),
+      )
       .orderBy(desc(approvals.requestedAt)),
     db
       .select({
@@ -296,18 +303,20 @@ async function getProjectParts(projectId: string) {
     }
   }
 
-  const mappedPayments: AdminProjectPayment[] = projectPayments.map((payment) => ({
-    id: payment.id,
-    amountCents: payment.amountCents,
-    currency: payment.currency,
-    status: payment.status,
-    dueDate: payment.dueDate,
-    paidAt: payment.paidAt ? toIsoString(payment.paidAt) : null,
-    voidedAt: payment.voidedAt ? toIsoString(payment.voidedAt) : null,
-    voidReason: payment.voidReason,
-    notes: payment.notes,
-    viewedAt: getViewedAt(viewMap, "payment", payment.id),
-  }));
+  const mappedPayments: AdminProjectPayment[] = projectPayments.map(
+    (payment) => ({
+      id: payment.id,
+      amountCents: payment.amountCents,
+      currency: payment.currency,
+      status: payment.status,
+      dueDate: payment.dueDate,
+      paidAt: payment.paidAt ? toIsoString(payment.paidAt) : null,
+      voidedAt: payment.voidedAt ? toIsoString(payment.voidedAt) : null,
+      voidReason: payment.voidReason,
+      notes: payment.notes,
+      viewedAt: getViewedAt(viewMap, "payment", payment.id),
+    }),
+  );
 
   const mappedApprovals = projectApprovals.map((approval) => ({
     ...mapApproval(approval),
@@ -475,9 +484,125 @@ export async function getAdminProjects() {
     .where(isNull(projects.deletedAt))
     .orderBy(desc(projects.createdAt));
 
-  const mapped = await Promise.all(rows.map(mapProject));
+  if (rows.length === 0) {
+    return [];
+  }
 
-  return mapped.filter((project): project is AdminProject => Boolean(project));
+  const projectIds = rows.map((project) => project.id);
+
+  const [assignmentRows, paymentRows] = await Promise.all([
+    db
+      .select({
+        projectId: projectAssignments.projectId,
+        id: clients.id,
+        name: clients.contactName,
+        company: clients.companyName,
+        email: clients.email,
+      })
+      .from(projectAssignments)
+      .innerJoin(clients, eq(projectAssignments.clientId, clients.id))
+      .where(
+        and(
+          inArray(projectAssignments.projectId, projectIds),
+          isNull(clients.deletedAt),
+        ),
+      )
+      .orderBy(desc(projectAssignments.assignedAt)),
+    db
+      .select({
+        projectId: payments.projectId,
+        amountCents: payments.amountCents,
+        status: payments.status,
+      })
+      .from(payments)
+      .where(
+        and(
+          inArray(payments.projectId, projectIds),
+          isNull(payments.deletedAt),
+        ),
+      ),
+  ]);
+
+  const clientByProjectId = new Map<string, AdminProjectClient>();
+  for (const assignment of assignmentRows) {
+    if (!clientByProjectId.has(assignment.projectId)) {
+      clientByProjectId.set(assignment.projectId, {
+        id: assignment.id,
+        name: assignment.name,
+        company: assignment.company,
+        email: assignment.email,
+      });
+    }
+  }
+
+  const paymentsByProjectId = new Map<string, AdminProjectPayment[]>();
+  for (const payment of paymentRows) {
+    const projectPayments = paymentsByProjectId.get(payment.projectId) ?? [];
+    projectPayments.push({
+      id: `${payment.projectId}-${projectPayments.length}`,
+      amountCents: payment.amountCents,
+      currency: "USD",
+      status: payment.status,
+      dueDate: null,
+      paidAt: null,
+      notes: null,
+    });
+    paymentsByProjectId.set(payment.projectId, projectPayments);
+  }
+
+  return rows.flatMap((row) => {
+    const client = clientByProjectId.get(row.id);
+
+    if (!client) {
+      return [];
+    }
+
+    const projectPayments = paymentsByProjectId.get(row.id) ?? [];
+    const activePayments = projectPayments.filter(
+      (payment) => payment.status !== "void",
+    );
+    const budgetCents = activePayments.reduce(
+      (sum, payment) => sum + payment.amountCents,
+      0,
+    );
+    const paidCents = activePayments
+      .filter((payment) => payment.status === "paid")
+      .reduce((sum, payment) => sum + payment.amountCents, 0);
+    const defaultApproval: AdminProjectApproval = {
+      id: `approval-empty-${row.id}`,
+      title: "No approval requested",
+      status: "pending",
+      note: "No approval requested yet.",
+      requestedAt: toIsoString(row.createdAt),
+    };
+
+    return {
+      id: row.id,
+      name: row.name,
+      description: row.description ?? "No project description added.",
+      client,
+      status: normalizeProjectStatus(row.status),
+      progress: row.progress,
+      deadline: row.deadline ?? "",
+      liveDemoUrl: row.liveDemoUrl ?? "",
+      repositoryUrl: row.repositoryUrl ?? "",
+      paymentStatus: derivePaymentStatus(projectPayments),
+      budgetCents,
+      paidCents,
+      milestones: [],
+      tasks: [],
+      updates: [],
+      files: [],
+      payments: [],
+      feedback: [],
+      approvals: [],
+      approval: defaultApproval,
+      activity: [],
+      clientLastSeenAt: null,
+      createdAt: toIsoString(row.createdAt),
+      archivedAt: row.archivedAt ? toIsoString(row.archivedAt) : null,
+    } satisfies AdminProject;
+  });
 }
 
 export async function getAdminProjectById(id: string) {
@@ -538,7 +663,11 @@ export async function getAdminQuickActionProjects() {
       .innerJoin(clients, eq(projectAssignments.clientId, clients.id))
       .where(
         and(
-          inArray(projects.status, ["active", "in_progress", "waiting_feedback"]),
+          inArray(projects.status, [
+            "active",
+            "in_progress",
+            "waiting_feedback",
+          ]),
           isNull(projects.archivedAt),
           isNull(projects.deletedAt),
           isNull(clients.deletedAt),
@@ -552,7 +681,13 @@ export async function getAdminQuickActionProjects() {
         title: milestones.title,
       })
       .from(milestones)
-      .where(inArray(milestones.status, ["not_started", "in_progress", "waiting_approval"]))
+      .where(
+        inArray(milestones.status, [
+          "not_started",
+          "in_progress",
+          "waiting_approval",
+        ]),
+      )
       .orderBy(asc(milestones.position), asc(milestones.createdAt)),
   ]);
 
@@ -593,7 +728,11 @@ async function replaceProjectPaymentSummary(
     return;
   }
 
-  if (input.paymentStatus === "partial" && paidCents > 0 && paidCents < budgetCents) {
+  if (
+    input.paymentStatus === "partial" &&
+    paidCents > 0 &&
+    paidCents < budgetCents
+  ) {
     await db.insert(payments).values([
       {
         projectId,
@@ -750,7 +889,9 @@ export async function updateAdminProject(
   }
 
   await db.transaction(async (tx) => {
-    await tx.delete(projectAssignments).where(eq(projectAssignments.projectId, id));
+    await tx
+      .delete(projectAssignments)
+      .where(eq(projectAssignments.projectId, id));
     await tx.insert(projectAssignments).values({
       projectId: id,
       clientId: input.clientId,
@@ -813,7 +954,10 @@ export async function addProjectTask(
   return getAdminProjectById(projectId);
 }
 
-export async function markProjectTaskComplete(projectId: string, taskId: string) {
+export async function markProjectTaskComplete(
+  projectId: string,
+  taskId: string,
+) {
   await db
     .update(tasks)
     .set({
@@ -869,7 +1013,9 @@ export async function markProjectMilestoneComplete(
       status: "completed",
       updatedAt: new Date(),
     })
-    .where(and(eq(milestones.id, milestoneId), eq(milestones.projectId, projectId)))
+    .where(
+      and(eq(milestones.id, milestoneId), eq(milestones.projectId, projectId)),
+    )
     .returning({
       id: milestones.id,
       title: milestones.title,
