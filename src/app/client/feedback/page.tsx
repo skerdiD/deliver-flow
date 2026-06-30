@@ -1,20 +1,40 @@
 import type { Metadata } from "next";
 import { MessageSquareMore } from "lucide-react";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
-import { getLatestClientPortalProject } from "@/features/client/portal/portal-data";
+import { FeedbackForm } from "@/features/client/portal/feedback-form";
+import {
+  getClientPortalProjectFeedbackById,
+  getLatestClientPortalProjectId,
+} from "@/features/client/portal/portal-data";
 
 export const metadata: Metadata = {
   title: "Feedback",
 };
 
 export default async function ClientFeedbackPage() {
-  const project = await getLatestClientPortalProject();
+  const projectId = await getLatestClientPortalProjectId();
 
-  if (project) {
-    redirect(`/client/feedback/${project.id}`);
+  if (projectId) {
+    const project = await getClientPortalProjectFeedbackById(projectId);
+
+    if (!project) {
+      notFound();
+    }
+
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          eyebrow="Feedback"
+          title={`${project.name} feedback`}
+          description="Send feedback so your freelancer knows what to adjust."
+        />
+
+        <FeedbackForm projectId={project.id} feedback={project.feedback} />
+      </div>
+    );
   }
 
   return (

@@ -69,7 +69,9 @@ const fileCategoryLabels: Record<string, string> = {
   other: "Other",
 };
 
-function mapProjectStatus(status: ProjectStatus): ClientPortalProject["status"] {
+function mapProjectStatus(
+  status: ProjectStatus,
+): ClientPortalProject["status"] {
   if (
     status === "active" ||
     status === "in_progress" ||
@@ -161,10 +163,7 @@ function inferPortalFileType(
     return "pdf";
   }
 
-  if (
-    normalizedType.includes("word") ||
-    /\.(doc|docx)$/.test(normalizedName)
-  ) {
+  if (normalizedType.includes("word") || /\.(doc|docx)$/.test(normalizedName)) {
     return "docx";
   }
 
@@ -203,8 +202,7 @@ function mapApprovalRowToPortalApproval(row: {
   return {
     id: row.id,
     title: row.title,
-    description:
-      row.description ?? "Review this work and share your decision.",
+    description: row.description ?? "Review this work and share your decision.",
     status: row.status,
     projectName: row.projectName,
     milestoneName: row.milestoneName,
@@ -602,6 +600,40 @@ async function buildClientPortalProject(
   };
 }
 
+function buildClientPortalProjectShell(
+  assignment: ClientPortalAssignment,
+  overrides: Partial<ClientPortalProject> = {},
+): ClientPortalProject {
+  return {
+    id: assignment.projectId,
+    name: assignment.projectName,
+    clientName: assignment.clientName,
+    companyName: assignment.companyName,
+    description:
+      assignment.projectDescription ??
+      "Project details will be added as the work moves forward.",
+    status: mapProjectStatus(assignment.projectStatus),
+    progress: assignment.progress,
+    currentMilestone: "No milestone has been added yet.",
+    deadline: assignment.deadline,
+    liveDemoUrl: assignment.liveDemoUrl,
+    repositoryUrl: assignment.repositoryUrl ?? undefined,
+    totalAmountCents: 0,
+    paidAmountCents: 0,
+    paymentStatus: "unpaid",
+    milestones: [],
+    tasks: [],
+    updates: [],
+    files: [],
+    payments: [],
+    feedback: [],
+    approvals: [],
+    approval: null,
+    activity: [],
+    ...overrides,
+  };
+}
+
 export const getClientPortalState = cache(
   async (): Promise<ClientPortalState> => {
     const access = await getClientPortalAccess();
@@ -665,6 +697,162 @@ export const getClientPortalProjectById = cache(
     }
 
     return buildClientPortalProject(assignment);
+  },
+);
+
+export const getClientPortalProjectFilesById = cache(
+  async (projectId: string): Promise<ClientPortalProject | null> => {
+    const access = await getClientPortalAccess();
+    const assignment = await getClientPortalAssignmentById(
+      access.profile.id,
+      projectId,
+    );
+
+    if (!assignment) {
+      return null;
+    }
+
+    const projectFilesList = await db
+      .select({
+        id: projectFiles.id,
+        fileName: projectFiles.fileName,
+        fileType: projectFiles.fileType,
+        fileSize: projectFiles.fileSize,
+        category: projectFiles.category,
+        bucketName: projectFiles.bucketName,
+        storagePath: projectFiles.storagePath,
+        createdAt: projectFiles.createdAt,
+      })
+      .from(projectFiles)
+      .where(
+        and(
+          eq(projectFiles.projectId, assignment.projectId),
+          eq(projectFiles.isVisibleToClient, true),
+          isNull(projectFiles.deletedAt),
+        ),
+      )
+      .orderBy(desc(projectFiles.createdAt));
+
+    return buildClientPortalProjectShell(assignment, {
+      files: projectFilesList.map((file) => ({
+        id: file.id,
+        name: file.fileName,
+        type: inferPortalFileType(file.fileName, file.fileType),
+        size: formatFileSize(file.fileSize),
+        category: fileCategoryLabels[file.category] ?? "Other",
+        uploadedAt: toIsoString(file.createdAt),
+        bucketName: file.bucketName,
+        storagePath: file.storagePath,
+      })),
+    });
+  },
+);
+
+export const getClientPortalProjectFeedbackById = cache(
+  async (projectId: string): Promise<ClientPortalProject | null> => {
+    const access = await getClientPortalAccess();
+    const assignment = await getClientPortalAssignmentById(
+      access.profile.id,
+      projectId,
+    );
+
+    if (!assignment) {
+      return null;
+    }
+
+    const projectFeedback = await db
+      .select({
+        id: feedback.id,
+        message: feedback.message,
+        status: feedback.status,
+        adminResponse: feedback.adminResponse,
+        createdAt: feedback.createdAt,
+      })
+      .from(feedback)
+      .where(
+        and(
+          eq(feedback.projectId, assignment.projectId),
+          eq(feedback.clientId, assignment.clientId),
+          eq(feedback.isVisibleToClient, true),
+          isNull(feedback.archivedAt),
+          isNull(feedback.deletedAt),
+        ),
+      )
+      .orderBy(desc(feedback.createdAt));
+
+    return buildClientPortalProjectShell(assignment, {
+      feedback: projectFeedback.map((item) => ({
+        id: item.id,
+        message: item.message,
+        status: item.status,
+        createdAt: toIsoString(item.createdAt),
+        adminResponse: item.adminResponse,
+      })),
+    });
+  },
+);
+
+export const getClientPortalProjectPaymentsById = cache(
+  async (projectId: string): Promise<ClientPortalProject | null> => {
+    const access = await getClientPortalAccess();
+    const assignment = await getClientPortalAssignmentById(
+      access.profile.id,
+      projectId,
+    );
+
+    if (!assignment) {
+      return null;
+    }
+
+    const projectPayments = await db
+      .select({
+        id: payments.id,
+        amountCents: payments.amountCents,
+        status: payments.status,
+        dueDate: payments.dueDate,
+        paidAt: payments.paidAt,
+        notes: payments.notes,
+      })
+      .from(payments)
+      .where(
+        and(
+          eq(payments.projectId, assignment.projectId),
+          isNull(payments.deletedAt),
+          isNull(payments.voidedAt),
+        ),
+      )
+      .orderBy(asc(payments.dueDate), asc(payments.createdAt));
+
+    const mappedPayments: ClientPortalPayment[] = projectPayments.map(
+      (payment) => ({
+        id: payment.id,
+        label: payment.notes?.trim() ? payment.notes.trim() : "Project payment",
+        amountCents: payment.amountCents,
+        status: payment.status,
+        dueDate:
+          payment.dueDate ?? assignment.deadline ?? new Date().toISOString(),
+        paidAt: payment.paidAt ? toIsoString(payment.paidAt) : undefined,
+      }),
+    );
+
+    const totalAmountCents = mappedPayments.reduce(
+      (sum, payment) => sum + payment.amountCents,
+      0,
+    );
+    const paidAmountCents = mappedPayments.reduce((sum, payment) => {
+      if (payment.status !== "paid") {
+        return sum;
+      }
+
+      return sum + payment.amountCents;
+    }, 0);
+
+    return buildClientPortalProjectShell(assignment, {
+      payments: mappedPayments,
+      totalAmountCents,
+      paidAmountCents,
+      paymentStatus: derivePaymentStatus(mappedPayments),
+    });
   },
 );
 
@@ -889,7 +1077,7 @@ export async function recordClientProjectDetailViews(
 }
 
 export async function recordClientProjectFileViews(
-  project: ClientPortalProject,
+  project: Pick<ClientPortalProject, "id" | "files">,
 ) {
   await recordClientProjectTargets(
     project.id,
@@ -905,7 +1093,7 @@ export async function recordClientProjectFileViews(
 }
 
 export async function recordClientProjectPaymentViews(
-  project: ClientPortalProject,
+  project: Pick<ClientPortalProject, "id" | "payments">,
 ) {
   await recordClientProjectTargets(
     project.id,

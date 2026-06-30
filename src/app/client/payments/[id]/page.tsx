@@ -5,7 +5,7 @@ import { after } from "next/server";
 import { PageHeader } from "@/components/shared/page-header";
 import { ClientPaymentSummary } from "@/features/client/portal/client-payment-summary";
 import {
-  getClientPortalProjectById,
+  getClientPortalProjectPaymentsById,
   recordClientProjectPaymentViews,
 } from "@/features/client/portal/portal-data";
 
@@ -19,7 +19,7 @@ export default async function ClientProjectPaymentsPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const project = await getClientPortalProjectById(id);
+  const project = await getClientPortalProjectPaymentsById(id);
 
   if (!project) {
     notFound();

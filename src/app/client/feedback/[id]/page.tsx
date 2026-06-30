@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import { PageHeader } from "@/components/shared/page-header";
 import { FeedbackForm } from "@/features/client/portal/feedback-form";
-import { getClientPortalProjectById } from "@/features/client/portal/portal-data";
+import { getClientPortalProjectFeedbackById } from "@/features/client/portal/portal-data";
 
 export const metadata: Metadata = {
   title: "Feedback",
@@ -15,7 +15,7 @@ export default async function ClientProjectFeedbackPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const project = await getClientPortalProjectById(id);
+  const project = await getClientPortalProjectFeedbackById(id);
 
   if (!project) {
     notFound();
