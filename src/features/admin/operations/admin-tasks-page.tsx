@@ -9,7 +9,6 @@ import { EmptyState } from "@/components/shared/empty-state";
 import {
   MobileRecordActions,
   MobileRecordCard,
-  MobileRecordList,
   MobileRecordMeta,
 } from "@/components/shared/mobile-record";
 import { StatusBadge } from "@/components/shared/status-badge";
@@ -36,7 +35,6 @@ import { markAdminTaskCompleteAction } from "@/features/admin/operations/actions
 import { TaskRecordActions } from "@/features/admin/operations/record-actions";
 import {
   formatDateLabel,
-  getFileVisibilityMeta,
   getTaskPriorityMeta,
   getTaskStatusMeta,
   type AdminTasksPageData,
@@ -45,6 +43,14 @@ import {
 type AdminTasksPageProps = {
   data: AdminTasksPageData;
 };
+
+function getTaskVisibilityMeta(isVisibleToClient: boolean) {
+  if (isVisibleToClient) {
+    return { label: "Client", tone: "blue" as const };
+  }
+
+  return { label: "Internal", tone: "slate" as const };
+}
 
 export function AdminTasksPage({ data }: AdminTasksPageProps) {
   const router = useRouter();
@@ -198,11 +204,11 @@ export function AdminTasksPage({ data }: AdminTasksPageProps) {
             />
           ) : (
             <>
-              <MobileRecordList>
+              <div className="space-y-3 xl:hidden">
                 {filteredTasks.map((task) => {
                   const statusMeta = getTaskStatusMeta(task.status);
                   const priorityMeta = getTaskPriorityMeta(task.priority);
-                  const visibilityMeta = getFileVisibilityMeta(
+                  const visibilityMeta = getTaskVisibilityMeta(
                     task.isVisibleToClient,
                   );
 
@@ -292,18 +298,18 @@ export function AdminTasksPage({ data }: AdminTasksPageProps) {
                     </MobileRecordCard>
                   );
                 })}
-              </MobileRecordList>
+              </div>
 
-              <div className="hidden lg:block">
-                <Table className="table-fixed">
+              <div className="hidden xl:block">
+                <Table className="w-full max-w-none table-fixed">
                   <colgroup>
-                    <col className="w-[36%]" />
+                    <col className="w-[39%]" />
                     <col className="w-[20%]" />
                     <col className="w-[9%]" />
                     <col className="w-[8%]" />
-                    <col className="w-[9%]" />
                     <col className="w-[10%]" />
-                    <col className="w-[8%]" />
+                    <col className="w-[7%]" />
+                    <col className="w-[7%]" />
                   </colgroup>
                   <TableHeader>
                     <TableRow>
@@ -320,7 +326,7 @@ export function AdminTasksPage({ data }: AdminTasksPageProps) {
                     {filteredTasks.map((task) => {
                       const statusMeta = getTaskStatusMeta(task.status);
                       const priorityMeta = getTaskPriorityMeta(task.priority);
-                      const visibilityMeta = getFileVisibilityMeta(
+                      const visibilityMeta = getTaskVisibilityMeta(
                         task.isVisibleToClient,
                       );
 
@@ -376,24 +382,7 @@ export function AdminTasksPage({ data }: AdminTasksPageProps) {
                             />
                           </TableCell>
                           <TableCell className="px-2 text-right">
-                            <div className="flex items-center justify-end gap-1.5">
-                              {task.status === "completed" ? (
-                                <span className="text-sm text-slate-500">
-                                  Done
-                                </span>
-                              ) : (
-                                <Button
-                                  variant="outline"
-                                  size="icon-sm"
-                                  disabled={isPending}
-                                  onClick={() =>
-                                    handleMarkComplete(task.id, task.projectId)
-                                  }
-                                  aria-label={`Mark ${task.title} complete`}
-                                >
-                                  <CheckCircle2 className="size-4" />
-                                </Button>
-                              )}
+                            <div className="flex items-center justify-end">
                               <TaskRecordActions
                                 taskId={task.id}
                                 projectId={task.projectId}
