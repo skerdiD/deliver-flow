@@ -4,7 +4,7 @@
 
 It helps freelancers and small agencies manage clients, projects, tasks, files, payments, feedback, and approvals from one clean dashboard with a private client portal.
 
-[Live Demo](https://deliver-flow.vercel.app/) | [Repository](https://github.com/skerdiD/deliver-flow)
+[Live Demo](https://deliver-flow.vercel.app) | [Repository](https://github.com/skerdiD/deliver-flow)
 
 ---
 
@@ -23,7 +23,7 @@ The admin dashboard is protected and not publicly shared in the demo. Screenshot
 
 ## Preview
 
-Explore the deployed app: [deliver-flow.vercel.app](https://deliver-flow.vercel.app/)
+Explore the deployed app: [deliver-flow.vercel.app](https://deliver-flow.vercel.app)
 
 ### Landing Page
 
