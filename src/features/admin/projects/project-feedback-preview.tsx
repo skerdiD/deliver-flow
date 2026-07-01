@@ -65,12 +65,25 @@ export function ProjectFeedbackPreview({
                         : "green"
                   }
                 />
-                <FeedbackRecordActions feedbackId={item.id} />
+                <FeedbackRecordActions
+                  feedbackId={item.id}
+                  adminResponse={item.adminResponse}
+                />
               </div>
 
               <p className="mt-4 text-sm leading-6 text-slate-600">
                 {item.message}
               </p>
+              {item.adminResponse ? (
+                <div className="mt-4 rounded-lg bg-slate-50 p-3">
+                  <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                    Response saved
+                  </p>
+                  <p className="mt-2 break-words text-sm leading-6 text-slate-600">
+                    {item.adminResponse}
+                  </p>
+                </div>
+              ) : null}
             </div>
           ))
         )}

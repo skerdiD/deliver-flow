@@ -177,7 +177,11 @@ export function FeedbackForm({ projectId, feedback }: FeedbackFormProps) {
                       {item.adminResponse}
                     </p>
                   </div>
-                ) : null}
+                ) : (
+                  <p className="mt-4 rounded-lg bg-slate-50 p-3 text-sm text-slate-500">
+                    No admin response yet.
+                  </p>
+                )}
               </div>
             ))
           )}

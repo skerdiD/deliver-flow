@@ -185,7 +185,10 @@ export function AdminFeedbackPage({ data }: AdminFeedbackPageProps) {
                       </div>
 
                       <MobileRecordActions>
-                        <FeedbackRecordActions feedbackId={item.id} />
+                        <FeedbackRecordActions
+                          feedbackId={item.id}
+                          adminResponse={item.adminResponse}
+                        />
                         {item.status === "open" ? (
                           <Button
                             variant="outline"
@@ -245,7 +248,10 @@ export function AdminFeedbackPage({ data }: AdminFeedbackPageProps) {
                                   Response saved: {item.adminResponse}
                                 </p>
                               ) : null}
-                              <FeedbackRecordActions feedbackId={item.id} />
+                              <FeedbackRecordActions
+                                feedbackId={item.id}
+                                adminResponse={item.adminResponse}
+                              />
                             </div>
                           </TableCell>
                           <TableCell>

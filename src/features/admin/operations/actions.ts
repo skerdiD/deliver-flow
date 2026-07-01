@@ -31,6 +31,15 @@ const updateAdminFeedbackStatusSchema = z.object({
   status: z.enum(["reviewed", "resolved"]),
 });
 
+const respondToFeedbackSchema = z.object({
+  feedbackId: z.string().uuid("Feedback id is invalid."),
+  adminResponse: z
+    .string()
+    .trim()
+    .min(2, "Write a short response first.")
+    .max(800, "Response should stay under 800 characters."),
+});
+
 const taskIdSchema = z.object({
   taskId: z.string().uuid("Task id is invalid."),
 });
@@ -444,6 +453,62 @@ export async function updateAdminFeedbackStatusAction(input: {
     return {
       success: false,
       message: "Feedback status could not be updated.",
+    };
+  }
+}
+
+export async function respondToFeedbackAction(input: {
+  feedbackId: string;
+  adminResponse: string;
+}): Promise<AdminOperationActionResult> {
+  await requireRole("admin");
+
+  const parsed = respondToFeedbackSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: "Feedback response is invalid.",
+    };
+  }
+
+  try {
+    const [existingFeedback] = await db
+      .select({
+        id: feedback.id,
+        projectId: feedback.projectId,
+        status: feedback.status,
+      })
+      .from(feedback)
+      .where(and(eq(feedback.id, parsed.data.feedbackId), isNull(feedback.deletedAt)))
+      .limit(1);
+
+    if (!existingFeedback) {
+      return {
+        success: false,
+        message: "Feedback not found.",
+      };
+    }
+
+    await db
+      .update(feedback)
+      .set({
+        adminResponse: parsed.data.adminResponse,
+        status:
+          existingFeedback.status === "resolved" ? "resolved" : "reviewed",
+        updatedAt: new Date(),
+      })
+      .where(eq(feedback.id, existingFeedback.id));
+
+    revalidateProjectOperations(existingFeedback.projectId);
+
+    return {
+      success: true,
+      message: "Feedback response saved.",
+    };
+  } catch {
+    return {
+      success: false,
+      message: "Feedback response could not be saved.",
     };
   }
 }

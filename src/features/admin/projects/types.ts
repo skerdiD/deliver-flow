@@ -79,6 +79,7 @@ export type AdminProjectFeedback = {
   clientName: string;
   message: string;
   status: AdminFeedbackStatus;
+  adminResponse: string | null;
   createdAt: string;
 };
 

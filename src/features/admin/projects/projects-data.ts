@@ -240,6 +240,7 @@ async function getProjectParts(projectId: string) {
         clientName: clients.contactName,
         message: feedback.message,
         status: feedback.status,
+        adminResponse: feedback.adminResponse,
         createdAt: feedback.createdAt,
       })
       .from(feedback)
@@ -391,6 +392,7 @@ async function getProjectParts(projectId: string) {
         clientName: item.clientName,
         message: item.message,
         status: item.status,
+        adminResponse: item.adminResponse,
         createdAt: toIsoString(item.createdAt),
       }),
     ),

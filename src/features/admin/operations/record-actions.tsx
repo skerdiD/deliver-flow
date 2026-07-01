@@ -6,6 +6,7 @@ import {
   Download,
   Edit3,
   Loader2,
+  MessageSquareReply,
   MoreHorizontal,
   RotateCcw,
   Trash2,
@@ -44,6 +45,7 @@ import {
   deletePaymentAction,
   deleteTaskAction,
   markAdminTaskCompleteAction,
+  respondToFeedbackAction,
   rejectApprovalAction,
   renameFileAction,
   resolveFeedbackAction,
@@ -61,6 +63,7 @@ type DialogKind =
   | "file-delete"
   | "payment-void"
   | "payment-delete"
+  | "feedback-respond"
   | "feedback-archive"
   | "feedback-delete"
   | "approval-cancel"
@@ -462,8 +465,12 @@ export function PaymentRecordActions(props: {
   );
 }
 
-export function FeedbackRecordActions(props: { feedbackId: string }) {
+export function FeedbackRecordActions(props: {
+  feedbackId: string;
+  adminResponse?: string | null;
+}) {
   const [dialog, setDialog] = useState<DialogKind>(null);
+  const [response, setResponse] = useState(props.adminResponse ?? "");
   const { result, setResult, isPending, run } = useActionRunner();
 
   return (
@@ -471,6 +478,18 @@ export function FeedbackRecordActions(props: { feedbackId: string }) {
       <DropdownMenu>
         <RecordActionsTrigger label="Feedback actions" />
         <RecordActionsContent>
+          <DropdownMenuItem
+            className={recordActionItemClassName}
+            onSelect={(event) => {
+              event.preventDefault();
+              setResult(null);
+              setResponse(props.adminResponse ?? "");
+              setDialog("feedback-respond");
+            }}
+          >
+            <MessageSquareReply className="size-4" />
+            Respond
+          </DropdownMenuItem>
           <DropdownMenuItem
             className={recordActionItemClassName}
             onSelect={() => run(() => resolveFeedbackAction({ feedbackId: props.feedbackId }))}
@@ -504,6 +523,51 @@ export function FeedbackRecordActions(props: { feedbackId: string }) {
           </DropdownMenuItem>
         </RecordActionsContent>
       </DropdownMenu>
+
+      <Dialog
+        open={dialog === "feedback-respond"}
+        onOpenChange={(open) => setDialog(open ? "feedback-respond" : null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Respond to feedback</DialogTitle>
+            <DialogDescription>
+              Save a reply the client can see in their feedback history.
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            value={response}
+            onChange={(event) => setResponse(event.target.value)}
+            placeholder="Write a clear next step or confirmation for the client."
+            className="min-h-36"
+            disabled={isPending}
+          />
+          <ResultMessage result={result} />
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline" disabled={isPending}>
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button
+              disabled={isPending}
+              onClick={() =>
+                run(
+                  () =>
+                    respondToFeedbackAction({
+                      feedbackId: props.feedbackId,
+                      adminResponse: response,
+                    }),
+                  () => setDialog(null),
+                )
+              }
+            >
+              {isPending ? <Loader2 className="size-4 animate-spin" /> : null}
+              Save response
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <SimpleConfirmDialog
         open={dialog === "feedback-archive"}

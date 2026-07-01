@@ -22,8 +22,15 @@ The app should be deployed with both layers active. The Next.js server remains t
 - Clients can only see active, assigned projects and related visible records.
 - Server actions re-check role or assignment before mutating data.
 - Client project reads join through `clients` and `project_assignments`.
+- Client feedback reads are filtered by the assigned `project_id`, the assigned
+  `client_id`, `is_visible_to_client`, and active lifecycle fields.
+- Client feedback creation ignores browser-supplied client ownership and inserts
+  with the `client_id` and `project_id` from the verified assignment.
 - Client file downloads generate signed URLs only after checking the logged-in client is assigned to the owning project.
 - Client approval responses only update pending approvals for an assigned project.
+- Admin feedback responses require the `admin` role, save to `admin_response`,
+  mark unresolved feedback as reviewed, and are revalidated back into the client
+  feedback history.
 
 Route params and hidden form fields are treated as untrusted. They are validated with Zod and then checked against the database before use.
 
