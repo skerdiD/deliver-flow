@@ -32,7 +32,7 @@ export function AdminDashboardLayout({
           />
 
           <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-            <div className="mx-auto w-full max-w-[1440px] px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+            <div className="mx-auto w-full max-w-none px-4 py-5 sm:px-6 sm:py-6 lg:px-7 lg:py-8 xl:px-8">
               {children}
             </div>
           </main>

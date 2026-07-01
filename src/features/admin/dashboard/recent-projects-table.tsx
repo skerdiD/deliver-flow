@@ -167,11 +167,17 @@ export function RecentProjectsTable({ projects }: RecentProjectsTableProps) {
             </MobileRecordList>
 
             <div className="hidden overflow-hidden rounded-lg border border-slate-200 lg:block">
-              <Table>
+              <Table className="w-full table-fixed">
+                <colgroup>
+                  <col className="w-[38%]" />
+                  <col className="w-[14%]" />
+                  <col className="w-[18%]" />
+                  <col className="w-[17%]" />
+                  <col className="w-[13%]" />
+                </colgroup>
                 <TableHeader>
                   <TableRow className="bg-slate-50">
-                    <TableHead>Project</TableHead>
-                    <TableHead>Client</TableHead>
+                    <TableHead>Project / Client</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Progress</TableHead>
                     <TableHead>Payment</TableHead>
@@ -182,19 +188,18 @@ export function RecentProjectsTable({ projects }: RecentProjectsTableProps) {
                 <TableBody>
                   {projects.map((project) => (
                     <TableRow key={project.id}>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium text-slate-950">
+                      <TableCell className="whitespace-normal">
+                        <div className="min-w-0">
+                          <p className="line-clamp-1 break-words font-medium text-slate-950">
                             {project.name}
                           </p>
-                          <p className="mt-1 text-xs text-slate-500">
+                          <p className="mt-1 line-clamp-1 break-words text-xs text-slate-500">
                             {project.currentMilestone}
                           </p>
+                          <p className="mt-1 line-clamp-1 break-words text-xs font-medium text-slate-700">
+                            {project.client}
+                          </p>
                         </div>
-                      </TableCell>
-
-                      <TableCell className="text-slate-600">
-                        {project.client}
                       </TableCell>
 
                       <TableCell>
@@ -205,7 +210,7 @@ export function RecentProjectsTable({ projects }: RecentProjectsTableProps) {
                       </TableCell>
 
                       <TableCell>
-                        <div className="min-w-28">
+                        <div className="min-w-0">
                           <div className="mb-2 flex items-center justify-between text-xs">
                             <span className="text-slate-500">Progress</span>
                             <span className="font-medium text-slate-700">

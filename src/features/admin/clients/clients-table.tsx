@@ -354,38 +354,41 @@ export function ClientsTable({ clients }: ClientsTableProps) {
             </MobileRecordList>
 
             <div className="hidden overflow-hidden rounded-lg border border-slate-200 lg:block">
-              <Table>
+              <Table className="w-full table-fixed">
+                <colgroup>
+                  <col className="w-[28%]" />
+                  <col className="w-[10%]" />
+                  <col className="w-[10%]" />
+                  <col className="w-[11%]" />
+                  <col className="w-[22%]" />
+                  <col className="w-[19%]" />
+                </colgroup>
                 <TableHeader>
                   <TableRow className="bg-slate-50">
                     <TableHead>Client</TableHead>
-                    <TableHead>Company</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Active projects</TableHead>
+                    <TableHead>Projects</TableHead>
                     <TableHead>Total paid</TableHead>
-                    <TableHead>Latest activity</TableHead>
-                    <TableHead className="text-right">Created</TableHead>
-                    <TableHead className="min-w-[250px] text-right">
-                      Actions
-                    </TableHead>
+                    <TableHead>Activity</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
 
                 <TableBody>
                   {filteredClients.map((client) => (
                     <TableRow key={client.id}>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium text-slate-950">
+                      <TableCell className="whitespace-normal">
+                        <div className="min-w-0">
+                          <p className="line-clamp-1 break-words font-medium text-slate-950">
                             {client.name}
                           </p>
-                          <p className="mt-1 text-xs text-slate-500">
+                          <p className="mt-1 line-clamp-1 break-all text-xs text-slate-500">
                             {client.email}
                           </p>
+                          <p className="mt-1 line-clamp-1 break-words text-xs text-slate-500">
+                            {client.company ?? "Independent client"}
+                          </p>
                         </div>
-                      </TableCell>
-
-                      <TableCell className="text-slate-600">
-                        {client.company ?? "Independent client"}
                       </TableCell>
 
                       <TableCell>
@@ -400,19 +403,20 @@ export function ClientsTable({ clients }: ClientsTableProps) {
                         {formatCurrencyFromCents(client.totalPaidCents)}
                       </TableCell>
 
-                      <TableCell className="max-w-[240px] truncate text-slate-600">
-                        {client.latestActivity}
-                      </TableCell>
-
-                      <TableCell className="text-right text-slate-600">
-                        {formatShortDate(client.createdAt)}
+                      <TableCell className="whitespace-normal text-slate-600">
+                        <p className="line-clamp-2 break-words">
+                          {client.latestActivity}
+                        </p>
+                        <p className="mt-1 text-xs text-slate-500">
+                          Created {formatShortDate(client.createdAt)}
+                        </p>
                       </TableCell>
 
                       <TableCell className="text-right">
-                        <div className="inline-flex min-w-[250px] items-center justify-end gap-2">
+                        <div className="inline-flex items-center justify-end gap-1.5">
                           <Button
                             variant="outline"
-                            className="h-10 px-4 hover:border-slate-400 hover:bg-slate-100"
+                            className="h-9 px-3 hover:border-slate-400 hover:bg-slate-100"
                             asChild
                           >
                             <Link href={`/admin/clients/${client.id}`}>
@@ -421,7 +425,7 @@ export function ClientsTable({ clients }: ClientsTableProps) {
                           </Button>
                           <Button
                             variant="outline"
-                            className="h-10 px-4 hover:border-slate-400 hover:bg-slate-100"
+                            className="h-9 px-3 hover:border-slate-400 hover:bg-slate-100"
                             asChild
                           >
                             <Link href={`/admin/clients/${client.id}/edit`}>

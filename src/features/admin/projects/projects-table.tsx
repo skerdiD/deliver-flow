@@ -368,42 +368,41 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
             </MobileRecordList>
 
             <div className="hidden overflow-hidden rounded-lg border border-slate-200 lg:block">
-              <Table>
+              <Table className="w-full table-fixed">
+                <colgroup>
+                  <col className="w-[32%]" />
+                  <col className="w-[12%]" />
+                  <col className="w-[15%]" />
+                  <col className="w-[14%]" />
+                  <col className="w-[9%]" />
+                  <col className="w-[18%]" />
+                </colgroup>
                 <TableHeader>
                   <TableRow className="bg-slate-50">
-                    <TableHead>Project</TableHead>
-                    <TableHead>Client</TableHead>
+                    <TableHead>Project / Client</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Progress</TableHead>
                     <TableHead>Payment</TableHead>
                     <TableHead className="text-right">Deadline</TableHead>
-                    <TableHead className="min-w-[250px] text-right">
-                      Actions
-                    </TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
 
                 <TableBody>
                   {filteredProjects.map((project) => (
                     <TableRow key={project.id}>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium text-slate-950">
+                      <TableCell className="whitespace-normal">
+                        <div className="min-w-0">
+                          <p className="line-clamp-1 break-words font-medium text-slate-950">
                             {project.name}
                           </p>
-                          <p className="mt-1 max-w-[320px] truncate text-xs text-slate-500">
+                          <p className="mt-1 line-clamp-2 break-words text-xs leading-5 text-slate-500">
                             {project.description}
                           </p>
+                          <p className="mt-1 line-clamp-1 break-words text-xs font-medium text-slate-700">
+                            {project.client.company} - {project.client.name}
+                          </p>
                         </div>
-                      </TableCell>
-
-                      <TableCell>
-                        <p className="font-medium text-slate-900">
-                          {project.client.company}
-                        </p>
-                        <p className="mt-1 text-xs text-slate-500">
-                          {project.client.name}
-                        </p>
                       </TableCell>
 
                       <TableCell>
@@ -411,7 +410,7 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
                       </TableCell>
 
                       <TableCell>
-                        <div className="min-w-32">
+                        <div className="min-w-0">
                           <div className="mb-2 flex items-center justify-between text-xs">
                             <span className="text-slate-500">Progress</span>
                             <span className="font-medium text-slate-700">
@@ -436,10 +435,10 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
                       </TableCell>
 
                       <TableCell className="text-right">
-                        <div className="inline-flex min-w-[250px] items-center justify-end gap-2">
+                        <div className="inline-flex items-center justify-end gap-1.5">
                           <Button
                             variant="outline"
-                            className="h-10 px-4 hover:border-slate-400 hover:bg-slate-100"
+                            className="h-9 px-3 hover:border-slate-400 hover:bg-slate-100"
                             asChild
                           >
                             <Link href={`/admin/projects/${project.id}`}>
@@ -448,7 +447,7 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
                           </Button>
                           <Button
                             variant="outline"
-                            className="h-10 px-4 hover:border-slate-400 hover:bg-slate-100"
+                            className="h-9 px-3 hover:border-slate-400 hover:bg-slate-100"
                             asChild
                           >
                             <Link href={`/admin/projects/${project.id}/edit`}>

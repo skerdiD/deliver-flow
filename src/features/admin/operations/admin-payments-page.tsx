@@ -137,15 +137,21 @@ export function AdminPaymentsPage({ data }: AdminPaymentsPageProps) {
               </MobileRecordList>
 
               <div className="hidden lg:block">
-                <Table>
+                <Table className="w-full table-fixed">
+                  <colgroup>
+                    <col className="w-[31%]" />
+                    <col className="w-[13%]" />
+                    <col className="w-[12%]" />
+                    <col className="w-[19%]" />
+                    <col className="w-[18%]" />
+                    <col className="w-[7%]" />
+                  </colgroup>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Client</TableHead>
-                      <TableHead>Project</TableHead>
+                      <TableHead>Client / Project</TableHead>
                       <TableHead>Amount</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Due date</TableHead>
-                      <TableHead>Paid date</TableHead>
+                      <TableHead>Dates</TableHead>
                       <TableHead>Notes</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -156,13 +162,13 @@ export function AdminPaymentsPage({ data }: AdminPaymentsPageProps) {
 
                       return (
                         <TableRow key={payment.id}>
-                          <TableCell className="font-medium text-slate-950">
-                            {payment.clientName}
-                          </TableCell>
-                          <TableCell>
+                          <TableCell className="whitespace-normal">
+                            <p className="line-clamp-1 break-words font-medium text-slate-950">
+                              {payment.clientName}
+                            </p>
                             <Link
                               href={`${routes.admin.projects}/${payment.projectId}`}
-                              className="font-medium text-slate-950 hover:text-blue-700"
+                              className="mt-1 line-clamp-1 break-words text-sm font-medium text-slate-600 hover:text-blue-700"
                             >
                               {payment.projectName}
                             </Link>
@@ -179,17 +185,17 @@ export function AdminPaymentsPage({ data }: AdminPaymentsPageProps) {
                               tone={statusMeta.tone}
                             />
                           </TableCell>
-                          <TableCell>
-                            {formatDateLabel(payment.dueDate)}
+                          <TableCell className="whitespace-normal text-sm">
+                            <p>Due {formatDateLabel(payment.dueDate)}</p>
+                            <p className="mt-1 text-xs text-slate-500">
+                              Paid{" "}
+                              {formatDateTimeLabel(payment.paidAt, "not yet")}
+                            </p>
                           </TableCell>
-                          <TableCell>
-                            {formatDateTimeLabel(
-                              payment.paidAt,
-                              "Not paid yet",
-                            )}
-                          </TableCell>
-                          <TableCell className="max-w-sm whitespace-normal text-sm text-slate-500">
-                            {payment.notes ?? "No note added."}
+                          <TableCell className="whitespace-normal text-sm text-slate-500">
+                            <p className="line-clamp-2 break-words">
+                              {payment.notes ?? "No note added."}
+                            </p>
                           </TableCell>
                           <TableCell className="text-right">
                             <PaymentRecordActions

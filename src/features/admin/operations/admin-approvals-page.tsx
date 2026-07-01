@@ -131,15 +131,20 @@ export function AdminApprovalsPage({ data }: AdminApprovalsPageProps) {
               </MobileRecordList>
 
               <div className="hidden lg:block">
-                <Table>
+                <Table className="w-full table-fixed">
+                  <colgroup>
+                    <col className="w-[33%]" />
+                    <col className="w-[23%]" />
+                    <col className="w-[15%]" />
+                    <col className="w-[21%]" />
+                    <col className="w-[8%]" />
+                  </colgroup>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Request</TableHead>
-                      <TableHead>Project</TableHead>
-                      <TableHead>Client</TableHead>
+                      <TableHead>Project / Client</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Response note</TableHead>
-                      <TableHead>Responded</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -149,12 +154,12 @@ export function AdminApprovalsPage({ data }: AdminApprovalsPageProps) {
 
                       return (
                         <TableRow key={approval.id}>
-                          <TableCell className="max-w-sm whitespace-normal">
+                          <TableCell className="whitespace-normal">
                             <div className="space-y-1">
-                              <p className="font-medium text-slate-950">
+                              <p className="line-clamp-1 break-words font-medium text-slate-950">
                                 {approval.title}
                               </p>
-                              <p className="text-sm text-slate-500">
+                              <p className="line-clamp-1 break-words text-sm text-slate-500">
                                 {approval.milestoneTitle ??
                                   "General approval request"}
                               </p>
@@ -164,29 +169,35 @@ export function AdminApprovalsPage({ data }: AdminApprovalsPageProps) {
                               </p>
                             </div>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="whitespace-normal">
                             <Link
                               href={`${routes.admin.projects}/${approval.projectId}`}
-                              className="font-medium text-slate-950 hover:text-blue-700"
+                              className="line-clamp-1 break-words font-medium text-slate-950 hover:text-blue-700"
                             >
                               {approval.projectName}
                             </Link>
+                            <p className="mt-1 line-clamp-1 break-words text-xs text-slate-500">
+                              {approval.clientName}
+                            </p>
+                            <p className="mt-1 text-xs text-slate-500">
+                              Responded{" "}
+                              {formatDateTimeLabel(
+                                approval.respondedAt,
+                                "waiting",
+                              )}
+                            </p>
                           </TableCell>
-                          <TableCell>{approval.clientName}</TableCell>
                           <TableCell>
                             <StatusBadge
                               label={statusMeta.label}
                               tone={statusMeta.tone}
                             />
                           </TableCell>
-                          <TableCell className="max-w-sm whitespace-normal text-sm text-slate-500">
-                            {approval.responseNote ?? "No response note added."}
-                          </TableCell>
-                          <TableCell>
-                            {formatDateTimeLabel(
-                              approval.respondedAt,
-                              "Waiting",
-                            )}
+                          <TableCell className="whitespace-normal text-sm text-slate-500">
+                            <p className="line-clamp-2 break-words">
+                              {approval.responseNote ??
+                                "No response note added."}
+                            </p>
                           </TableCell>
                           <TableCell className="text-right">
                             <ApprovalRecordActions approvalId={approval.id} />

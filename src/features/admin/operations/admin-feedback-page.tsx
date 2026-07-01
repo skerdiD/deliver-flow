@@ -217,13 +217,17 @@ export function AdminFeedbackPage({ data }: AdminFeedbackPageProps) {
               </MobileRecordList>
 
               <div className="hidden lg:block">
-                <Table>
+                <Table className="w-full table-fixed">
+                  <colgroup>
+                    <col className="w-[24%]" />
+                    <col className="w-[38%]" />
+                    <col className="w-[14%]" />
+                    <col className="w-[24%]" />
+                  </colgroup>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Client</TableHead>
-                      <TableHead>Project</TableHead>
+                      <TableHead>Client / Project</TableHead>
                       <TableHead>Message</TableHead>
-                      <TableHead>Date</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Action</TableHead>
                     </TableRow>
@@ -234,28 +238,28 @@ export function AdminFeedbackPage({ data }: AdminFeedbackPageProps) {
 
                       return (
                         <TableRow key={item.id}>
-                          <TableCell className="font-medium text-slate-950">
-                            {item.clientName}
+                          <TableCell className="whitespace-normal">
+                            <p className="line-clamp-1 break-words font-medium text-slate-950">
+                              {item.clientName}
+                            </p>
+                            <p className="mt-1 line-clamp-1 break-words text-sm text-slate-500">
+                              {item.projectName}
+                            </p>
+                            <p className="mt-1 text-xs text-slate-500">
+                              {formatDateTimeLabel(item.createdAt)}
+                            </p>
                           </TableCell>
-                          <TableCell>{item.projectName}</TableCell>
-                          <TableCell className="max-w-xl whitespace-normal">
+                          <TableCell className="whitespace-normal">
                             <div className="space-y-1">
-                              <p className="text-sm text-slate-700">
+                              <p className="line-clamp-2 break-words text-sm text-slate-700">
                                 {item.message}
                               </p>
                               {item.adminResponse ? (
-                                <p className="text-xs text-slate-500">
+                                <p className="line-clamp-1 break-words text-xs text-slate-500">
                                   Response saved: {item.adminResponse}
                                 </p>
                               ) : null}
-                              <FeedbackRecordActions
-                                feedbackId={item.id}
-                                adminResponse={item.adminResponse}
-                              />
                             </div>
-                          </TableCell>
-                          <TableCell>
-                            {formatDateTimeLabel(item.createdAt)}
                           </TableCell>
                           <TableCell>
                             <StatusBadge
@@ -264,7 +268,11 @@ export function AdminFeedbackPage({ data }: AdminFeedbackPageProps) {
                             />
                           </TableCell>
                           <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <FeedbackRecordActions
+                                feedbackId={item.id}
+                                adminResponse={item.adminResponse}
+                              />
                               {item.status === "open" ? (
                                 <Button
                                   variant="outline"
@@ -272,8 +280,9 @@ export function AdminFeedbackPage({ data }: AdminFeedbackPageProps) {
                                   onClick={() =>
                                     updateStatus(item.id, "reviewed")
                                   }
+                                  className="h-9 px-3"
                                 >
-                                  Mark reviewed
+                                  Review
                                 </Button>
                               ) : null}
 
@@ -284,6 +293,7 @@ export function AdminFeedbackPage({ data }: AdminFeedbackPageProps) {
                                   onClick={() =>
                                     updateStatus(item.id, "resolved")
                                   }
+                                  className="h-9 px-3"
                                 >
                                   Resolve
                                 </Button>

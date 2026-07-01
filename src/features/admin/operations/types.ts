@@ -211,10 +211,10 @@ export function getFileVisibilityMeta(isVisibleToClient: boolean): {
   tone: BadgeTone;
 } {
   if (isVisibleToClient) {
-    return { label: "Visible to client", tone: "blue" };
+    return { label: "Client", tone: "blue" };
   }
 
-  return { label: "Internal only", tone: "slate" };
+  return { label: "Internal", tone: "slate" };
 }
 
 export function getFileCategoryLabel(category: ProjectFileCategory) {
@@ -234,7 +234,10 @@ export function getFileCategoryLabel(category: ProjectFileCategory) {
   }
 }
 
-export function formatDateLabel(value: string | null, fallback = "No date set") {
+export function formatDateLabel(
+  value: string | null,
+  fallback = "No date set",
+) {
   if (!value) {
     return fallback;
   }

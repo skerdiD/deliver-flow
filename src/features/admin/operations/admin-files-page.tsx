@@ -140,14 +140,19 @@ export function AdminFilesPage({ data }: AdminFilesPageProps) {
               </MobileRecordList>
 
               <div className="hidden lg:block">
-                <Table>
+                <Table className="w-full table-fixed">
+                  <colgroup>
+                    <col className="w-[36%]" />
+                    <col className="w-[25%]" />
+                    <col className="w-[14%]" />
+                    <col className="w-[17%]" />
+                    <col className="w-[8%]" />
+                  </colgroup>
                   <TableHeader>
                     <TableRow>
                       <TableHead>File</TableHead>
-                      <TableHead>Project</TableHead>
-                      <TableHead>Client</TableHead>
+                      <TableHead>Project / Client</TableHead>
                       <TableHead>Type</TableHead>
-                      <TableHead>Visibility</TableHead>
                       <TableHead>Uploaded</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -160,33 +165,35 @@ export function AdminFilesPage({ data }: AdminFilesPageProps) {
 
                       return (
                         <TableRow key={file.id}>
-                          <TableCell className="max-w-sm whitespace-normal">
-                            <div className="space-y-1">
-                              <p className="font-medium text-slate-950">
+                          <TableCell className="whitespace-normal">
+                            <div className="min-w-0 space-y-1">
+                              <p className="line-clamp-1 break-words font-medium text-slate-950">
                                 {file.fileName}
                               </p>
-                              <p className="text-xs text-slate-500">
+                              <p className="line-clamp-1 text-xs text-slate-500">
                                 {getFileCategoryLabel(file.category)} -{" "}
                                 {formatFileSize(file.fileSize)}
                               </p>
-                              <p className="text-xs text-slate-500">
+                              <p className="line-clamp-1 break-all text-xs text-slate-500">
                                 {file.bucketName}/{file.storagePath}
                               </p>
                             </div>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="whitespace-normal">
                             <Link
                               href={`${routes.admin.projects}/${file.projectId}`}
-                              className="font-medium text-slate-950 hover:text-blue-700"
+                              className="line-clamp-1 break-words font-medium text-slate-950 hover:text-blue-700"
                             >
                               {file.projectName}
                             </Link>
+                            <p className="mt-1 line-clamp-1 break-words text-xs text-slate-500">
+                              {file.clientName}
+                            </p>
                           </TableCell>
-                          <TableCell>{file.clientName}</TableCell>
-                          <TableCell>
-                            {file.fileType ?? "Unknown type"}
-                          </TableCell>
-                          <TableCell>
+                          <TableCell className="whitespace-normal">
+                            <p className="line-clamp-1 text-sm">
+                              {file.fileType ?? "Unknown type"}
+                            </p>
                             <StatusBadge
                               label={visibilityMeta.label}
                               tone={visibilityMeta.tone}
