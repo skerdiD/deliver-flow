@@ -18,6 +18,7 @@ import {
   eq,
   inArray,
   isNull,
+  lte,
   ne,
   sum,
 } from "drizzle-orm";
@@ -32,10 +33,12 @@ import {
   projectAssignments,
   projectUpdates,
   projects,
+  tasks,
 } from "@/db/schema";
 import type {
   ActivityType,
   AdminDashboardData,
+  DashboardAttentionItem,
   DashboardActivity,
   DashboardApproval,
   DashboardFeedback,
@@ -47,7 +50,7 @@ import type {
   PaymentStatus,
   ProjectStatus,
 } from "@/features/admin/dashboard/types";
-import { formatCurrencyFromCents } from "@/lib/format";
+import { formatCurrencyFromCents, formatShortDate } from "@/lib/format";
 import { requireRole } from "@/lib/supabase/auth";
 
 type ProjectSummaryRow = {
@@ -67,6 +70,7 @@ const activeProjectStatuses = [
 
 const completedMilestoneStatuses = ["approved", "completed"] as const;
 const outstandingPaymentStatuses = ["unpaid", "partial", "overdue"] as const;
+const dueSoonWindowMs = 1000 * 60 * 60 * 24 * 7;
 
 const adminDashboardQuickActions: DashboardQuickAction[] = [
   {
@@ -95,6 +99,11 @@ const adminDashboardQuickActions: DashboardQuickAction[] = [
   },
 ];
 
+type ScoredAttentionItem = DashboardAttentionItem & {
+  priority: number;
+  sortDate?: string | null;
+};
+
 function toIsoString(value: Date | string): string {
   if (value instanceof Date) {
     return value.toISOString();
@@ -109,6 +118,10 @@ function truncateText(text: string, maxLength: number) {
   }
 
   return `${text.slice(0, maxLength - 3).trimEnd()}...`;
+}
+
+function formatDateOnly(value: Date) {
+  return value.toISOString().slice(0, 10);
 }
 
 function getSafeProjectStatus(status: string): ProjectStatus {
@@ -357,18 +370,23 @@ function getMetrics(input: {
 
 export async function getAdminDashboardData(): Promise<AdminDashboardData> {
   await requireRole("admin");
+  const dueSoonDate = formatDateOnly(new Date(Date.now() + dueSoonWindowMs));
 
   const [
     [activeProjectsResult],
     [pendingFeedbackResult],
     [completedMilestonesResult],
     [outstandingPaymentsResult],
-    recentProjectRows,
     progressProjectRows,
     recentFeedbackRows,
     recentApprovalRows,
     recentUpdateRows,
     paymentSummaryRows,
+    attentionPaymentRows,
+    blockedTaskRows,
+    pendingApprovalRows,
+    openFeedbackRows,
+    highPriorityTaskRows,
   ] = await Promise.all([
     db
       .select({ value: count() })
@@ -418,26 +436,6 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
           isNull(projects.deletedAt),
         ),
       ),
-    db
-      .select({
-        id: projects.id,
-        name: projects.name,
-        status: projects.status,
-        progress: projects.progress,
-        deadline: projects.deadline,
-        updatedAt: projects.updatedAt,
-      })
-      .from(projects)
-      .where(
-        and(
-          ne(projects.status, "draft"),
-          ne(projects.status, "archived"),
-          isNull(projects.archivedAt),
-          isNull(projects.deletedAt),
-        ),
-      )
-      .orderBy(desc(projects.updatedAt))
-      .limit(5),
     db
       .select({
         id: projects.id,
@@ -536,18 +534,271 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       )
       .orderBy(asc(payments.dueDate), desc(payments.createdAt))
       .limit(6),
+    db
+      .select({
+        id: payments.id,
+        projectId: payments.projectId,
+        project: projects.name,
+        amountCents: payments.amountCents,
+        status: payments.status,
+        dueDate: payments.dueDate,
+        createdAt: payments.createdAt,
+      })
+      .from(payments)
+      .innerJoin(projects, eq(payments.projectId, projects.id))
+      .where(
+        and(
+          inArray(payments.status, outstandingPaymentStatuses),
+          isNull(payments.deletedAt),
+          isNull(projects.archivedAt),
+          isNull(projects.deletedAt),
+        ),
+      )
+      .orderBy(asc(payments.dueDate), desc(payments.createdAt))
+      .limit(6),
+    db
+      .select({
+        id: tasks.id,
+        projectId: tasks.projectId,
+        project: projects.name,
+        title: tasks.title,
+        dueDate: tasks.dueDate,
+        updatedAt: tasks.updatedAt,
+      })
+      .from(tasks)
+      .innerJoin(projects, eq(tasks.projectId, projects.id))
+      .where(
+        and(
+          eq(tasks.status, "blocked"),
+          isNull(tasks.deletedAt),
+          isNull(projects.archivedAt),
+          isNull(projects.deletedAt),
+        ),
+      )
+      .orderBy(asc(tasks.dueDate), desc(tasks.updatedAt))
+      .limit(4),
+    db
+      .select({
+        id: approvals.id,
+        projectId: approvals.projectId,
+        project: projects.name,
+        title: approvals.title,
+        requestedAt: approvals.requestedAt,
+      })
+      .from(approvals)
+      .innerJoin(projects, eq(approvals.projectId, projects.id))
+      .where(
+        and(
+          eq(approvals.status, "pending"),
+          isNull(approvals.deletedAt),
+          isNull(projects.archivedAt),
+          isNull(projects.deletedAt),
+        ),
+      )
+      .orderBy(asc(approvals.requestedAt))
+      .limit(4),
+    db
+      .select({
+        id: feedback.id,
+        projectId: feedback.projectId,
+        project: projects.name,
+        client: clients.companyName,
+        message: feedback.message,
+        createdAt: feedback.createdAt,
+      })
+      .from(feedback)
+      .innerJoin(clients, eq(feedback.clientId, clients.id))
+      .innerJoin(projects, eq(feedback.projectId, projects.id))
+      .where(
+        and(
+          eq(feedback.status, "open"),
+          isNull(projects.archivedAt),
+          isNull(projects.deletedAt),
+          isNull(clients.deletedAt),
+          isNull(feedback.archivedAt),
+          isNull(feedback.deletedAt),
+        ),
+      )
+      .orderBy(asc(feedback.createdAt))
+      .limit(4),
+    db
+      .select({
+        id: tasks.id,
+        projectId: tasks.projectId,
+        project: projects.name,
+        title: tasks.title,
+        dueDate: tasks.dueDate,
+        updatedAt: tasks.updatedAt,
+      })
+      .from(tasks)
+      .innerJoin(projects, eq(tasks.projectId, projects.id))
+      .where(
+        and(
+          eq(tasks.priority, "high"),
+          ne(tasks.status, "completed"),
+          lte(tasks.dueDate, dueSoonDate),
+          isNull(tasks.deletedAt),
+          isNull(projects.archivedAt),
+          isNull(projects.deletedAt),
+        ),
+      )
+      .orderBy(asc(tasks.dueDate), desc(tasks.updatedAt))
+      .limit(4),
   ]);
 
-  const recentProjects = await getProjectCards(recentProjectRows);
   const projectProgress = await getProjectCards(progressProjectRows);
   const supportProjectIds = Array.from(
     new Set([
       ...recentApprovalRows.map((row) => row.projectId),
       ...recentUpdateRows.map((row) => row.projectId),
       ...paymentSummaryRows.map((row) => row.projectId),
+      ...attentionPaymentRows.map((row) => row.projectId),
+      ...blockedTaskRows.map((row) => row.projectId),
+      ...pendingApprovalRows.map((row) => row.projectId),
+      ...openFeedbackRows.map((row) => row.projectId),
+      ...highPriorityTaskRows.map((row) => row.projectId),
+      ...projectProgress
+        .filter(
+          (project) =>
+            project.progress === 0 ||
+            project.currentMilestone === "No milestone has been added yet.",
+        )
+        .map((project) => project.id),
     ]),
   );
   const { clientByProjectId } = await getProjectSupportMaps(supportProjectIds);
+
+  const attentionItems: DashboardAttentionItem[] = (
+    [
+      ...attentionPaymentRows.map((row) => ({
+        id: `payment-${row.id}`,
+        kind: "payment" as const,
+        title:
+          row.status === "overdue" ? "Payment overdue" : "Payment still open",
+        context: `${row.project} · ${clientByProjectId.get(row.projectId) ?? "Unassigned client"}`,
+        reason: `${formatCurrencyFromCents(row.amountCents)} was due ${row.dueDate ? formatShortDate(row.dueDate) : "soon"}`,
+        badgeLabel:
+          row.status === "overdue"
+            ? "Overdue"
+            : row.status === "partial"
+              ? "Partial"
+              : "Unpaid",
+        badgeTone:
+          row.status === "overdue"
+            ? ("red" as const)
+            : row.status === "partial"
+              ? ("blue" as const)
+              : ("yellow" as const),
+        href: "/admin/payments",
+        actionLabel: "View payment",
+        priority: row.status === "overdue" ? 1 : 6,
+        sortDate: row.dueDate,
+      })),
+      ...blockedTaskRows.map((row) => ({
+        id: `task-blocked-${row.id}`,
+        kind: "blocked_task" as const,
+        title: "Blocked task",
+        context: `${row.title} · ${row.project}`,
+        reason:
+          "This task is blocked and needs a decision before delivery can move.",
+        badgeLabel: "Blocked",
+        badgeTone: "red" as const,
+        href: "/admin/tasks",
+        actionLabel: "View task",
+        priority: 2,
+        sortDate: row.dueDate,
+      })),
+      ...pendingApprovalRows.map((row) => ({
+        id: `approval-${row.id}`,
+        kind: "approval" as const,
+        title: "Approval waiting",
+        context: `${row.title} · ${row.project}`,
+        reason: "Client approval is still pending.",
+        badgeLabel: "Pending",
+        badgeTone: "purple" as const,
+        href: "/admin/approvals",
+        actionLabel: "View approval",
+        priority: 3,
+        sortDate: toIsoString(row.requestedAt),
+      })),
+      ...openFeedbackRows.map((row) => ({
+        id: `feedback-${row.id}`,
+        kind: "feedback" as const,
+        title: "Feedback needs reply",
+        context: `${row.project} · ${row.client}`,
+        reason: "Client left feedback that has not been resolved yet.",
+        badgeLabel: "Open",
+        badgeTone: "yellow" as const,
+        href: "/admin/feedback",
+        actionLabel: "Review",
+        priority: 4,
+        sortDate: toIsoString(row.createdAt),
+      })),
+      ...highPriorityTaskRows.map((row) => ({
+        id: `task-high-${row.id}`,
+        kind: "high_priority_task" as const,
+        title: "High priority task due soon",
+        context: `${row.title} · ${row.project}`,
+        reason: row.dueDate
+          ? `Due ${formatShortDate(row.dueDate)}`
+          : "High priority task needs a due date.",
+        badgeLabel: "High",
+        badgeTone: "red" as const,
+        href: "/admin/tasks",
+        actionLabel: "View task",
+        priority: 5,
+        sortDate: row.dueDate,
+      })),
+      ...projectProgress
+        .filter(
+          (project) =>
+            project.progress === 0 ||
+            project.currentMilestone === "No milestone has been added yet.",
+        )
+        .map((project) => ({
+          id: `project-setup-${project.id}`,
+          kind: "project_setup" as const,
+          title: "Project needs setup",
+          context: `${project.name} · ${clientByProjectId.get(project.id) ?? project.client}`,
+          reason:
+            project.progress === 0
+              ? "Progress is still at 0%."
+              : "No milestone has been added yet.",
+          badgeLabel: "Setup",
+          badgeTone: "slate" as const,
+          href: `/admin/projects/${project.id}`,
+          actionLabel: "View project",
+          priority: 7,
+          sortDate: project.deadline,
+        })),
+    ] satisfies ScoredAttentionItem[]
+  )
+    .sort((left, right) => {
+      if (left.priority !== right.priority) {
+        return left.priority - right.priority;
+      }
+
+      const leftDate = left.sortDate
+        ? new Date(left.sortDate).getTime()
+        : Number.MAX_SAFE_INTEGER;
+      const rightDate = right.sortDate
+        ? new Date(right.sortDate).getTime()
+        : Number.MAX_SAFE_INTEGER;
+
+      return leftDate - rightDate;
+    })
+    .slice(0, 7)
+    .map((item) => ({
+      id: item.id,
+      kind: item.kind,
+      title: item.title,
+      context: item.context,
+      reason: item.reason,
+      badgeLabel: item.badgeLabel,
+      badgeTone: item.badgeTone,
+      href: item.href,
+      actionLabel: item.actionLabel,
+    }));
 
   const recentFeedback: DashboardFeedback[] = recentFeedbackRows.map((row) => ({
     id: row.id,
@@ -558,24 +809,28 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     createdAt: toIsoString(row.createdAt),
   }));
 
-  const recentApprovals: DashboardApproval[] = recentApprovalRows.map((row) => ({
-    id: row.id,
-    project: row.project,
-    client: clientByProjectId.get(row.projectId) ?? "Unassigned client",
-    title: row.title,
-    status: row.status,
-    requestedAt: toIsoString(row.requestedAt),
-    respondedAt: row.respondedAt ? toIsoString(row.respondedAt) : null,
-  }));
+  const recentApprovals: DashboardApproval[] = recentApprovalRows.map(
+    (row) => ({
+      id: row.id,
+      project: row.project,
+      client: clientByProjectId.get(row.projectId) ?? "Unassigned client",
+      title: row.title,
+      status: row.status,
+      requestedAt: toIsoString(row.requestedAt),
+      respondedAt: row.respondedAt ? toIsoString(row.respondedAt) : null,
+    }),
+  );
 
-  const recentUpdates: DashboardProjectUpdate[] = recentUpdateRows.map((row) => ({
-    id: row.id,
-    project: row.project,
-    client: clientByProjectId.get(row.projectId) ?? "Unassigned client",
-    title: row.title,
-    body: row.body,
-    createdAt: toIsoString(row.createdAt),
-  }));
+  const recentUpdates: DashboardProjectUpdate[] = recentUpdateRows.map(
+    (row) => ({
+      id: row.id,
+      project: row.project,
+      client: clientByProjectId.get(row.projectId) ?? "Unassigned client",
+      title: row.title,
+      body: row.body,
+      createdAt: toIsoString(row.createdAt),
+    }),
+  );
 
   const paymentSummary: DashboardPayment[] = paymentSummaryRows
     .sort((left, right) => {
@@ -655,7 +910,8 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
   ]
     .sort(
       (left, right) =>
-        new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
+        new Date(right.createdAt).getTime() -
+        new Date(left.createdAt).getTime(),
     )
     .slice(0, 6);
 
@@ -668,7 +924,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
 
   return {
     metrics,
-    recentProjects,
+    attentionItems,
     projectProgress,
     recentFeedback,
     recentApprovals,

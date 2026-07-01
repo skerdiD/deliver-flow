@@ -39,14 +39,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
   archiveClientAction,
   deleteClientAction,
   type ClientActionResult,
@@ -286,7 +278,7 @@ export function ClientsTable({ clients }: ClientsTableProps) {
           />
         ) : (
           <>
-            <MobileRecordList>
+            <MobileRecordList className="lg:block xl:hidden">
               {filteredClients.map((client) => (
                 <MobileRecordCard key={client.id}>
                   <div className="flex items-start justify-between gap-3">
@@ -353,92 +345,77 @@ export function ClientsTable({ clients }: ClientsTableProps) {
               ))}
             </MobileRecordList>
 
-            <div className="hidden overflow-hidden rounded-lg border border-slate-200 lg:block">
-              <Table className="w-full table-fixed">
-                <colgroup>
-                  <col className="w-[28%]" />
-                  <col className="w-[10%]" />
-                  <col className="w-[10%]" />
-                  <col className="w-[11%]" />
-                  <col className="w-[22%]" />
-                  <col className="w-[19%]" />
-                </colgroup>
-                <TableHeader>
-                  <TableRow className="bg-slate-50">
-                    <TableHead>Client</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Projects</TableHead>
-                    <TableHead>Total paid</TableHead>
-                    <TableHead>Activity</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
+            <div className="hidden overflow-hidden rounded-lg border border-slate-200 xl:block">
+              <div className="grid grid-cols-[minmax(0,2fr)_120px_90px_120px_minmax(0,1.45fr)_auto] items-center gap-4 border-b border-slate-200 bg-slate-50 px-5 py-3 text-xs font-semibold uppercase tracking-[0.06em] text-slate-500">
+                <div>Client</div>
+                <div>Status</div>
+                <div>Projects</div>
+                <div>Total paid</div>
+                <div>Activity</div>
+                <div className="text-right">Actions</div>
+              </div>
 
-                <TableBody>
-                  {filteredClients.map((client) => (
-                    <TableRow key={client.id}>
-                      <TableCell className="whitespace-normal">
-                        <div className="min-w-0">
-                          <p className="line-clamp-1 break-words font-medium text-slate-950">
-                            {client.name}
-                          </p>
-                          <p className="mt-1 line-clamp-1 break-all text-xs text-slate-500">
-                            {client.email}
-                          </p>
-                          <p className="mt-1 line-clamp-1 break-words text-xs text-slate-500">
-                            {client.company ?? "Independent client"}
-                          </p>
-                        </div>
-                      </TableCell>
+              <div className="divide-y divide-slate-200">
+                {filteredClients.map((client) => (
+                  <div
+                    key={client.id}
+                    className="grid grid-cols-[minmax(0,2fr)_120px_90px_120px_minmax(0,1.45fr)_auto] items-center gap-4 px-5 py-4"
+                  >
+                    <div className="min-w-0">
+                      <p className="line-clamp-1 break-words font-medium text-slate-950">
+                        {client.name}
+                      </p>
+                      <p className="mt-1 line-clamp-1 break-all text-sm text-slate-500">
+                        {client.email}
+                      </p>
+                      <p className="mt-1 line-clamp-1 break-words text-sm text-slate-500">
+                        {client.company ?? "Independent client"}
+                      </p>
+                    </div>
 
-                      <TableCell>
-                        <ClientStatusBadge status={client.status} />
-                      </TableCell>
+                    <div className="min-w-0">
+                      <ClientStatusBadge status={client.status} />
+                    </div>
 
-                      <TableCell className="text-slate-600">
-                        {client.activeProjects}
-                      </TableCell>
+                    <div className="text-slate-600">
+                      {client.activeProjects}
+                    </div>
 
-                      <TableCell className="font-medium text-slate-950">
-                        {formatCurrencyFromCents(client.totalPaidCents)}
-                      </TableCell>
+                    <div className="font-medium text-slate-950">
+                      {formatCurrencyFromCents(client.totalPaidCents)}
+                    </div>
 
-                      <TableCell className="whitespace-normal text-slate-600">
-                        <p className="line-clamp-2 break-words">
-                          {client.latestActivity}
-                        </p>
-                        <p className="mt-1 text-xs text-slate-500">
-                          Created {formatShortDate(client.createdAt)}
-                        </p>
-                      </TableCell>
+                    <div className="min-w-0 text-slate-600">
+                      <p className="line-clamp-2 break-words">
+                        {client.latestActivity}
+                      </p>
+                      <p className="mt-1 text-xs text-slate-500">
+                        Created {formatShortDate(client.createdAt)}
+                      </p>
+                    </div>
 
-                      <TableCell className="text-right">
-                        <div className="inline-flex items-center justify-end gap-1.5">
-                          <Button
-                            variant="outline"
-                            className="h-9 px-3 hover:border-slate-400 hover:bg-slate-100"
-                            asChild
-                          >
-                            <Link href={`/admin/clients/${client.id}`}>
-                              View
-                            </Link>
-                          </Button>
-                          <Button
-                            variant="outline"
-                            className="h-9 px-3 hover:border-slate-400 hover:bg-slate-100"
-                            asChild
-                          >
-                            <Link href={`/admin/clients/${client.id}/edit`}>
-                              Edit
-                            </Link>
-                          </Button>
-                          <ClientRowActions client={client} />
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                    <div className="flex items-center justify-end gap-1.5">
+                      <Button
+                        variant="outline"
+                        className="h-9 px-3 hover:border-slate-400 hover:bg-slate-100"
+                        asChild
+                      >
+                        <Link href={`/admin/clients/${client.id}`}>View</Link>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="h-9 px-3 hover:border-slate-400 hover:bg-slate-100"
+                        asChild
+                      >
+                        <Link href={`/admin/clients/${client.id}/edit`}>
+                          Edit
+                        </Link>
+                      </Button>
+                      <ClientRowActions client={client} />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </>
         )}

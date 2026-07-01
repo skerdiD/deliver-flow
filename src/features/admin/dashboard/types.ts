@@ -69,6 +69,26 @@ export type DashboardQuickAction = {
   icon: LucideIcon;
 };
 
+export type AttentionKind =
+  | "payment"
+  | "blocked_task"
+  | "approval"
+  | "feedback"
+  | "high_priority_task"
+  | "project_setup";
+
+export type DashboardAttentionItem = {
+  id: string;
+  kind: AttentionKind;
+  title: string;
+  context: string;
+  reason: string;
+  badgeLabel: string;
+  badgeTone: "blue" | "green" | "yellow" | "red" | "purple" | "slate";
+  href: string;
+  actionLabel: string;
+};
+
 export type DashboardApproval = {
   id: string;
   project: string;
@@ -90,7 +110,7 @@ export type DashboardProjectUpdate = {
 
 export type AdminDashboardData = {
   metrics: DashboardMetric[];
-  recentProjects: DashboardProject[];
+  attentionItems: DashboardAttentionItem[];
   projectProgress: DashboardProject[];
   recentFeedback: DashboardFeedback[];
   recentApprovals: DashboardApproval[];

@@ -9,10 +9,10 @@ import { getAdminDashboardData } from "@/features/admin/dashboard/admin-dashboar
 import { ActivityTimeline } from "@/features/admin/dashboard/activity-timeline";
 import { AdminDashboardStats } from "@/features/admin/dashboard/admin-dashboard-stats";
 import { DashboardQuickActions } from "@/features/admin/dashboard/dashboard-quick-actions";
+import { NeedsAttentionPanel } from "@/features/admin/dashboard/needs-attention-panel";
 import { PaymentSummaryCard } from "@/features/admin/dashboard/payment-summary-card";
 import { ProjectProgressOverview } from "@/features/admin/dashboard/project-progress-overview";
 import { RecentFeedbackPanel } from "@/features/admin/dashboard/recent-feedback-panel";
-import { RecentProjectsTable } from "@/features/admin/dashboard/recent-projects-table";
 
 export const metadata: Metadata = {
   title: "Admin Dashboard",
@@ -45,7 +45,7 @@ export default async function AdminDashboardPage() {
       <AdminDashboardStats metrics={dashboard.metrics} />
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(360px,0.9fr)]">
-        <RecentProjectsTable projects={dashboard.recentProjects} />
+        <NeedsAttentionPanel items={dashboard.attentionItems} />
         <RecentFeedbackPanel feedback={dashboard.recentFeedback} />
       </div>
 
