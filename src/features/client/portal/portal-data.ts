@@ -381,8 +381,6 @@ async function buildClientPortalProject(
         fileType: projectFiles.fileType,
         fileSize: projectFiles.fileSize,
         category: projectFiles.category,
-        bucketName: projectFiles.bucketName,
-        storagePath: projectFiles.storagePath,
         createdAt: projectFiles.createdAt,
       })
       .from(projectFiles)
@@ -509,8 +507,6 @@ async function buildClientPortalProject(
     size: formatFileSize(file.fileSize),
     category: fileCategoryLabels[file.category] ?? "Other",
     uploadedAt: toIsoString(file.createdAt),
-    bucketName: file.bucketName,
-    storagePath: file.storagePath,
   }));
 
   const mappedFeedback: ClientPortalFeedback[] = projectFeedback.map(
@@ -719,8 +715,6 @@ export const getClientPortalProjectFilesById = cache(
         fileType: projectFiles.fileType,
         fileSize: projectFiles.fileSize,
         category: projectFiles.category,
-        bucketName: projectFiles.bucketName,
-        storagePath: projectFiles.storagePath,
         createdAt: projectFiles.createdAt,
       })
       .from(projectFiles)
@@ -741,8 +735,6 @@ export const getClientPortalProjectFilesById = cache(
         size: formatFileSize(file.fileSize),
         category: fileCategoryLabels[file.category] ?? "Other",
         uploadedAt: toIsoString(file.createdAt),
-        bucketName: file.bucketName,
-        storagePath: file.storagePath,
       })),
     });
   },

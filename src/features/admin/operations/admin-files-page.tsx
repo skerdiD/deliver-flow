@@ -71,8 +71,8 @@ export function AdminFilesPage({ data }: AdminFilesPageProps) {
           {data.files.length === 0 ? (
             <EmptyState
               icon={Files}
-              title="No files have been uploaded yet."
-              description="Project files from the database will show up here once uploads start."
+              title="No files uploaded yet."
+              description="Project files will show up here once uploads start."
             />
           ) : (
             <>

@@ -36,25 +36,18 @@ Explore the deployed app: [deliver-flow.vercel.app](https://deliver-flow.vercel.
 
 ---
 
-## Demo Accounts
+## Demo Account
 
-Use the demo accounts below to explore both sides of DeliverFlow.
-
-### Admin Demo
-
-Email: admin@deliverflow.demo  
-Password: Demo123456!
-
-The admin account can access the admin dashboard, clients, projects, tasks, files, payments, feedback, approvals, and settings.
+Use the demo client account below to explore the client portal.
 
 ### Client Demo
 
 Email: client@deliverflow.demo  
 Password: Demo123456!
 
-The client account can access the private client portal, assigned projects, shared files, payments, feedback, and approval requests.
+The client demo account can access the private client portal, assigned projects, shared files, payments, feedback, and approval requests.
 
-> Demo accounts are for portfolio and testing purposes. Some destructive actions may be restricted or reset.
+> The admin dashboard is protected and not publicly shared in the demo. Screenshots are included above to show the admin experience.
 
 ---
 

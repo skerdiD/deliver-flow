@@ -39,6 +39,11 @@ import {
   type TaskFormValues,
   type UpdateFormValues,
 } from "@/features/admin/projects/project-validation";
+import {
+  PROJECT_FILES_BUCKET,
+  buildProjectFileStoragePath,
+  sanitizeProjectFileName,
+} from "@/features/projects/file-storage";
 import { logProjectActivity } from "@/features/projects/activity";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireRole } from "@/lib/supabase/auth";
@@ -103,10 +108,6 @@ function getActionErrorMessage(error: unknown, fallback: string) {
   }
 
   return fallback;
-}
-
-function normalizeFileName(fileName: string) {
-  return fileName.replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/-+/g, "-");
 }
 
 function getFileExtension(fileName: string) {
@@ -958,11 +959,14 @@ export async function uploadProjectFileAction(
     };
   }
 
-  const safeFileName = normalizeFileName(file.name);
-  const storagePath = `${projectIdParsed.data}/${Date.now()}-${safeFileName}`;
+  const safeFileName = sanitizeProjectFileName(file.name);
+  const storagePath = buildProjectFileStoragePath({
+    projectId: projectIdParsed.data,
+    fileName: safeFileName,
+  });
   const supabase = createSupabaseAdminClient();
   const { error } = await supabase.storage
-    .from("project-files")
+    .from(PROJECT_FILES_BUCKET)
     .upload(storagePath, file, {
       contentType: file.type || "application/octet-stream",
       upsert: false,
@@ -981,7 +985,7 @@ export async function uploadProjectFileAction(
       projectId: projectIdParsed.data,
       uploadedBy: adminProfile.id,
       fileName: displayFileName,
-      bucketName: "project-files",
+      bucketName: PROJECT_FILES_BUCKET,
       storagePath,
       fileType: file.type || "application/octet-stream",
       fileSize: file.size,

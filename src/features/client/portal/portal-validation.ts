@@ -30,6 +30,16 @@ export const clientApprovalActionSchema = clientApprovalResponseSchema.extend({
   status: z.enum(clientApprovalStatusValues),
 });
 
+export const clientApprovalChangeRequestSchema =
+  clientApprovalResponseSchema.extend({
+    status: z.literal("changes_requested"),
+    responseNote: z
+      .string()
+      .trim()
+      .min(5, "Please add a short note before requesting changes.")
+      .max(800, "Approval note should stay under 800 characters."),
+  });
+
 export type ClientFeedbackValues = z.infer<typeof clientFeedbackSchema>;
 export type ClientApprovalResponseValues = z.infer<
   typeof clientApprovalResponseSchema

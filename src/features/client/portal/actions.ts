@@ -8,6 +8,7 @@ import {
 } from "@/features/client/portal/portal-data";
 import {
   clientApprovalActionSchema,
+  clientApprovalChangeRequestSchema,
   clientApprovalIdSchema,
   clientFeedbackSchema,
   clientProjectIdSchema,
@@ -150,7 +151,7 @@ export async function requestChangesAction(
     };
   }
 
-  const parsed = clientApprovalActionSchema.safeParse({
+  const parsed = clientApprovalChangeRequestSchema.safeParse({
     ...values,
     status: "changes_requested",
   });
@@ -159,13 +160,6 @@ export async function requestChangesAction(
     return {
       success: false,
       message: "Please check your change request.",
-    };
-  }
-
-  if (!parsed.data.responseNote || parsed.data.responseNote.length < 5) {
-    return {
-      success: false,
-      message: "Please add a short note before requesting changes.",
     };
   }
 

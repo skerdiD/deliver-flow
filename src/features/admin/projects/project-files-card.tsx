@@ -54,7 +54,7 @@ export function ProjectFilesCard({ projectId, files }: ProjectFilesCardProps) {
           <input type="hidden" name="projectId" value={projectId} />
 
           <div className="grid gap-3">
-            <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_160px]">
+            <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(180px,0.7fr)_160px]">
               <div className="space-y-2">
                 <Label htmlFor="project-file-upload">Deliverable file</Label>
                 <Input
@@ -67,8 +67,24 @@ export function ProjectFilesCard({ projectId, files }: ProjectFilesCardProps) {
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="project-file-label">Display name</Label>
+                <Input
+                  id="project-file-label"
+                  name="label"
+                  type="text"
+                  placeholder="Final handoff"
+                  className="bg-white"
+                  disabled={isUploading}
+                />
+              </div>
+
+              <div className="space-y-2">
                 <Label>Category</Label>
-                <Select name="category" defaultValue="deliverable">
+                <Select
+                  name="category"
+                  defaultValue="deliverable"
+                  disabled={isUploading}
+                >
                   <SelectTrigger className="bg-white">
                     <SelectValue />
                   </SelectTrigger>
@@ -122,8 +138,8 @@ export function ProjectFilesCard({ projectId, files }: ProjectFilesCardProps) {
         {files.length === 0 ? (
           <EmptyState
             icon={Files}
-            title="No files connected yet"
-            description="Files will show here after they are added to the project."
+            title="No files uploaded yet."
+            description="Files will show here after they are uploaded to the project."
           />
         ) : (
           files.map((file) => (
@@ -139,9 +155,6 @@ export function ProjectFilesCard({ projectId, files }: ProjectFilesCardProps) {
                   <p className="mt-1 text-sm text-slate-500">
                     {file.fileType ?? "Unknown type"} -{" "}
                     {formatFileSize(file.fileSize)}
-                  </p>
-                  <p className="mt-2 break-all text-xs text-slate-500">
-                    {file.bucketName}/{file.storagePath}
                   </p>
                   <p className="mt-2 text-xs text-slate-500">
                     {file.viewedAt

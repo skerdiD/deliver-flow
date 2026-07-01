@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   clientApprovalActionSchema,
+  clientApprovalChangeRequestSchema,
   clientApprovalIdSchema,
   clientFeedbackSchema,
   clientProjectIdSchema,
@@ -31,6 +32,22 @@ describe("client portal validation schemas", () => {
     expect(
       clientApprovalActionSchema.safeParse({
         status: "pending",
+        responseNote: "",
+      }).success,
+    ).toBe(false);
+  });
+
+  it("requires a note for change requests", () => {
+    expect(
+      clientApprovalChangeRequestSchema.safeParse({
+        status: "changes_requested",
+        responseNote: "Please tighten the mobile spacing.",
+      }).success,
+    ).toBe(true);
+
+    expect(
+      clientApprovalChangeRequestSchema.safeParse({
+        status: "changes_requested",
         responseNote: "",
       }).success,
     ).toBe(false);

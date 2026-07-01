@@ -61,8 +61,6 @@ export type ClientPortalFile = {
   size: string;
   category: string;
   uploadedAt: string;
-  bucketName: string;
-  storagePath: string;
 };
 
 export type ClientPortalPayment = {
