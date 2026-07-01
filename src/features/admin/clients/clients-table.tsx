@@ -12,6 +12,7 @@ import {
   MobileRecordList,
   MobileRecordMeta,
 } from "@/components/shared/mobile-record";
+import { BadgeWithMeta, StackedCell } from "@/components/shared/record-cell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -361,38 +362,38 @@ export function ClientsTable({ clients }: ClientsTableProps) {
                     key={client.id}
                     className="grid grid-cols-[minmax(0,2fr)_120px_90px_120px_minmax(0,1.45fr)_auto] items-center gap-4 px-5 py-4"
                   >
-                    <div className="min-w-0">
+                    <StackedCell>
                       <p className="line-clamp-1 break-words font-medium text-slate-950">
                         {client.name}
                       </p>
-                      <p className="mt-1 line-clamp-1 break-all text-sm text-slate-500">
+                      <p className="line-clamp-1 break-all text-sm text-slate-500">
                         {client.email}
                       </p>
-                      <p className="mt-1 line-clamp-1 break-words text-sm text-slate-500">
+                      <p className="line-clamp-1 break-words text-sm text-slate-500">
                         {client.company ?? "Independent client"}
                       </p>
-                    </div>
+                    </StackedCell>
 
-                    <div className="min-w-0">
-                      <ClientStatusBadge status={client.status} />
-                    </div>
+                    <BadgeWithMeta
+                      badge={<ClientStatusBadge status={client.status} />}
+                    />
 
-                    <div className="text-slate-600">
+                    <div className="whitespace-nowrap text-slate-600">
                       {client.activeProjects}
                     </div>
 
-                    <div className="font-medium text-slate-950">
+                    <div className="whitespace-nowrap font-medium text-slate-950">
                       {formatCurrencyFromCents(client.totalPaidCents)}
                     </div>
 
-                    <div className="min-w-0 text-slate-600">
+                    <StackedCell className="text-slate-600">
                       <p className="line-clamp-2 break-words">
                         {client.latestActivity}
                       </p>
-                      <p className="mt-1 text-xs text-slate-500">
+                      <p className="text-xs text-slate-500">
                         Created {formatShortDate(client.createdAt)}
                       </p>
-                    </div>
+                    </StackedCell>
 
                     <div className="flex items-center justify-end gap-1.5">
                       <Button

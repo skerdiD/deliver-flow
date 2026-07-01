@@ -1,5 +1,6 @@
 import { CheckCircle2, Clock3, FileText, MessageSquare } from "lucide-react";
 
+import { StackedCell } from "@/components/shared/record-cell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ClientPortalActivity } from "@/features/client/portal/types";
 import { formatRelativeTime } from "@/lib/format";
@@ -53,14 +54,14 @@ export function ClientActivityCard({ activity }: ClientActivityCardProps) {
                   <Icon className="size-4" />
                 </div>
 
-                <div className="min-w-0">
+                <StackedCell>
                   <p className="text-sm font-medium text-slate-950">
                     {item.message}
                   </p>
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="text-xs text-slate-500">
                     {formatRelativeTime(item.createdAt)}
                   </p>
-                </div>
+                </StackedCell>
               </div>
             );
           })

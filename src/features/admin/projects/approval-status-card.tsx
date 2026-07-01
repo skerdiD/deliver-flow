@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { requestProjectApprovalAction } from "@/features/admin/projects/actions";
 import { ApprovalRecordActions } from "@/features/admin/operations/record-actions";
 import { FormStatus } from "@/components/shared/form-status";
+import { BadgeWithMeta, StackedCell } from "@/components/shared/record-cell";
 import type {
   AdminProjectApproval,
   AdminProjectMilestone,
@@ -186,30 +187,38 @@ function ApprovalRow({ approval }: { approval: AdminProjectApproval }) {
         </div>
 
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="font-semibold text-slate-950">{approval.title}</p>
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <p className="break-words font-semibold text-slate-950">
+              {approval.title}
+            </p>
 
-            <StatusBadge
-              label={
-                approval.status === "approved"
-                  ? "Approved"
-                  : approval.status === "changes_requested"
-                    ? "Changes requested"
-                    : approval.status === "cancelled"
-                      ? "Cancelled"
-                      : "Pending"
-              }
-              tone={
-                approval.status === "approved"
-                  ? "green"
-                  : approval.status === "changes_requested"
-                    ? "yellow"
-                    : approval.status === "cancelled"
-                      ? "slate"
-                      : "purple"
-              }
-            />
-            <ApprovalRecordActions approvalId={approval.id} />
+            <div className="flex shrink-0 items-center gap-2">
+              <BadgeWithMeta
+                badge={
+                  <StatusBadge
+                    label={
+                      approval.status === "approved"
+                        ? "Approved"
+                        : approval.status === "changes_requested"
+                          ? "Changes requested"
+                          : approval.status === "cancelled"
+                            ? "Cancelled"
+                            : "Pending"
+                    }
+                    tone={
+                      approval.status === "approved"
+                        ? "green"
+                        : approval.status === "changes_requested"
+                          ? "yellow"
+                          : approval.status === "cancelled"
+                            ? "slate"
+                            : "purple"
+                    }
+                  />
+                }
+              />
+              <ApprovalRecordActions approvalId={approval.id} />
+            </div>
           </div>
 
           {approval.milestoneTitle ? (
@@ -233,7 +242,7 @@ function ApprovalRow({ approval }: { approval: AdminProjectApproval }) {
             </div>
           ) : null}
 
-          <div className="mt-3 flex flex-wrap gap-3 text-xs text-slate-500">
+          <StackedCell className="mt-3 flex-row flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500">
             <span>Requested {formatShortDate(approval.requestedAt)}</span>
             {approval.respondedAt ? (
               <span>Responded {formatShortDate(approval.respondedAt)}</span>
@@ -243,7 +252,7 @@ function ApprovalRow({ approval }: { approval: AdminProjectApproval }) {
                 ? `Viewed ${formatRelativeTime(approval.viewedAt)}`
                 : "Not viewed yet"}
             </span>
-          </div>
+          </StackedCell>
         </div>
       </div>
     </div>

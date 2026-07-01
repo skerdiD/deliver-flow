@@ -1,6 +1,7 @@
 import { CreditCard } from "lucide-react";
 
 import { EmptyState } from "@/components/shared/empty-state";
+import { StackedCell } from "@/components/shared/record-cell";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type {
@@ -94,17 +95,15 @@ export function PaymentSummaryCard({ payments }: PaymentSummaryCardProps) {
                   </p>
                 </div>
 
-                <div className="shrink-0 sm:text-right">
+                <StackedCell className="shrink-0 sm:items-end sm:text-right">
                   <p className="text-sm font-semibold text-slate-950">
                     {formatCurrencyFromCents(payment.amountCents)}
                   </p>
-                  <div className="mt-1">
-                    <StatusBadge
-                      label={getPaymentStatusLabel(payment.status)}
-                      tone={getPaymentStatusTone(payment.status)}
-                    />
-                  </div>
-                </div>
+                  <StatusBadge
+                    label={getPaymentStatusLabel(payment.status)}
+                    tone={getPaymentStatusTone(payment.status)}
+                  />
+                </StackedCell>
               </div>
             ))
           )}

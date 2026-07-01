@@ -16,6 +16,7 @@ import {
 } from "@/features/admin/projects/project-validation";
 import type { AdminProjectTask } from "@/features/admin/projects/types";
 import { FormStatus } from "@/components/shared/form-status";
+import { StackedCell } from "@/components/shared/record-cell";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -107,7 +108,7 @@ export function ProjectTasksCard({ projectId, tasks }: ProjectTasksCardProps) {
               className="rounded-lg border border-slate-200 p-4"
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div>
+                <StackedCell className="gap-2">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="font-semibold text-slate-950">{task.title}</p>
                     <StatusBadge
@@ -138,40 +139,40 @@ export function ProjectTasksCard({ projectId, tasks }: ProjectTasksCardProps) {
                           ? "Internal only"
                           : "Client-visible"
                       }
-                      tone={
-                        task.isVisibleToClient === false ? "slate" : "blue"
-                      }
+                      tone={task.isVisibleToClient === false ? "slate" : "blue"}
                     />
                   </div>
 
-                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                  <p className="text-sm leading-6 text-slate-600">
                     {task.description}
                   </p>
 
-                  <p className="mt-2 text-xs text-slate-500">
+                  <p className="text-xs text-slate-500">
                     Due {formatShortDate(task.dueDate)}
                   </p>
-                </div>
+                </StackedCell>
 
-                {task.status !== "completed" ? (
-                  <Button
-                    variant="outline"
-                    className="shrink-0"
-                    disabled={isPending}
-                    onClick={() => handleMarkComplete(task.id)}
-                  >
-                    <CheckCircle2 className="mr-2 size-4" />
-                    Mark complete
-                  </Button>
-                ) : null}
-                <TaskRecordActions
-                  taskId={task.id}
-                  projectId={projectId}
-                  title={task.title}
-                  description={task.description}
-                  dueDate={task.dueDate}
-                  status={task.status}
-                />
+                <div className="flex shrink-0 flex-wrap items-center gap-2 sm:justify-end">
+                  {task.status !== "completed" ? (
+                    <Button
+                      variant="outline"
+                      className="shrink-0"
+                      disabled={isPending}
+                      onClick={() => handleMarkComplete(task.id)}
+                    >
+                      <CheckCircle2 className="mr-2 size-4" />
+                      Mark complete
+                    </Button>
+                  ) : null}
+                  <TaskRecordActions
+                    taskId={task.id}
+                    projectId={projectId}
+                    title={task.title}
+                    description={task.description}
+                    dueDate={task.dueDate}
+                    status={task.status}
+                  />
+                </div>
               </div>
             </div>
           ))}
@@ -187,7 +188,9 @@ export function ProjectTasksCard({ projectId, tasks }: ProjectTasksCardProps) {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormStatus
                 message={statusMessage || form.formState.errors.root?.message}
-                success={statusIsSuccess && !form.formState.errors.root?.message}
+                success={
+                  statusIsSuccess && !form.formState.errors.root?.message
+                }
               />
 
               <FormField

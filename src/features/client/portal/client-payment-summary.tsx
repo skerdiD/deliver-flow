@@ -1,6 +1,7 @@
 import { CreditCard } from "lucide-react";
 
 import { MetricCard } from "@/components/shared/metric-card";
+import { StackedCell } from "@/components/shared/record-cell";
 import { ClientPaymentStatusBadge } from "@/features/client/portal/client-project-status-badge";
 import type { ClientPortalProject } from "@/features/client/portal/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -67,12 +68,12 @@ export function ClientPaymentSummary({ project }: ClientPaymentSummaryProps) {
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3 sm:justify-end sm:text-right">
+                <StackedCell className="shrink-0 sm:items-end sm:text-right">
                   <p className="font-semibold text-slate-950">
                     {formatCurrencyFromCents(payment.amountCents)}
                   </p>
                   <ClientPaymentStatusBadge status={payment.status} />
-                </div>
+                </StackedCell>
               </div>
             ))
           )}

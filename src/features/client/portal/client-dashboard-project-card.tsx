@@ -15,7 +15,7 @@ import {
 import type { ClientPortalProject } from "@/features/client/portal/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+import { ProgressCell } from "@/components/shared/record-cell";
 import { formatCurrencyFromCents, formatShortDate } from "@/lib/format";
 
 type ClientDashboardProjectCardProps = {
@@ -57,17 +57,13 @@ export function ClientDashboardProjectCard({
               {project.description}
             </p>
 
-            <div className="mt-5">
-              <div className="mb-2 flex items-center justify-between text-sm">
-                <span className="font-medium text-slate-700">
-                  Project progress
-                </span>
-                <span className="font-semibold text-slate-950">
-                  {project.progress}%
-                </span>
-              </div>
-              <Progress value={project.progress} />
-            </div>
+            <ProgressCell
+              value={project.progress}
+              label="Project progress"
+              className="mt-5 max-w-none"
+              labelClassName="text-sm font-medium text-slate-700"
+              valueClassName="font-semibold text-slate-950"
+            />
 
             <div className="mt-5 grid gap-3 md:grid-cols-3">
               <div className="rounded-lg border border-slate-200 p-3">
@@ -160,11 +156,14 @@ export function ClientDashboardProjectCard({
           </div>
 
           <div className="rounded-lg border border-slate-200 p-4">
-            <div className="flex items-center gap-2">
-              <CreditCard className="size-4 text-slate-500" />
-              <p className="text-sm font-semibold text-slate-950">
-                Payment status
-              </p>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <CreditCard className="size-4 text-slate-500" />
+                <p className="text-sm font-semibold text-slate-950">
+                  Payment status
+                </p>
+              </div>
+              <ClientPaymentStatusBadge status={project.paymentStatus} />
             </div>
             <p className="mt-2 text-sm text-slate-600">
               {formatCurrencyFromCents(project.paidAmountCents)} paid from{" "}

@@ -1,9 +1,9 @@
 import { FolderKanban } from "lucide-react";
 
 import { EmptyState } from "@/components/shared/empty-state";
+import { ProgressCell } from "@/components/shared/record-cell";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import type {
   DashboardProject,
   ProjectStatus,
@@ -82,17 +82,13 @@ export function ProjectProgressOverview({
                 />
               </div>
 
-              <div className="mt-5">
-                <div className="mb-2 flex items-center justify-between text-sm">
-                  <span className="text-slate-500">
-                    {project.currentMilestone}
-                  </span>
-                  <span className="font-semibold text-slate-950">
-                    {project.progress}%
-                  </span>
-                </div>
-                <Progress value={project.progress} />
-              </div>
+              <ProgressCell
+                value={project.progress}
+                label={project.currentMilestone}
+                className="mt-5 max-w-none"
+                labelClassName="line-clamp-1 break-words text-sm text-slate-500"
+                valueClassName="font-semibold text-slate-950"
+              />
             </div>
           ))
         )}

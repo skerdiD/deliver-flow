@@ -8,6 +8,7 @@ import {
   MobileRecordList,
   MobileRecordMeta,
 } from "@/components/shared/mobile-record";
+import { BadgeWithMeta, StackedCell } from "@/components/shared/record-cell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -269,27 +270,29 @@ export function ClientInvitePanel({ invites }: ClientInvitePanelProps) {
                 invites.map((invite) => (
                   <TableRow key={invite.id}>
                     <TableCell>
-                      <div>
+                      <StackedCell>
                         <p className="font-medium text-slate-950">
                           {invite.email}
                         </p>
-                        <p className="mt-1 text-xs text-slate-500">
+                        <p className="text-xs text-slate-500">
                           Created {formatShortDate(invite.createdAt)}
                         </p>
-                      </div>
+                      </StackedCell>
                     </TableCell>
                     <TableCell>
-                      <div>
+                      <StackedCell>
                         <p className="text-slate-950">{invite.clientName}</p>
-                        <p className="mt-1 text-xs text-slate-500">
+                        <p className="text-xs text-slate-500">
                           {invite.companyName}
                         </p>
-                      </div>
+                      </StackedCell>
                     </TableCell>
                     <TableCell>
-                      <InviteStatusBadge status={invite.status} />
+                      <BadgeWithMeta
+                        badge={<InviteStatusBadge status={invite.status} />}
+                      />
                     </TableCell>
-                    <TableCell className="text-right text-slate-600">
+                    <TableCell className="whitespace-nowrap text-right text-slate-600">
                       {invite.acceptedAt
                         ? `Accepted ${formatShortDate(invite.acceptedAt)}`
                         : formatShortDate(invite.expiresAt)}

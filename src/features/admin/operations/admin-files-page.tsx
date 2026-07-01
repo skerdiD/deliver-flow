@@ -8,6 +8,7 @@ import {
   MobileRecordList,
   MobileRecordMeta,
 } from "@/components/shared/mobile-record";
+import { BadgeWithMeta, StackedCell } from "@/components/shared/record-cell";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -166,7 +167,7 @@ export function AdminFilesPage({ data }: AdminFilesPageProps) {
                       return (
                         <TableRow key={file.id}>
                           <TableCell className="whitespace-normal">
-                            <div className="min-w-0 space-y-1">
+                            <StackedCell>
                               <p className="line-clamp-1 break-words font-medium text-slate-950">
                                 {file.fileName}
                               </p>
@@ -177,36 +178,42 @@ export function AdminFilesPage({ data }: AdminFilesPageProps) {
                               <p className="line-clamp-1 break-all text-xs text-slate-500">
                                 {file.bucketName}/{file.storagePath}
                               </p>
-                            </div>
+                            </StackedCell>
                           </TableCell>
                           <TableCell className="whitespace-normal">
-                            <Link
-                              href={`${routes.admin.projects}/${file.projectId}`}
-                              className="line-clamp-1 break-words font-medium text-slate-950 hover:text-blue-700"
-                            >
-                              {file.projectName}
-                            </Link>
-                            <p className="mt-1 line-clamp-1 break-words text-xs text-slate-500">
-                              {file.clientName}
-                            </p>
+                            <StackedCell>
+                              <Link
+                                href={`${routes.admin.projects}/${file.projectId}`}
+                                className="line-clamp-1 break-words font-medium text-slate-950 hover:text-blue-700"
+                              >
+                                {file.projectName}
+                              </Link>
+                              <p className="line-clamp-1 break-words text-xs text-slate-500">
+                                {file.clientName}
+                              </p>
+                            </StackedCell>
                           </TableCell>
                           <TableCell className="whitespace-normal">
-                            <p className="line-clamp-1 text-sm">
-                              {file.fileType ?? "Unknown type"}
-                            </p>
-                            <StatusBadge
-                              label={visibilityMeta.label}
-                              tone={visibilityMeta.tone}
+                            <BadgeWithMeta
+                              badge={
+                                <StatusBadge
+                                  label={visibilityMeta.label}
+                                  tone={visibilityMeta.tone}
+                                />
+                              }
+                              meta={file.fileType ?? "Unknown type"}
                             />
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="whitespace-nowrap">
                             {formatDateTimeLabel(file.createdAt)}
                           </TableCell>
                           <TableCell className="text-right">
-                            <FileRecordActions
-                              fileId={file.id}
-                              fileName={file.fileName}
-                            />
+                            <div className="flex items-center justify-end">
+                              <FileRecordActions
+                                fileId={file.id}
+                                fileName={file.fileName}
+                              />
+                            </div>
                           </TableCell>
                         </TableRow>
                       );

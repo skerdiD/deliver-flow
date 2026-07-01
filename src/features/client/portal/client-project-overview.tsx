@@ -12,7 +12,7 @@ import {
 import type { ClientPortalProject } from "@/features/client/portal/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+import { ProgressCell } from "@/components/shared/record-cell";
 import { formatCurrencyFromCents, formatShortDate } from "@/lib/format";
 
 type ClientProjectOverviewProps = {
@@ -40,17 +40,13 @@ export function ClientProjectOverview({ project }: ClientProjectOverviewProps) {
               {project.description}
             </p>
 
-            <div className="mt-6">
-              <div className="mb-2 flex items-center justify-between text-sm">
-                <span className="font-medium text-slate-700">
-                  Overall progress
-                </span>
-                <span className="font-semibold text-slate-950">
-                  {project.progress}%
-                </span>
-              </div>
-              <Progress value={project.progress} />
-            </div>
+            <ProgressCell
+              value={project.progress}
+              label="Overall progress"
+              className="mt-6 max-w-none"
+              labelClassName="text-sm font-medium text-slate-700"
+              valueClassName="font-semibold text-slate-950"
+            />
           </div>
 
           <div className="flex w-full flex-col gap-3 sm:min-w-64 xl:w-auto">

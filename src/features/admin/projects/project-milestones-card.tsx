@@ -16,6 +16,7 @@ import {
 } from "@/features/admin/projects/project-validation";
 import type { AdminProjectMilestone } from "@/features/admin/projects/types";
 import { FormStatus } from "@/components/shared/form-status";
+import { StackedCell } from "@/components/shared/record-cell";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -114,7 +115,7 @@ export function ProjectMilestonesCard({
                     <Flag className="size-4" />
                   </div>
 
-                  <div>
+                  <StackedCell className="gap-2">
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="font-semibold text-slate-950">
                         {milestone.title}
@@ -129,22 +130,22 @@ export function ProjectMilestonesCard({
                             ? "Completed"
                             : milestone.status === "approved"
                               ? "Approved"
-                            : milestone.status === "waiting_approval"
-                              ? "Waiting approval"
-                              : milestone.status === "in_progress"
-                                ? "In progress"
-                                : "Not started"
+                              : milestone.status === "waiting_approval"
+                                ? "Waiting approval"
+                                : milestone.status === "in_progress"
+                                  ? "In progress"
+                                  : "Not started"
                         }
                         tone={
                           milestone.status === "completed"
                             ? "green"
                             : milestone.status === "approved"
                               ? "green"
-                            : milestone.status === "waiting_approval"
-                              ? "yellow"
-                              : milestone.status === "in_progress"
-                                ? "blue"
-                                : "slate"
+                              : milestone.status === "waiting_approval"
+                                ? "yellow"
+                                : milestone.status === "in_progress"
+                                  ? "blue"
+                                  : "slate"
                         }
                       />
                       {milestone.approvalStatus ? (
@@ -157,14 +158,14 @@ export function ProjectMilestonesCard({
                       ) : null}
                     </div>
 
-                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                    <p className="text-sm leading-6 text-slate-600">
                       {milestone.description}
                     </p>
 
-                    <p className="mt-2 text-xs text-slate-500">
+                    <p className="text-xs text-slate-500">
                       Due {formatShortDate(milestone.dueDate)}
                     </p>
-                  </div>
+                  </StackedCell>
                 </div>
 
                 {milestone.status !== "completed" &&
@@ -191,7 +192,9 @@ export function ProjectMilestonesCard({
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormStatus
                 message={statusMessage || form.formState.errors.root?.message}
-                success={statusIsSuccess && !form.formState.errors.root?.message}
+                success={
+                  statusIsSuccess && !form.formState.errors.root?.message
+                }
               />
 
               <FormField

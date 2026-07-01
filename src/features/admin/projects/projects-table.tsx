@@ -12,6 +12,11 @@ import {
   MobileRecordList,
   MobileRecordMeta,
 } from "@/components/shared/mobile-record";
+import {
+  BadgeWithMeta,
+  ProgressCell,
+  StackedCell,
+} from "@/components/shared/record-cell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -31,7 +36,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -317,15 +321,10 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
                       label="Progress"
                       className="sm:col-span-2"
                     >
-                      <div className="min-w-0">
-                        <div className="mb-2 flex items-center justify-between text-xs">
-                          <span className="text-slate-500">Progress</span>
-                          <span className="font-medium text-slate-700">
-                            {project.progress}%
-                          </span>
-                        </div>
-                        <Progress value={project.progress} />
-                      </div>
+                      <ProgressCell
+                        value={project.progress}
+                        className="max-w-none"
+                      />
                     </MobileRecordMeta>
                     <MobileRecordMeta label="Paid">
                       <span className="font-medium text-slate-950">
@@ -375,40 +374,32 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
                     key={project.id}
                     className="grid grid-cols-[minmax(0,2.2fr)_150px_minmax(0,0.85fr)_minmax(0,0.8fr)_96px_auto] items-center gap-4 px-5 py-4"
                   >
-                    <div className="min-w-0">
+                    <StackedCell>
                       <p className="line-clamp-1 break-words font-medium text-slate-950">
                         {project.name}
                       </p>
-                      <p className="mt-1 line-clamp-2 break-words text-sm leading-5 text-slate-500">
+                      <p className="line-clamp-2 break-words text-sm leading-5 text-slate-500">
                         {project.description}
                       </p>
-                      <p className="mt-1 line-clamp-1 break-words text-xs font-medium text-slate-700">
+                      <p className="line-clamp-1 break-words text-xs font-medium text-slate-700">
                         {project.client.company} - {project.client.name}
                       </p>
-                    </div>
+                    </StackedCell>
 
-                    <div className="min-w-0">
-                      <ProjectStatusBadge status={project.status} />
-                    </div>
+                    <BadgeWithMeta
+                      badge={<ProjectStatusBadge status={project.status} />}
+                    />
 
-                    <div className="min-w-0">
-                      <div className="mb-2 flex items-center justify-between gap-3 text-xs">
-                        <span className="text-slate-500">Progress</span>
-                        <span className="font-medium text-slate-700">
-                          {project.progress}%
-                        </span>
-                      </div>
-                      <Progress value={project.progress} />
-                    </div>
+                    <ProgressCell value={project.progress} />
 
-                    <div className="min-w-0 space-y-1">
-                      <PaymentStatusBadge status={project.paymentStatus} />
-                      <p className="text-xs text-slate-500">
-                        {formatCurrencyFromCents(project.paidCents)} paid
-                      </p>
-                    </div>
+                    <BadgeWithMeta
+                      badge={
+                        <PaymentStatusBadge status={project.paymentStatus} />
+                      }
+                      meta={`${formatCurrencyFromCents(project.paidCents)} paid`}
+                    />
 
-                    <div className="text-right text-slate-600">
+                    <div className="whitespace-nowrap text-right text-slate-600">
                       {formatShortDate(project.deadline)}
                     </div>
 

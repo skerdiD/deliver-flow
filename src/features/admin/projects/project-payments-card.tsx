@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 
 import { EmptyState } from "@/components/shared/empty-state";
 import { FormStatus } from "@/components/shared/form-status";
+import { BadgeWithMeta, StackedCell } from "@/components/shared/record-cell";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -199,60 +200,65 @@ export function ProjectPaymentsCard({
                 className="rounded-lg border border-slate-200 p-4"
               >
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
+                  <StackedCell className="gap-2">
                     <p className="font-semibold text-slate-950">
                       {formatCurrencyFromCents(
                         payment.amountCents,
                         payment.currency,
                       )}
                     </p>
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="text-sm text-slate-500">
                       Due {formatNullableDate(payment.dueDate)}
                     </p>
-                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                    <p className="text-sm leading-6 text-slate-600">
                       {payment.notes ?? "No note added."}
                     </p>
-                    <p className="mt-2 text-xs text-slate-500">
+                    <p className="text-xs text-slate-500">
                       {payment.viewedAt
                         ? `Viewed ${formatRelativeTime(payment.viewedAt)}`
                         : "Not viewed yet"}
                     </p>
-                  </div>
+                  </StackedCell>
 
-                  <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-                    <StatusBadge
-                      label={statusMeta.label}
-                      tone={statusMeta.tone}
-                    />
-                    <Select
-                      defaultValue={payment.status}
-                      onValueChange={(value) =>
-                        updatePaymentStatus(
-                          payment.id,
-                          value as AdminPaymentStatus,
-                        )
+                  <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">
+                    <BadgeWithMeta
+                      className="sm:items-end"
+                      badge={
+                        <StatusBadge
+                          label={statusMeta.label}
+                          tone={statusMeta.tone}
+                        />
                       }
-                      disabled={isPending}
-                    >
-                      <SelectTrigger className="h-8 w-32 bg-white text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="unpaid">Unpaid</SelectItem>
-                        <SelectItem value="partial">Partial</SelectItem>
-                        <SelectItem value="paid">Paid</SelectItem>
-                        <SelectItem value="overdue">Overdue</SelectItem>
-                        <SelectItem value="void">Void</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <span className="text-xs text-slate-500">
-                      Paid {formatNullableDate(payment.paidAt, "not yet")}
-                    </span>
-                    <PaymentRecordActions
-                      paymentId={payment.id}
-                      projectId={projectId}
-                      status={payment.status}
+                      meta={`Paid ${formatNullableDate(payment.paidAt, "not yet")}`}
                     />
+                    <div className="flex items-center gap-2">
+                      <Select
+                        defaultValue={payment.status}
+                        onValueChange={(value) =>
+                          updatePaymentStatus(
+                            payment.id,
+                            value as AdminPaymentStatus,
+                          )
+                        }
+                        disabled={isPending}
+                      >
+                        <SelectTrigger className="h-8 w-32 bg-white text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="unpaid">Unpaid</SelectItem>
+                          <SelectItem value="partial">Partial</SelectItem>
+                          <SelectItem value="paid">Paid</SelectItem>
+                          <SelectItem value="overdue">Overdue</SelectItem>
+                          <SelectItem value="void">Void</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <PaymentRecordActions
+                        paymentId={payment.id}
+                        projectId={projectId}
+                        status={payment.status}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

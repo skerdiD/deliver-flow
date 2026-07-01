@@ -8,6 +8,7 @@ import {
   MobileRecordList,
   MobileRecordMeta,
 } from "@/components/shared/mobile-record";
+import { BadgeWithMeta, StackedCell } from "@/components/shared/record-cell";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -163,34 +164,42 @@ export function AdminPaymentsPage({ data }: AdminPaymentsPageProps) {
                       return (
                         <TableRow key={payment.id}>
                           <TableCell className="whitespace-normal">
-                            <p className="line-clamp-1 break-words font-medium text-slate-950">
-                              {payment.clientName}
-                            </p>
-                            <Link
-                              href={`${routes.admin.projects}/${payment.projectId}`}
-                              className="mt-1 line-clamp-1 break-words text-sm font-medium text-slate-600 hover:text-blue-700"
-                            >
-                              {payment.projectName}
-                            </Link>
+                            <StackedCell>
+                              <p className="line-clamp-1 break-words font-medium text-slate-950">
+                                {payment.clientName}
+                              </p>
+                              <Link
+                                href={`${routes.admin.projects}/${payment.projectId}`}
+                                className="line-clamp-1 break-words text-sm font-medium text-slate-600 hover:text-blue-700"
+                              >
+                                {payment.projectName}
+                              </Link>
+                            </StackedCell>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="whitespace-nowrap font-medium text-slate-950">
                             {formatPaymentAmount(
                               payment.amountCents,
                               payment.currency,
                             )}
                           </TableCell>
                           <TableCell>
-                            <StatusBadge
-                              label={statusMeta.label}
-                              tone={statusMeta.tone}
+                            <BadgeWithMeta
+                              badge={
+                                <StatusBadge
+                                  label={statusMeta.label}
+                                  tone={statusMeta.tone}
+                                />
+                              }
                             />
                           </TableCell>
                           <TableCell className="whitespace-normal text-sm">
-                            <p>Due {formatDateLabel(payment.dueDate)}</p>
-                            <p className="mt-1 text-xs text-slate-500">
-                              Paid{" "}
-                              {formatDateTimeLabel(payment.paidAt, "not yet")}
-                            </p>
+                            <StackedCell>
+                              <p>Due {formatDateLabel(payment.dueDate)}</p>
+                              <p className="text-xs text-slate-500">
+                                Paid{" "}
+                                {formatDateTimeLabel(payment.paidAt, "not yet")}
+                              </p>
+                            </StackedCell>
                           </TableCell>
                           <TableCell className="whitespace-normal text-sm text-slate-500">
                             <p className="line-clamp-2 break-words">
@@ -198,11 +207,13 @@ export function AdminPaymentsPage({ data }: AdminPaymentsPageProps) {
                             </p>
                           </TableCell>
                           <TableCell className="text-right">
-                            <PaymentRecordActions
-                              paymentId={payment.id}
-                              projectId={payment.projectId}
-                              status={payment.status}
-                            />
+                            <div className="flex items-center justify-end">
+                              <PaymentRecordActions
+                                paymentId={payment.id}
+                                projectId={payment.projectId}
+                                status={payment.status}
+                              />
+                            </div>
                           </TableCell>
                         </TableRow>
                       );

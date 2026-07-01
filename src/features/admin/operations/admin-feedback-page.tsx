@@ -11,6 +11,7 @@ import {
   MobileRecordList,
   MobileRecordMeta,
 } from "@/components/shared/mobile-record";
+import { BadgeWithMeta, StackedCell } from "@/components/shared/record-cell";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -239,18 +240,20 @@ export function AdminFeedbackPage({ data }: AdminFeedbackPageProps) {
                       return (
                         <TableRow key={item.id}>
                           <TableCell className="whitespace-normal">
-                            <p className="line-clamp-1 break-words font-medium text-slate-950">
-                              {item.clientName}
-                            </p>
-                            <p className="mt-1 line-clamp-1 break-words text-sm text-slate-500">
-                              {item.projectName}
-                            </p>
-                            <p className="mt-1 text-xs text-slate-500">
-                              {formatDateTimeLabel(item.createdAt)}
-                            </p>
+                            <StackedCell>
+                              <p className="line-clamp-1 break-words font-medium text-slate-950">
+                                {item.clientName}
+                              </p>
+                              <p className="line-clamp-1 break-words text-sm text-slate-500">
+                                {item.projectName}
+                              </p>
+                              <p className="text-xs text-slate-500">
+                                {formatDateTimeLabel(item.createdAt)}
+                              </p>
+                            </StackedCell>
                           </TableCell>
                           <TableCell className="whitespace-normal">
-                            <div className="space-y-1">
+                            <StackedCell>
                               <p className="line-clamp-2 break-words text-sm text-slate-700">
                                 {item.message}
                               </p>
@@ -259,15 +262,19 @@ export function AdminFeedbackPage({ data }: AdminFeedbackPageProps) {
                                   Response saved: {item.adminResponse}
                                 </p>
                               ) : null}
-                            </div>
+                            </StackedCell>
                           </TableCell>
                           <TableCell>
-                            <StatusBadge
-                              label={statusMeta.label}
-                              tone={statusMeta.tone}
+                            <BadgeWithMeta
+                              badge={
+                                <StatusBadge
+                                  label={statusMeta.label}
+                                  tone={statusMeta.tone}
+                                />
+                              }
                             />
                           </TableCell>
-                          <TableCell className="text-right">
+                          <TableCell className="whitespace-nowrap text-right">
                             <div className="flex items-center justify-end gap-1.5">
                               <FeedbackRecordActions
                                 feedbackId={item.id}

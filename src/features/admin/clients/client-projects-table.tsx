@@ -6,9 +6,13 @@ import {
   MobileRecordList,
   MobileRecordMeta,
 } from "@/components/shared/mobile-record";
+import {
+  BadgeWithMeta,
+  ProgressCell,
+  StackedCell,
+} from "@/components/shared/record-cell";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import {
   Table,
   TableBody,
@@ -91,15 +95,10 @@ export function ClientProjectsTable({ projects }: ClientProjectsTableProps) {
 
                   <div className="mt-4 grid gap-3 sm:grid-cols-2">
                     <MobileRecordMeta label="Progress">
-                      <div className="min-w-0">
-                        <div className="mb-2 flex items-center justify-between text-xs">
-                          <span className="text-slate-500">Progress</span>
-                          <span className="font-medium text-slate-700">
-                            {project.progress}%
-                          </span>
-                        </div>
-                        <Progress value={project.progress} />
-                      </div>
+                      <ProgressCell
+                        value={project.progress}
+                        className="max-w-none"
+                      />
                     </MobileRecordMeta>
                     <MobileRecordMeta label="Deadline">
                       {formatShortDate(project.deadline)}
@@ -138,43 +137,43 @@ export function ClientProjectsTable({ projects }: ClientProjectsTableProps) {
                   {projects.map((project) => (
                     <TableRow key={project.id}>
                       <TableCell className="whitespace-normal">
-                        <div className="min-w-0">
+                        <StackedCell>
                           <p className="line-clamp-1 break-words font-medium text-slate-950">
                             {project.name}
                           </p>
-                          <p className="mt-1 line-clamp-1 break-words text-xs text-slate-500">
+                          <p className="line-clamp-1 break-words text-xs text-slate-500">
                             {project.nextMilestone}
                           </p>
-                        </div>
+                        </StackedCell>
                       </TableCell>
 
                       <TableCell>
-                        <StatusBadge
-                          label={getProjectStatusLabel(project.status)}
-                          tone={getProjectStatusTone(project.status)}
+                        <BadgeWithMeta
+                          badge={
+                            <StatusBadge
+                              label={getProjectStatusLabel(project.status)}
+                              tone={getProjectStatusTone(project.status)}
+                            />
+                          }
                         />
                       </TableCell>
 
                       <TableCell>
-                        <div className="min-w-0">
-                          <div className="mb-2 flex items-center justify-between text-xs">
-                            <span className="text-slate-500">Progress</span>
-                            <span className="font-medium text-slate-700">
-                              {project.progress}%
-                            </span>
-                          </div>
-                          <Progress value={project.progress} />
-                        </div>
+                        <ProgressCell value={project.progress} />
                       </TableCell>
 
-                      <TableCell className="whitespace-normal font-medium text-slate-950">
-                        <p>{formatCurrencyFromCents(project.budgetCents)}</p>
-                        <p className="mt-1 text-xs text-slate-500">
-                          {formatCurrencyFromCents(project.paidCents)} paid
-                        </p>
+                      <TableCell className="whitespace-normal">
+                        <StackedCell>
+                          <p className="font-medium text-slate-950">
+                            {formatCurrencyFromCents(project.budgetCents)}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {formatCurrencyFromCents(project.paidCents)} paid
+                          </p>
+                        </StackedCell>
                       </TableCell>
 
-                      <TableCell className="text-right text-slate-600">
+                      <TableCell className="whitespace-nowrap text-right text-slate-600">
                         {formatShortDate(project.deadline)}
                       </TableCell>
                     </TableRow>

@@ -5,6 +5,7 @@ import { useActionState } from "react";
 
 import { EmptyState } from "@/components/shared/empty-state";
 import { FormStatus } from "@/components/shared/form-status";
+import { BadgeWithMeta, StackedCell } from "@/components/shared/record-cell";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -147,34 +148,40 @@ export function ProjectFilesCard({ projectId, files }: ProjectFilesCardProps) {
               className="rounded-lg border border-slate-200 p-4"
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div className="min-w-0">
+                <StackedCell className="gap-2">
                   <p className="font-semibold text-slate-950">
                     {file.fileName}
                   </p>
-                  <p className="mt-1 text-sm text-slate-500">
+                  <p className="text-sm text-slate-500">
                     {file.fileType ?? "Unknown type"} -{" "}
                     {formatFileSize(file.fileSize)}
                   </p>
-                  <p className="mt-2 text-xs text-slate-500">
+                  <p className="text-xs text-slate-500">
                     {file.viewedAt
                       ? `Viewed ${formatRelativeTime(file.viewedAt)}`
                       : "Not viewed yet"}
                   </p>
-                </div>
+                </StackedCell>
 
-                <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-                  <StatusBadge
-                    label={
-                      file.isVisibleToClient
-                        ? "Visible to client"
-                        : "Internal only"
+                <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">
+                  <BadgeWithMeta
+                    className="sm:items-end"
+                    badge={
+                      <StatusBadge
+                        label={
+                          file.isVisibleToClient
+                            ? "Visible to client"
+                            : "Internal only"
+                        }
+                        tone={file.isVisibleToClient ? "blue" : "slate"}
+                      />
                     }
-                    tone={file.isVisibleToClient ? "blue" : "slate"}
+                    meta={formatShortDate(file.createdAt)}
                   />
-                  <span className="text-xs text-slate-500">
-                    {formatShortDate(file.createdAt)}
-                  </span>
-                  <FileRecordActions fileId={file.id} fileName={file.fileName} />
+                  <FileRecordActions
+                    fileId={file.id}
+                    fileName={file.fileName}
+                  />
                 </div>
               </div>
             </div>

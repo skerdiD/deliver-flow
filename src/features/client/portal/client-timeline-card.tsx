@@ -1,5 +1,6 @@
 import { Flag } from "lucide-react";
 
+import { StackedCell } from "@/components/shared/record-cell";
 import { ClientMilestoneStatusBadge } from "@/features/client/portal/client-project-status-badge";
 import type { ClientPortalMilestone } from "@/features/client/portal/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,13 +47,15 @@ export function ClientTimelineCard({ milestones }: ClientTimelineCardProps) {
                     <ClientMilestoneStatusBadge status={milestone.status} />
                   </div>
 
-                  <p className="mt-2 text-sm leading-6 text-slate-600">
-                    {milestone.description}
-                  </p>
+                  <StackedCell className="mt-2 gap-2">
+                    <p className="break-words text-sm leading-6 text-slate-600">
+                      {milestone.description}
+                    </p>
 
-                  <p className="mt-3 text-xs text-slate-500">
-                    Due {formatShortDate(milestone.dueDate)}
-                  </p>
+                    <p className="text-xs text-slate-500">
+                      Due {formatShortDate(milestone.dueDate)}
+                    </p>
+                  </StackedCell>
                 </div>
               </div>
             );

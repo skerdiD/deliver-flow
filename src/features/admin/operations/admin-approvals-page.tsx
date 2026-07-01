@@ -8,6 +8,7 @@ import {
   MobileRecordList,
   MobileRecordMeta,
 } from "@/components/shared/mobile-record";
+import { BadgeWithMeta, StackedCell } from "@/components/shared/record-cell";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -155,7 +156,7 @@ export function AdminApprovalsPage({ data }: AdminApprovalsPageProps) {
                       return (
                         <TableRow key={approval.id}>
                           <TableCell className="whitespace-normal">
-                            <div className="space-y-1">
+                            <StackedCell>
                               <p className="line-clamp-1 break-words font-medium text-slate-950">
                                 {approval.title}
                               </p>
@@ -167,30 +168,36 @@ export function AdminApprovalsPage({ data }: AdminApprovalsPageProps) {
                                 Requested{" "}
                                 {formatDateTimeLabel(approval.requestedAt)}
                               </p>
-                            </div>
+                            </StackedCell>
                           </TableCell>
                           <TableCell className="whitespace-normal">
-                            <Link
-                              href={`${routes.admin.projects}/${approval.projectId}`}
-                              className="line-clamp-1 break-words font-medium text-slate-950 hover:text-blue-700"
-                            >
-                              {approval.projectName}
-                            </Link>
-                            <p className="mt-1 line-clamp-1 break-words text-xs text-slate-500">
-                              {approval.clientName}
-                            </p>
-                            <p className="mt-1 text-xs text-slate-500">
-                              Responded{" "}
-                              {formatDateTimeLabel(
-                                approval.respondedAt,
-                                "waiting",
-                              )}
-                            </p>
+                            <StackedCell>
+                              <Link
+                                href={`${routes.admin.projects}/${approval.projectId}`}
+                                className="line-clamp-1 break-words font-medium text-slate-950 hover:text-blue-700"
+                              >
+                                {approval.projectName}
+                              </Link>
+                              <p className="line-clamp-1 break-words text-xs text-slate-500">
+                                {approval.clientName}
+                              </p>
+                              <p className="text-xs text-slate-500">
+                                Responded{" "}
+                                {formatDateTimeLabel(
+                                  approval.respondedAt,
+                                  "waiting",
+                                )}
+                              </p>
+                            </StackedCell>
                           </TableCell>
                           <TableCell>
-                            <StatusBadge
-                              label={statusMeta.label}
-                              tone={statusMeta.tone}
+                            <BadgeWithMeta
+                              badge={
+                                <StatusBadge
+                                  label={statusMeta.label}
+                                  tone={statusMeta.tone}
+                                />
+                              }
                             />
                           </TableCell>
                           <TableCell className="whitespace-normal text-sm text-slate-500">
@@ -200,7 +207,9 @@ export function AdminApprovalsPage({ data }: AdminApprovalsPageProps) {
                             </p>
                           </TableCell>
                           <TableCell className="text-right">
-                            <ApprovalRecordActions approvalId={approval.id} />
+                            <div className="flex items-center justify-end">
+                              <ApprovalRecordActions approvalId={approval.id} />
+                            </div>
                           </TableCell>
                         </TableRow>
                       );

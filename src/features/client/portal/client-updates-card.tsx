@@ -1,5 +1,6 @@
 import { MessageCircle } from "lucide-react";
 
+import { StackedCell } from "@/components/shared/record-cell";
 import type { ClientPortalUpdate } from "@/features/client/portal/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatShortDate } from "@/lib/format";
@@ -34,7 +35,7 @@ export function ClientUpdatesCard({ updates }: ClientUpdatesCardProps) {
                   <MessageCircle className="size-4" />
                 </div>
 
-                <div>
+                <StackedCell className="gap-2">
                   <div className="flex flex-wrap items-center gap-3">
                     <p className="font-semibold text-slate-950">
                       {update.title}
@@ -44,10 +45,10 @@ export function ClientUpdatesCard({ updates }: ClientUpdatesCardProps) {
                     </span>
                   </div>
 
-                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                  <p className="break-words text-sm leading-6 text-slate-600">
                     {update.body}
                   </p>
-                </div>
+                </StackedCell>
               </div>
             </div>
           ))

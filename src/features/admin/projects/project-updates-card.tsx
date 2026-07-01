@@ -13,6 +13,7 @@ import {
 } from "@/features/admin/projects/project-validation";
 import type { AdminProjectUpdate } from "@/features/admin/projects/types";
 import { FormStatus } from "@/components/shared/form-status";
+import { StackedCell } from "@/components/shared/record-cell";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -89,7 +90,9 @@ export function ProjectUpdatesCard({
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormStatus
                 message={statusMessage || form.formState.errors.root?.message}
-                success={statusIsSuccess && !form.formState.errors.root?.message}
+                success={
+                  statusIsSuccess && !form.formState.errors.root?.message
+                }
               />
 
               <FormField
@@ -147,7 +150,7 @@ export function ProjectUpdatesCard({
               key={update.id}
               className="rounded-lg border border-slate-200 p-4"
             >
-              <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="font-semibold text-slate-950">{update.title}</p>
                   <StatusBadge
@@ -156,9 +159,7 @@ export function ProjectUpdatesCard({
                         ? "Internal only"
                         : "Client-visible"
                     }
-                    tone={
-                      update.isVisibleToClient === false ? "slate" : "blue"
-                    }
+                    tone={update.isVisibleToClient === false ? "slate" : "blue"}
                   />
                 </div>
                 <p className="text-xs text-slate-500">
@@ -166,15 +167,17 @@ export function ProjectUpdatesCard({
                 </p>
               </div>
 
-              <p className="mt-3 text-sm leading-6 text-slate-600">
-                {update.body}
-              </p>
+              <StackedCell className="mt-3 gap-2">
+                <p className="break-words text-sm leading-6 text-slate-600">
+                  {update.body}
+                </p>
 
-              <p className="mt-3 text-xs text-slate-500">
-                {update.viewedAt
-                  ? `Viewed ${formatRelativeTime(update.viewedAt)}`
-                  : "Not viewed yet"}
-              </p>
+                <p className="text-xs text-slate-500">
+                  {update.viewedAt
+                    ? `Viewed ${formatRelativeTime(update.viewedAt)}`
+                    : "Not viewed yet"}
+                </p>
+              </StackedCell>
             </div>
           ))}
         </div>

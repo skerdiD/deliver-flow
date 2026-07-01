@@ -1,6 +1,7 @@
 import { MessageSquare } from "lucide-react";
 
 import { EmptyState } from "@/components/shared/empty-state";
+import { StackedCell } from "@/components/shared/record-cell";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type {
@@ -61,12 +62,12 @@ export function RecentFeedbackPanel({ feedback }: RecentFeedbackPanelProps) {
                   <div className="grid size-9 place-items-center rounded-lg bg-slate-100 text-slate-700">
                     <MessageSquare className="size-4" />
                   </div>
-                  <div>
+                  <StackedCell>
                     <p className="text-sm font-semibold text-slate-950">
                       {item.client}
                     </p>
                     <p className="text-xs text-slate-500">{item.project}</p>
-                  </div>
+                  </StackedCell>
                 </div>
 
                 <StatusBadge
@@ -75,13 +76,14 @@ export function RecentFeedbackPanel({ feedback }: RecentFeedbackPanelProps) {
                 />
               </div>
 
-              <p className="mt-4 text-sm leading-6 text-slate-700">
-                {item.message}
-              </p>
-
-              <p className="mt-3 text-xs text-slate-500">
-                {formatShortDate(item.createdAt)}
-              </p>
+              <StackedCell className="mt-4 gap-2">
+                <p className="line-clamp-3 break-words text-sm leading-6 text-slate-700">
+                  {item.message}
+                </p>
+                <p className="text-xs text-slate-500">
+                  {formatShortDate(item.createdAt)}
+                </p>
+              </StackedCell>
             </div>
           ))
         )}

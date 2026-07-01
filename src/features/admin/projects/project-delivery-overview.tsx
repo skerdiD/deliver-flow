@@ -1,17 +1,9 @@
-import {
-  CheckCircle2,
-  Clock3,
-  MessageSquare,
-  ShieldCheck,
-} from "lucide-react";
+import { CheckCircle2, Clock3, MessageSquare, ShieldCheck } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+import { ProgressCell } from "@/components/shared/record-cell";
 import type { AdminProject } from "@/features/admin/projects/types";
-import {
-  formatCurrencyFromCents,
-  formatShortDate,
-} from "@/lib/format";
+import { formatCurrencyFromCents, formatShortDate } from "@/lib/format";
 
 type ProjectDeliveryOverviewProps = {
   project: AdminProject;
@@ -42,15 +34,12 @@ export function ProjectDeliveryOverview({
       </CardHeader>
 
       <CardContent className="space-y-5">
-        <div>
-          <div className="mb-2 flex items-center justify-between text-sm">
-            <span className="font-medium text-slate-700">Progress</span>
-            <span className="font-semibold text-slate-950">
-              {project.progress}%
-            </span>
-          </div>
-          <Progress value={project.progress} />
-        </div>
+        <ProgressCell
+          value={project.progress}
+          className="max-w-none"
+          labelClassName="text-sm font-medium text-slate-700"
+          valueClassName="font-semibold text-slate-950"
+        />
 
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <OverviewMetric

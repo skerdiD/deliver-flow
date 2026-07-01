@@ -1,5 +1,6 @@
 import { MessageSquare } from "lucide-react";
 
+import { BadgeWithMeta, StackedCell } from "@/components/shared/record-cell";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FeedbackRecordActions } from "@/features/admin/operations/record-actions";
@@ -40,38 +41,44 @@ export function ProjectFeedbackPreview({
               className="rounded-lg border border-slate-200 p-4"
             >
               <div className="flex items-start justify-between gap-3">
-                <div>
+                <StackedCell>
                   <p className="font-semibold text-slate-950">
                     {item.clientName}
                   </p>
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="text-xs text-slate-500">
                     {formatShortDate(item.createdAt)}
                   </p>
-                </div>
+                </StackedCell>
 
-                <StatusBadge
-                  label={
-                    item.status === "open"
-                      ? "Open"
-                      : item.status === "reviewed"
-                        ? "Reviewed"
-                        : "Resolved"
-                  }
-                  tone={
-                    item.status === "open"
-                      ? "yellow"
-                      : item.status === "reviewed"
-                        ? "blue"
-                        : "green"
-                  }
-                />
-                <FeedbackRecordActions
-                  feedbackId={item.id}
-                  adminResponse={item.adminResponse}
-                />
+                <div className="flex shrink-0 items-center gap-2">
+                  <BadgeWithMeta
+                    badge={
+                      <StatusBadge
+                        label={
+                          item.status === "open"
+                            ? "Open"
+                            : item.status === "reviewed"
+                              ? "Reviewed"
+                              : "Resolved"
+                        }
+                        tone={
+                          item.status === "open"
+                            ? "yellow"
+                            : item.status === "reviewed"
+                              ? "blue"
+                              : "green"
+                        }
+                      />
+                    }
+                  />
+                  <FeedbackRecordActions
+                    feedbackId={item.id}
+                    adminResponse={item.adminResponse}
+                  />
+                </div>
               </div>
 
-              <p className="mt-4 text-sm leading-6 text-slate-600">
+              <p className="mt-4 break-words text-sm leading-6 text-slate-600">
                 {item.message}
               </p>
               {item.adminResponse ? (

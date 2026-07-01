@@ -11,6 +11,7 @@ import {
   MobileRecordCard,
   MobileRecordMeta,
 } from "@/components/shared/mobile-record";
+import { BadgeWithMeta, StackedCell } from "@/components/shared/record-cell";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -333,7 +334,7 @@ export function AdminTasksPage({ data }: AdminTasksPageProps) {
                       return (
                         <TableRow key={task.id}>
                           <TableCell className="whitespace-normal py-4 pr-6">
-                            <div className="space-y-1">
+                            <StackedCell>
                               <p className="break-words font-semibold leading-5 text-slate-950">
                                 {task.title}
                               </p>
@@ -347,38 +348,52 @@ export function AdminTasksPage({ data }: AdminTasksPageProps) {
                                   Milestone: {task.milestoneTitle}
                                 </p>
                               ) : null}
-                            </div>
+                            </StackedCell>
                           </TableCell>
                           <TableCell className="whitespace-normal py-4 pr-5">
-                            <Link
-                              href={`${routes.admin.projects}/${task.projectId}`}
-                              className="line-clamp-2 break-words font-semibold leading-5 text-slate-950 hover:text-blue-700"
-                            >
-                              {task.projectName}
-                            </Link>
-                            <p className="mt-1 line-clamp-1 break-words text-sm text-slate-500">
-                              {task.clientName}
-                            </p>
+                            <StackedCell>
+                              <Link
+                                href={`${routes.admin.projects}/${task.projectId}`}
+                                className="line-clamp-2 break-words font-semibold leading-5 text-slate-950 hover:text-blue-700"
+                              >
+                                {task.projectName}
+                              </Link>
+                              <p className="line-clamp-1 break-words text-sm text-slate-500">
+                                {task.clientName}
+                              </p>
+                            </StackedCell>
                           </TableCell>
                           <TableCell className="px-2">
-                            <StatusBadge
-                              label={statusMeta.label}
-                              tone={statusMeta.tone}
+                            <BadgeWithMeta
+                              badge={
+                                <StatusBadge
+                                  label={statusMeta.label}
+                                  tone={statusMeta.tone}
+                                />
+                              }
                             />
                           </TableCell>
                           <TableCell className="px-2">
-                            <StatusBadge
-                              label={priorityMeta.label}
-                              tone={priorityMeta.tone}
+                            <BadgeWithMeta
+                              badge={
+                                <StatusBadge
+                                  label={priorityMeta.label}
+                                  tone={priorityMeta.tone}
+                                />
+                              }
                             />
                           </TableCell>
-                          <TableCell className="px-2 text-sm">
+                          <TableCell className="whitespace-nowrap px-2 text-sm">
                             {formatDateLabel(task.dueDate)}
                           </TableCell>
                           <TableCell className="px-2">
-                            <StatusBadge
-                              label={visibilityMeta.label}
-                              tone={visibilityMeta.tone}
+                            <BadgeWithMeta
+                              badge={
+                                <StatusBadge
+                                  label={visibilityMeta.label}
+                                  tone={visibilityMeta.tone}
+                                />
+                              }
                             />
                           </TableCell>
                           <TableCell className="px-2 text-right">
