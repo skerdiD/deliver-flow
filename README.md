@@ -223,6 +223,19 @@ Delivery Workflow Layer
 
 DeliverFlow keeps client data project-scoped, protects dashboard routes by role, stores delivery records in PostgreSQL, and uses Supabase Storage for project files.
 
+### Security Model
+
+DeliverFlow uses both server-side authorization and Supabase RLS hardening.
+
+* Next.js middleware redirects users away from the wrong route group.
+* Admin and client layouts call `requireRole()` on the server.
+* Server Actions, Route Handlers, and Drizzle data queries re-check role or project assignment before reading or mutating data.
+* Supabase RLS/storage policies live in `supabase/migrations/0001_security_rls_storage.sql` and `supabase/migrations/0002_activity_invitation_rls.sql`.
+* Project files use the private `project-files` bucket and short-lived signed URLs after permission checks.
+* `NEXT_PUBLIC_*` variables are browser-safe public values; service role keys and database URLs must stay server-only.
+
+See [docs/security.md](./docs/security.md) for the full security model and Supabase verification checklist.
+
 ---
 
 ## Getting Started

@@ -4,6 +4,7 @@ import { Files, Loader2, Upload } from "lucide-react";
 import { useActionState } from "react";
 
 import { EmptyState } from "@/components/shared/empty-state";
+import { FormStatus } from "@/components/shared/form-status";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -110,26 +111,24 @@ export function ProjectFilesCard({ projectId, files }: ProjectFilesCardProps) {
               Visible to client
             </label>
 
-            {uploadState.message ? (
-              <p
-                className={
-                  uploadState.success
-                    ? "text-sm text-green-700"
-                    : "text-sm text-red-600"
-                }
-              >
-                {uploadState.message}
-              </p>
-            ) : null}
+            <FormStatus
+              message={uploadState.message}
+              success={uploadState.success}
+            />
 
             <div className="flex justify-end">
               <Button type="submit" disabled={isUploading}>
                 {isUploading ? (
-                  <Loader2 className="size-4 animate-spin" />
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    Uploading...
+                  </>
                 ) : (
-                  <Upload className="size-4" />
+                  <>
+                    <Upload className="size-4" />
+                    Upload file
+                  </>
                 )}
-                Upload file
               </Button>
             </div>
           </div>

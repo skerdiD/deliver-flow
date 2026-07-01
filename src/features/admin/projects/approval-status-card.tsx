@@ -18,6 +18,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { requestProjectApprovalAction } from "@/features/admin/projects/actions";
 import { ApprovalRecordActions } from "@/features/admin/operations/record-actions";
+import { FormStatus } from "@/components/shared/form-status";
 import type {
   AdminProjectApproval,
   AdminProjectMilestone,
@@ -42,16 +43,19 @@ export function ApprovalStatusCard({
   const [description, setDescription] = useState("");
   const [milestoneId, setMilestoneId] = useState("none");
   const [resultMessage, setResultMessage] = useState("");
+  const [resultIsSuccess, setResultIsSuccess] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   function submitApprovalRequest() {
     startTransition(async () => {
+      setResultMessage("");
       const result = await requestProjectApprovalAction(projectId, {
         title,
         description,
         milestoneId: milestoneId === "none" ? undefined : milestoneId,
       });
 
+      setResultIsSuccess(result.success);
       setResultMessage(result.message);
 
       if (result.success) {
@@ -129,9 +133,7 @@ export function ApprovalStatusCard({
               />
             </div>
 
-            {resultMessage ? (
-              <p className="text-sm text-slate-600">{resultMessage}</p>
-            ) : null}
+            <FormStatus message={resultMessage} success={resultIsSuccess} />
 
             <div className="flex justify-end">
               <Button
@@ -140,11 +142,16 @@ export function ApprovalStatusCard({
                 disabled={isPending}
               >
                 {isPending ? (
-                  <Loader2 className="size-4 animate-spin" />
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    Requesting approval...
+                  </>
                 ) : (
-                  <Send className="size-4" />
+                  <>
+                    <Send className="size-4" />
+                    Request approval
+                  </>
                 )}
-                Request approval
               </Button>
             </div>
           </div>

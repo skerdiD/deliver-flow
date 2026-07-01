@@ -181,11 +181,16 @@ export function AcceptInviteCard({
 
             <Button type="submit" className="w-full" disabled={isPending}>
               {isPending ? (
-                <Loader2 className="size-4 animate-spin" />
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Creating account...
+                </>
               ) : (
-                <CheckCircle2 className="size-4" />
+                <>
+                  <CheckCircle2 className="size-4" />
+                  Create account
+                </>
               )}
-              Create account
             </Button>
           </form>
         ) : emailMatches ? (
@@ -197,11 +202,16 @@ export function AcceptInviteCard({
               disabled={isSignedInPending || signedInState.success}
             >
               {isSignedInPending ? (
-                <Loader2 className="size-4 animate-spin" />
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Accepting invite...
+                </>
               ) : (
-                <CheckCircle2 className="size-4" />
+                <>
+                  <CheckCircle2 className="size-4" />
+                  Accept invite
+                </>
               )}
-              Accept invite
             </Button>
           </form>
         ) : (

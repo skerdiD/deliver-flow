@@ -389,7 +389,9 @@ export function ProjectForm({
                 {isPending ? (
                   <>
                     <Loader2 className="mr-2 size-4 animate-spin" />
-                    Saving...
+                    {mode === "create"
+                      ? "Creating project..."
+                      : "Saving project..."}
                   </>
                 ) : (
                   "Save Project"

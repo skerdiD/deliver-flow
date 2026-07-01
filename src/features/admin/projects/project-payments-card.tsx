@@ -4,6 +4,7 @@ import { CreditCard, Loader2, Plus } from "lucide-react";
 import { useState, useTransition } from "react";
 
 import { EmptyState } from "@/components/shared/empty-state";
+import { FormStatus } from "@/components/shared/form-status";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,10 +47,12 @@ export function ProjectPaymentsCard({
   const [dueDate, setDueDate] = useState("");
   const [notes, setNotes] = useState("");
   const [resultMessage, setResultMessage] = useState("");
+  const [resultIsSuccess, setResultIsSuccess] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   function addPayment() {
     startTransition(async () => {
+      setResultMessage("");
       const result = await addProjectPaymentAction(projectId, {
         amountDollars: Number(amountDollars),
         status,
@@ -57,6 +60,7 @@ export function ProjectPaymentsCard({
         notes,
       });
 
+      setResultIsSuccess(result.success);
       setResultMessage(result.message);
 
       if (result.success) {
@@ -73,12 +77,14 @@ export function ProjectPaymentsCard({
     nextStatus: AdminPaymentStatus,
   ) {
     startTransition(async () => {
+      setResultMessage("");
       const result = await updateProjectPaymentStatusAction({
         projectId,
         paymentId,
         status: nextStatus,
       });
 
+      setResultIsSuccess(result.success);
       setResultMessage(result.message);
     });
   }
@@ -157,18 +163,21 @@ export function ProjectPaymentsCard({
               />
             </div>
 
-            {resultMessage ? (
-              <p className="text-sm text-slate-600">{resultMessage}</p>
-            ) : null}
+            <FormStatus message={resultMessage} success={resultIsSuccess} />
 
             <div className="flex justify-end">
               <Button type="button" onClick={addPayment} disabled={isPending}>
                 {isPending ? (
-                  <Loader2 className="size-4 animate-spin" />
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    Saving payment...
+                  </>
                 ) : (
-                  <Plus className="size-4" />
+                  <>
+                    <Plus className="size-4" />
+                    Add payment
+                  </>
                 )}
-                Add payment
               </Button>
             </div>
           </div>

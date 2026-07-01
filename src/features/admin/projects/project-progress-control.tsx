@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -14,6 +14,7 @@ import {
 } from "@/features/admin/projects/project-validation";
 import type { AdminProjectStatus } from "@/features/admin/projects/types";
 import { Button } from "@/components/ui/button";
+import { FormStatus } from "@/components/shared/form-status";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
@@ -47,6 +48,8 @@ export function ProjectProgressControl({
 }: ProjectProgressControlProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [statusMessage, setStatusMessage] = useState("");
+  const [statusIsSuccess, setStatusIsSuccess] = useState(false);
 
   const form = useForm<ProjectProgressInputValues, unknown, ProgressFormValues>(
     {
@@ -60,13 +63,18 @@ export function ProjectProgressControl({
 
   function onSubmit(values: ProgressFormValues) {
     startTransition(async () => {
+      setStatusMessage("");
       const result = await updateProjectProgressAction(projectId, values);
 
       if (!result.success) {
+        setStatusIsSuccess(false);
+        setStatusMessage(result.message);
         form.setError("root", { message: result.message });
         return;
       }
 
+      setStatusIsSuccess(true);
+      setStatusMessage(result.message);
       router.refresh();
     });
   }
@@ -83,11 +91,10 @@ export function ProjectProgressControl({
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {form.formState.errors.root?.message ? (
-              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {form.formState.errors.root.message}
-              </div>
-            ) : null}
+            <FormStatus
+              message={statusMessage || form.formState.errors.root?.message}
+              success={statusIsSuccess && !form.formState.errors.root?.message}
+            />
 
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField
@@ -147,7 +154,7 @@ export function ProjectProgressControl({
               {isPending ? (
                 <>
                   <Loader2 className="mr-2 size-4 animate-spin" />
-                  Saving...
+                  Saving status...
                 </>
               ) : (
                 "Save status"

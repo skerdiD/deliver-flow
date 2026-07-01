@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Send } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 
 import { sendClientFeedbackAction } from "@/features/client/portal/actions";
@@ -12,6 +12,7 @@ import {
   type ClientFeedbackValues,
 } from "@/features/client/portal/portal-validation";
 import type { ClientPortalFeedback } from "@/features/client/portal/types";
+import { FormStatus } from "@/components/shared/form-status";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,6 +35,8 @@ type FeedbackFormProps = {
 export function FeedbackForm({ projectId, feedback }: FeedbackFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [statusMessage, setStatusMessage] = useState("");
+  const [statusIsSuccess, setStatusIsSuccess] = useState(false);
 
   const form = useForm<ClientFeedbackValues>({
     resolver: zodResolver(clientFeedbackSchema),
@@ -44,13 +47,18 @@ export function FeedbackForm({ projectId, feedback }: FeedbackFormProps) {
 
   function onSubmit(values: ClientFeedbackValues) {
     startTransition(async () => {
+      setStatusMessage("");
       const result = await sendClientFeedbackAction(projectId, values);
 
       if (!result.success) {
+        setStatusIsSuccess(false);
+        setStatusMessage(result.message);
         form.setError("root", { message: result.message });
         return;
       }
 
+      setStatusIsSuccess(true);
+      setStatusMessage(result.message);
       form.reset();
       router.refresh();
     });
@@ -69,11 +77,10 @@ export function FeedbackForm({ projectId, feedback }: FeedbackFormProps) {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              {form.formState.errors.root?.message ? (
-                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                  {form.formState.errors.root.message}
-                </div>
-              ) : null}
+              <FormStatus
+                message={statusMessage || form.formState.errors.root?.message}
+                success={statusIsSuccess && !form.formState.errors.root?.message}
+              />
 
               <FormField
                 control={form.control}
@@ -100,11 +107,16 @@ export function FeedbackForm({ projectId, feedback }: FeedbackFormProps) {
                 className="w-full sm:w-auto"
               >
                 {isPending ? (
-                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  <>
+                    <Loader2 className="mr-2 size-4 animate-spin" />
+                    Sending feedback...
+                  </>
                 ) : (
-                  <Send className="mr-2 size-4" />
+                  <>
+                    <Send className="mr-2 size-4" />
+                    Send feedback
+                  </>
                 )}
-                Send Feedback
               </Button>
             </form>
           </Form>
