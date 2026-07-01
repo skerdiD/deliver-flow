@@ -193,7 +193,7 @@ export function AdminTasksPage({ data }: AdminTasksPageProps) {
           {filteredTasks.length === 0 ? (
             <EmptyState
               icon={ListTodo}
-              title="No tasks match these filters."
+              title="No tasks found."
               description="Try another status or project filter, or add new tasks from a project detail page."
             />
           ) : (
@@ -210,11 +210,17 @@ export function AdminTasksPage({ data }: AdminTasksPageProps) {
                     <MobileRecordCard key={task.id}>
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div className="min-w-0">
-                          <p className="break-words font-medium text-slate-950">
+                          <p className="break-words text-base font-semibold text-slate-950">
                             {task.title}
                           </p>
+                          <p className="mt-1 break-words text-sm font-medium text-slate-700">
+                            {task.projectName}
+                          </p>
+                          <p className="break-words text-sm text-slate-500">
+                            {task.clientName}
+                          </p>
                           {task.description ? (
-                            <p className="mt-1 break-words text-sm leading-6 text-slate-500">
+                            <p className="mt-3 line-clamp-2 break-words text-sm leading-6 text-slate-500">
                               {task.description}
                             </p>
                           ) : null}
@@ -231,16 +237,13 @@ export function AdminTasksPage({ data }: AdminTasksPageProps) {
                       </div>
 
                       <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                        <MobileRecordMeta label="Project">
+                        <MobileRecordMeta label="Project link">
                           <Link
                             href={`${routes.admin.projects}/${task.projectId}`}
                             className="break-words font-medium text-slate-950 hover:text-blue-700"
                           >
-                            {task.projectName}
+                            View project
                           </Link>
-                        </MobileRecordMeta>
-                        <MobileRecordMeta label="Client">
-                          <span className="break-words">{task.clientName}</span>
                         </MobileRecordMeta>
                         <MobileRecordMeta label="Priority">
                           <StatusBadge
@@ -292,17 +295,25 @@ export function AdminTasksPage({ data }: AdminTasksPageProps) {
               </MobileRecordList>
 
               <div className="hidden lg:block">
-                <Table>
+                <Table className="table-fixed">
+                  <colgroup>
+                    <col className="w-[36%]" />
+                    <col className="w-[20%]" />
+                    <col className="w-[9%]" />
+                    <col className="w-[8%]" />
+                    <col className="w-[9%]" />
+                    <col className="w-[10%]" />
+                    <col className="w-[8%]" />
+                  </colgroup>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Task</TableHead>
-                      <TableHead>Project</TableHead>
-                      <TableHead>Client</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Priority</TableHead>
-                      <TableHead>Due date</TableHead>
-                      <TableHead>Visibility</TableHead>
-                      <TableHead className="text-right">Action</TableHead>
+                      <TableHead>Project / Client</TableHead>
+                      <TableHead className="px-2">Status</TableHead>
+                      <TableHead className="px-2">Priority</TableHead>
+                      <TableHead className="px-2">Due date</TableHead>
+                      <TableHead className="px-2">Visibility</TableHead>
+                      <TableHead className="px-2 text-right">Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -315,77 +326,83 @@ export function AdminTasksPage({ data }: AdminTasksPageProps) {
 
                       return (
                         <TableRow key={task.id}>
-                          <TableCell className="whitespace-normal">
+                          <TableCell className="whitespace-normal py-4 pr-6">
                             <div className="space-y-1">
-                              <p className="font-medium text-slate-950">
+                              <p className="break-words font-semibold leading-5 text-slate-950">
                                 {task.title}
                               </p>
                               {task.description ? (
-                                <p className="text-sm text-slate-500">
+                                <p className="line-clamp-2 break-words text-sm leading-5 text-slate-500">
                                   {task.description}
                                 </p>
                               ) : null}
                               {task.milestoneTitle ? (
-                                <p className="text-xs text-slate-500">
+                                <p className="line-clamp-1 break-words text-xs text-slate-500">
                                   Milestone: {task.milestoneTitle}
                                 </p>
                               ) : null}
                             </div>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="whitespace-normal py-4 pr-5">
                             <Link
                               href={`${routes.admin.projects}/${task.projectId}`}
-                              className="font-medium text-slate-950 hover:text-blue-700"
+                              className="line-clamp-2 break-words font-semibold leading-5 text-slate-950 hover:text-blue-700"
                             >
                               {task.projectName}
                             </Link>
+                            <p className="mt-1 line-clamp-1 break-words text-sm text-slate-500">
+                              {task.clientName}
+                            </p>
                           </TableCell>
-                          <TableCell>{task.clientName}</TableCell>
-                          <TableCell>
+                          <TableCell className="px-2">
                             <StatusBadge
                               label={statusMeta.label}
                               tone={statusMeta.tone}
                             />
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="px-2">
                             <StatusBadge
                               label={priorityMeta.label}
                               tone={priorityMeta.tone}
                             />
                           </TableCell>
-                          <TableCell>{formatDateLabel(task.dueDate)}</TableCell>
-                          <TableCell>
+                          <TableCell className="px-2 text-sm">
+                            {formatDateLabel(task.dueDate)}
+                          </TableCell>
+                          <TableCell className="px-2">
                             <StatusBadge
                               label={visibilityMeta.label}
                               tone={visibilityMeta.tone}
                             />
                           </TableCell>
-                          <TableCell className="text-right">
-                            {task.status === "completed" ? (
-                              <span className="text-sm text-slate-500">
-                                Done
-                              </span>
-                            ) : (
-                              <Button
-                                variant="outline"
-                                size="icon-sm"
-                                disabled={isPending}
-                                onClick={() =>
-                                  handleMarkComplete(task.id, task.projectId)
-                                }
-                                aria-label={`Mark ${task.title} complete`}
-                              >
-                                <CheckCircle2 className="size-4" />
-                              </Button>
-                            )}
-                            <TaskRecordActions
-                              taskId={task.id}
-                              projectId={task.projectId}
-                              title={task.title}
-                              description={task.description}
-                              dueDate={task.dueDate}
-                              status={task.status}
-                            />
+                          <TableCell className="px-2 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              {task.status === "completed" ? (
+                                <span className="text-sm text-slate-500">
+                                  Done
+                                </span>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  size="icon-sm"
+                                  disabled={isPending}
+                                  onClick={() =>
+                                    handleMarkComplete(task.id, task.projectId)
+                                  }
+                                  aria-label={`Mark ${task.title} complete`}
+                                >
+                                  <CheckCircle2 className="size-4" />
+                                </Button>
+                              )}
+                              <TaskRecordActions
+                                taskId={task.id}
+                                projectId={task.projectId}
+                                title={task.title}
+                                description={task.description}
+                                dueDate={task.dueDate}
+                                status={task.status}
+                              />
+                            </div>
                           </TableCell>
                         </TableRow>
                       );
