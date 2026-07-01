@@ -1,10 +1,23 @@
 # DeliverFlow
 
-**DeliverFlow** is a full-stack client delivery portal built with **Next.js**, **React**, **TypeScript**, **Supabase**, **Drizzle ORM**, **PostgreSQL**, **Tailwind CSS**, and **shadcn/ui**.
+**DeliverFlow** is a production-style client delivery portal built with **Next.js**, **React**, **TypeScript**, **Supabase Auth**, **Supabase Storage**, **Supabase Postgres**, **Drizzle ORM**, **Tailwind CSS**, and **shadcn/ui**.
 
-It helps freelancers and small agencies manage clients, projects, tasks, files, payments, feedback, and approvals from one clean dashboard.
+It helps freelancers and small agencies manage clients, projects, tasks, files, payments, feedback, and approvals from one clean dashboard with a private client portal.
 
 [Live Demo](https://deliver-flow.vercel.app/) | [Repository](https://github.com/skerdiD/deliver-flow)
+
+---
+
+## Demo Account
+
+Use the demo client account below to explore the private client portal.
+
+Email: [client@deliverflow.demo](mailto:client@deliverflow.demo)
+Password: Demo123456!
+
+The demo client can view assigned projects, project progress, shared files, payment records, feedback, and approval requests.
+
+The admin dashboard is protected and not publicly shared in the demo. Screenshots are included below to show the admin experience.
 
 ---
 
@@ -36,126 +49,111 @@ Explore the deployed app: [deliver-flow.vercel.app](https://deliver-flow.vercel.
 
 ---
 
-## Demo Account
-
-Use the demo client account below to explore the client portal.
-
-### Client Demo
-
-Email: client@deliverflow.demo  
-Password: Demo123456!
-
-The client demo account can access the private client portal, assigned projects, shared files, payments, feedback, and approval requests.
-
-> The admin dashboard is protected and not publicly shared in the demo. Screenshots are included above to show the admin experience.
-
----
-
 ## Overview
 
 Most freelance delivery workflows are scattered across email, chat, Google Drive, invoices, and task tools.
 
-DeliverFlow brings the full client delivery process into one organized portal.
+DeliverFlow was built to feel closer to a real client delivery product where admins can manage projects, share files, track payments, collect feedback, and request approvals while clients get one private place to follow the work.
 
-Admins can manage clients, create projects, track tasks, upload files, record payments, request approvals, and review feedback.
-
-Clients get a private portal where they can follow progress, download files, check payments, submit feedback, and respond to approval requests.
-
-The goal was to build more than a basic CRUD dashboard: DeliverFlow focuses on role-based access, client visibility, protected files, delivery workflow, and production-minded full-stack engineering.
+The goal was to show more than CRUD: role-based access, project-scoped client visibility, private file handling, approval workflows, feedback review, server-side authorization, and production-minded full-stack engineering.
 
 ---
 
 ## Business Value
 
-DeliverFlow helps freelancers and agencies look more professional by giving clients one clear place to follow project delivery.
+DeliverFlow helps freelancers and agencies look more professional by giving clients one organized place to follow project delivery.
 
-It reduces messy communication, keeps project history organized, and makes the delivery process easier to manage for both the service provider and the client.
+For clients, it reduces confusion around files, payments, progress, feedback, and approvals.
+
+For service providers, it keeps delivery records organized, protects project scope, and creates a clearer workflow from project start to final handoff.
 
 ---
 
 ## Key Features
+
+### Auth and Roles
+
+* Supabase email/password authentication
+* Admin and client role support
+* Protected admin and client route groups
+* Role-based redirects after login
+* Server-side role checks in protected layouts
+* Invite-based client access flow
 
 ### Admin Dashboard
 
 * View delivery overview
 * Track active projects
 * Monitor pending approvals
-* Review feedback
+* Review client feedback
 * See outstanding payments
-* Follow recent activity
+* Follow recent delivery activity
 
-### Clients
+### Clients and Projects
 
 * Create and manage clients
-* Store contact details
-* Connect clients to projects
-* Manage client notes
-* Support client portal access
-
-### Projects
-
+* Store client contact details and notes
 * Create and edit projects
 * Assign projects to clients
-* Track project status
-* Set deadlines
-* Manage progress
-* Connect tasks, files, payments, feedback, and approvals
+* Track project status, progress, and deadlines
+* Connect tasks, files, payments, feedback, and approvals to projects
 
-### Tasks
+### Tasks and Milestones
 
 * Add project tasks
+* Set task priority and due dates
 * Track task status
-* Set priority
-* Set due dates
-* Control client visibility
+* Control client-visible delivery items
+* Organize work around project progress and milestones
 
 ### Files
 
 * Upload project files
-* Store files with Supabase Storage
-* Keep files private
-* Generate protected downloads
-* Control client visibility
+* Store files in Supabase Storage
+* Keep project files private
+* Generate protected signed downloads
+* Restrict client access to assigned project files
+* Show file metadata such as name, type, size, and upload date
 
 ### Payments
 
 * Create manual payment records
 * Track unpaid, partial, paid, and overdue payments
-* Mark payments as paid when paid elsewhere
 * Add due dates and notes
-* Show payment status to admin and client
+* Mark payments as paid when handled elsewhere
+* Show payment status to both admin and assigned client
 
 ### Feedback and Approvals
 
-* Collect client feedback
-* Review and resolve feedback
-* Request client approval
-* Track pending approvals
-* Store approval responses
-* Keep records connected to projects
+* Clients can submit project feedback
+* Admins can review and resolve feedback
+* Admins can request client approvals
+* Clients can approve or request changes
+* Approval records stay connected to projects and milestones
+* Status tracking keeps delivery decisions clear
 
 ### Client Portal
 
 * Client-only dashboard
 * View assigned projects
-* Track progress
+* Track project progress
 * Download shared files
 * Review payment status
 * Submit feedback
-* Respond to approvals
+* Respond to approval requests
 
 ### Security and Quality
 
-* Supabase authentication
-* Role-based admin and client access
-* Protected routes
-* User-scoped project access
-* Private file handling
-* Server-side data access
+* Protected server actions
+* Server-side authorization checks
+* Project-scoped client data access
+* Private file handling with signed URLs
+* Supabase RLS and storage policy hardening
+* Zod validation for forms and mutations
 * Arcjet protection
-* Sentry monitoring
-* TypeScript validation
+* Sentry monitoring support
 * Unit and end-to-end testing
+* Responsive SaaS-style interface
 
 ---
 
@@ -172,6 +170,7 @@ It reduces messy communication, keeps project history organized, and makes the d
 * Lucide React
 * Recharts
 * TanStack Table
+* Sonner
 * React Hook Form
 * Zod
 
@@ -179,11 +178,13 @@ It reduces messy communication, keeps project history organized, and makes the d
 
 * Next.js Server Actions
 * Next.js API Routes
-* Drizzle ORM
-* PostgreSQL
 * Supabase Auth
 * Supabase Storage
-* Supabase SSR
+* Supabase Postgres
+* Drizzle ORM
+* Typed database schema
+* Project assignment permissions
+* Protected file download flow
 
 ### Tooling
 
@@ -193,6 +194,8 @@ It reduces messy communication, keeps project history organized, and makes the d
 * Playwright
 * ESLint
 * Prettier
+* TypeScript compiler
+* Drizzle Kit
 * GitHub Actions
 * Vercel
 
@@ -211,30 +214,49 @@ Auth and Role Layer
   |-- Protected Routes
   |-- Role-Based Redirects
 
-Server and Data Layer
-  |-- Server Actions / API Routes
-  |-- Drizzle ORM / PostgreSQL
-  |-- Clients / Projects / Tasks / Files / Payments
+Server Layer
+  |-- Server Actions / API Routes / Zod Validation
+  |-- Role Checks / Project Assignment Checks
+  |-- Arcjet Protection / Sentry Logging
+
+Database Layer
+  |-- Supabase Postgres / Drizzle ORM
+  |-- Profiles / Clients / Projects / Tasks / Payments
 
 Delivery Workflow Layer
-  |-- Feedback / Approvals / Client Visibility
-  |-- Project Activity / Protected File Access
+  |-- Files / Feedback / Approvals / Milestones
+  |-- Client Visibility / Project Activity / Signed Downloads
 ```
 
-DeliverFlow keeps client data project-scoped, protects dashboard routes by role, stores delivery records in PostgreSQL, and uses Supabase Storage for project files.
+Client access is controlled through project assignments, protected routes, and server-side permission checks. Project files are stored in a private Supabase Storage bucket and downloaded through signed URLs after authorization.
 
-### Security Model
+---
 
-DeliverFlow uses both server-side authorization and Supabase RLS hardening.
+## Security Model
 
-* Next.js middleware redirects users away from the wrong route group.
-* Admin and client layouts call `requireRole()` on the server.
-* Server Actions, Route Handlers, and Drizzle data queries re-check role or project assignment before reading or mutating data.
-* Supabase RLS/storage policies live in `supabase/migrations/0001_security_rls_storage.sql` and `supabase/migrations/0002_activity_invitation_rls.sql`.
-* Project files use the private `project-files` bucket and short-lived signed URLs after permission checks.
-* `NEXT_PUBLIC_*` variables are browser-safe public values; service role keys and database URLs must stay server-only.
+DeliverFlow uses server-side authorization with Supabase RLS and storage policy hardening.
 
-See [docs/security.md](./docs/security.md) for the full security model and Supabase verification checklist.
+* Next.js middleware redirects users away from the wrong route group
+* Admin and client layouts call `requireRole()` on the server
+* Server Actions and Route Handlers re-check role or project assignment
+* Client-facing queries are scoped to assigned projects
+* Project files use the private `project-files` bucket
+* Signed URLs are generated only after permission checks
+* Service role keys and database URLs stay server-only
+* `NEXT_PUBLIC_*` variables are limited to browser-safe public values
+
+RLS and storage policies are included in:
+
+```txt
+supabase/migrations/0001_security_rls_storage.sql
+supabase/migrations/0002_activity_invitation_rls.sql
+```
+
+See the full security documentation:
+
+```txt
+docs/security.md
+```
 
 ---
 
@@ -255,7 +277,7 @@ npm install
 
 ### 3. Create environment variables
 
-Create a `.env.local` file:
+Create a `.env.local` file in the project root:
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=
@@ -269,6 +291,8 @@ NEXT_PUBLIC_SENTRY_DSN=
 SENTRY_AUTH_TOKEN=
 ```
 
+Keep `SUPABASE_SERVICE_ROLE_KEY`, `DATABASE_URL`, `DIRECT_URL`, and `SENTRY_AUTH_TOKEN` server-only. Never expose them as `NEXT_PUBLIC_` variables.
+
 ### 4. Run database setup
 
 ```bash
@@ -277,7 +301,17 @@ npm run db:migrate
 npm run db:seed
 ```
 
-### 5. Start the development server
+### 5. Verify Supabase setup
+
+Make sure the private Storage bucket exists:
+
+```txt
+project-files
+```
+
+Then verify the RLS and storage policy migrations are applied in Supabase.
+
+### 6. Start the development server
 
 ```bash
 npm run dev
@@ -288,46 +322,6 @@ Open the app at:
 ```txt
 http://localhost:3000
 ```
-
----
-
-## Available Scripts
-
-```bash
-npm run dev          # Start development server
-npm run build        # Create production build
-npm run start        # Start production server
-npm run lint         # Run ESLint
-npm run typecheck    # Run TypeScript checks
-npm run test         # Run Vitest tests
-npm run test:e2e     # Run Playwright tests
-npm run db:generate  # Generate Drizzle migrations
-npm run db:migrate   # Run Drizzle migrations
-npm run db:push      # Push schema changes
-npm run db:studio    # Open Drizzle Studio
-npm run db:seed      # Seed demo data
-npm run format       # Format code with Prettier
-```
-
----
-
-## Testing and Quality
-
-* Vitest validates utilities and server-side logic
-* Playwright validates core end-to-end behavior
-* TypeScript catches type-level regressions
-* ESLint keeps code quality consistent
-* Sentry supports production monitoring
-
-Run checks:
-
-```bash
-npm run lint
-npm run typecheck
-npm run test
-```
-
----
 
 ## Author
 
