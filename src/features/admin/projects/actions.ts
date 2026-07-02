@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, ne } from "drizzle-orm";
 import { z } from "zod";
 
 import { routes } from "@/config/routes";
@@ -101,6 +101,24 @@ const projectFileCategorySchema = z.enum([
   "deliverable",
   "other",
 ]);
+const MAX_PROJECT_FILE_SIZE_BYTES = 25 * 1024 * 1024;
+
+async function getMutableProject(projectId: string) {
+  const [project] = await db
+    .select({ id: projects.id })
+    .from(projects)
+    .where(
+      and(
+        eq(projects.id, projectId),
+        ne(projects.status, "archived"),
+        isNull(projects.archivedAt),
+        isNull(projects.deletedAt),
+      ),
+    )
+    .limit(1);
+
+  return project ?? null;
+}
 
 function getActionErrorMessage(error: unknown, fallback: string) {
   if (error instanceof Error && error.message === "Client not found.") {
@@ -122,16 +140,16 @@ function getFileExtension(fileName: string) {
 
 function getDisplayFileName(fileName: string, labelValue: FormDataEntryValue | null) {
   if (typeof labelValue !== "string" || !labelValue.trim()) {
-    return fileName;
+    return sanitizeProjectFileName(fileName);
   }
 
   const label = labelValue.trim();
 
   if (label.includes(".")) {
-    return label;
+    return sanitizeProjectFileName(label);
   }
 
-  return `${label}${getFileExtension(fileName)}`;
+  return sanitizeProjectFileName(`${label}${getFileExtension(fileName)}`);
 }
 
 function getActorName(profile: { full_name: string | null; email: string }) {
@@ -644,16 +662,7 @@ export async function requestProjectApprovalAction(
     };
   }
 
-  const [project] = await db
-    .select({ id: projects.id })
-    .from(projects)
-    .where(
-      and(
-        eq(projects.id, projectIdParsed.data),
-        isNull(projects.deletedAt),
-      ),
-    )
-    .limit(1);
+  const project = await getMutableProject(projectIdParsed.data);
 
   if (!project) {
     return {
@@ -762,16 +771,7 @@ export async function addProjectPaymentAction(
     };
   }
 
-  const [project] = await db
-    .select({ id: projects.id })
-    .from(projects)
-    .where(
-      and(
-        eq(projects.id, projectIdParsed.data),
-        isNull(projects.deletedAt),
-      ),
-    )
-    .limit(1);
+  const project = await getMutableProject(projectIdParsed.data);
 
   if (!project) {
     return {
@@ -844,6 +844,8 @@ export async function updateProjectPaymentStatusAction(input: {
       and(
         eq(payments.id, parsed.data.paymentId),
         eq(payments.projectId, parsed.data.projectId),
+        ne(projects.status, "archived"),
+        isNull(projects.archivedAt),
         isNull(projects.deletedAt),
         isNull(payments.deletedAt),
       ),
@@ -941,16 +943,14 @@ export async function uploadProjectFileAction(
     };
   }
 
-  const [project] = await db
-    .select({ id: projects.id })
-    .from(projects)
-    .where(
-      and(
-        eq(projects.id, projectIdParsed.data),
-        isNull(projects.deletedAt),
-      ),
-    )
-    .limit(1);
+  if (file.size > MAX_PROJECT_FILE_SIZE_BYTES) {
+    return {
+      success: false,
+      message: "File is too large. Upload files up to 25 MB.",
+    };
+  }
+
+  const project = await getMutableProject(projectIdParsed.data);
 
   if (!project) {
     return {

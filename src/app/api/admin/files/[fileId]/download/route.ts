@@ -1,9 +1,9 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, ne } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { db } from "@/db";
-import { projectFiles } from "@/db/schema";
+import { projectFiles, projects } from "@/db/schema";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getCurrentProfile } from "@/lib/supabase/auth";
 
@@ -52,7 +52,16 @@ export async function GET(
       storagePath: projectFiles.storagePath,
     })
     .from(projectFiles)
-    .where(and(eq(projectFiles.id, parsed.data.fileId), isNull(projectFiles.deletedAt)))
+    .innerJoin(projects, eq(projectFiles.projectId, projects.id))
+    .where(
+      and(
+        eq(projectFiles.id, parsed.data.fileId),
+        isNull(projectFiles.deletedAt),
+        ne(projects.status, "archived"),
+        isNull(projects.archivedAt),
+        isNull(projects.deletedAt),
+      ),
+    )
     .limit(1);
 
   if (!file) {

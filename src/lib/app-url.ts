@@ -4,10 +4,16 @@ import { headers } from "next/headers";
 
 export async function getAppBaseUrl() {
   const configuredUrl =
-    process.env.NEXT_PUBLIC_APP_URL ?? process.env.NEXT_PUBLIC_SITE_URL;
+    process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL;
 
   if (configuredUrl) {
     return new URL(configuredUrl).origin;
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "Missing NEXT_PUBLIC_SITE_URL. Configure it before generating invite links in production.",
+    );
   }
 
   const headerStore = await headers();
