@@ -7,16 +7,14 @@ import { useMemo, useState, useTransition } from "react";
 
 import { EmptyState } from "@/components/shared/empty-state";
 import {
-  MobileRecordActions,
-  MobileRecordCard,
-  MobileRecordList,
-  MobileRecordMeta,
-} from "@/components/shared/mobile-record";
-import {
-  BadgeWithMeta,
-  ProgressCell,
-  StackedCell,
-} from "@/components/shared/record-cell";
+  BadgeMetaField,
+  ProgressField,
+  RecordField,
+  RecordHeader,
+  RecordList,
+  RecordRow,
+  RowActions,
+} from "@/components/shared/record-list";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -278,155 +276,100 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
         </div>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="p-0">
         {filteredProjects.length === 0 ? (
-          <EmptyState
-            title="No projects found"
-            description="Try changing the search or status filter. New projects will appear here after you create them."
-          />
+          <div className="px-5 pb-5">
+            <EmptyState
+              title="No projects found"
+              description="Try changing the search or status filter. New projects will appear here after you create them."
+            />
+          </div>
         ) : (
-          <>
-            <MobileRecordList className="lg:block xl:hidden">
-              {filteredProjects.map((project) => (
-                <MobileRecordCard key={project.id}>
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="min-w-0">
-                      <p className="break-words font-medium text-slate-950">
-                        {project.name}
-                      </p>
-                      <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-500">
-                        {project.description}
-                      </p>
-                    </div>
+          <RecordList>
+            <RecordHeader
+              columns={[
+                "Project / Client",
+                "Status",
+                "Progress",
+                "Payment",
+                "Deadline",
+                "Actions",
+              ]}
+              className="xl:grid-cols-[minmax(220px,2fr)_minmax(86px,0.65fr)_minmax(110px,0.8fr)_minmax(104px,0.75fr)_minmax(76px,0.45fr)_170px] xl:gap-3"
+            />
+            {filteredProjects.map((project) => (
+              <RecordRow
+                key={project.id}
+                className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[minmax(220px,2fr)_minmax(86px,0.65fr)_minmax(110px,0.8fr)_minmax(104px,0.75fr)_minmax(76px,0.45fr)_170px] xl:items-center xl:gap-3"
+              >
+                <RecordField
+                  label="Project"
+                  className="sm:col-span-2 lg:col-span-1"
+                  labelClassName="xl:hidden"
+                  valueClassName="space-y-1.5"
+                >
+                  <p className="line-clamp-1 break-words font-medium text-slate-950">
+                    {project.name}
+                  </p>
+                  <p className="line-clamp-2 break-words text-sm leading-5 text-slate-500">
+                    {project.description}
+                  </p>
+                  <p className="truncate text-xs font-medium text-slate-700">
+                    {project.client.company} - {project.client.name}
+                  </p>
+                </RecordField>
 
-                    <div className="flex flex-wrap gap-2">
-                      <ProjectStatusBadge status={project.status} />
-                      <PaymentStatusBadge status={project.paymentStatus} />
-                    </div>
-                  </div>
+                <BadgeMetaField
+                  label="Status"
+                  labelClassName="xl:hidden"
+                  badge={<ProjectStatusBadge status={project.status} />}
+                />
 
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                    <MobileRecordMeta label="Client">
-                      <span className="break-words font-medium text-slate-950">
-                        {project.client.company}
-                      </span>
-                      <p className="mt-1 break-words text-xs text-slate-500">
-                        {project.client.name}
-                      </p>
-                    </MobileRecordMeta>
-                    <MobileRecordMeta label="Deadline">
-                      {formatShortDate(project.deadline)}
-                    </MobileRecordMeta>
-                    <MobileRecordMeta
-                      label="Progress"
-                      className="sm:col-span-2"
-                    >
-                      <ProgressCell
-                        value={project.progress}
-                        className="max-w-none"
-                      />
-                    </MobileRecordMeta>
-                    <MobileRecordMeta label="Paid">
-                      <span className="font-medium text-slate-950">
-                        {formatCurrencyFromCents(project.paidCents)}
-                      </span>
-                    </MobileRecordMeta>
-                  </div>
+                <ProgressField
+                  value={project.progress}
+                  labelClassName="xl:hidden"
+                />
 
-                  <MobileRecordActions>
-                    <Button
-                      variant="outline"
-                      className="h-10 w-full px-4 hover:border-slate-400 hover:bg-slate-100 sm:w-auto"
-                      asChild
-                    >
-                      <Link href={`/admin/projects/${project.id}`}>View</Link>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="h-10 w-full px-4 hover:border-slate-400 hover:bg-slate-100 sm:w-auto"
-                      asChild
-                    >
-                      <Link href={`/admin/projects/${project.id}/edit`}>
-                        Edit
-                      </Link>
-                    </Button>
-                    <div className="self-start sm:ml-auto">
-                      <ProjectRowActions project={project} />
-                    </div>
-                  </MobileRecordActions>
-                </MobileRecordCard>
-              ))}
-            </MobileRecordList>
+                <BadgeMetaField
+                  label="Payment"
+                  labelClassName="xl:hidden"
+                  badge={
+                    <PaymentStatusBadge status={project.paymentStatus} />
+                  }
+                  meta={`${formatCurrencyFromCents(project.paidCents)} paid`}
+                />
 
-            <div className="hidden overflow-hidden rounded-lg border border-slate-200 xl:block">
-              <div className="grid grid-cols-[minmax(0,2.2fr)_150px_minmax(0,0.85fr)_minmax(0,0.8fr)_96px_auto] items-center gap-4 border-b border-slate-200 bg-slate-50 px-5 py-3 text-xs font-semibold uppercase tracking-[0.06em] text-slate-500">
-                <div>Project / Client</div>
-                <div>Status</div>
-                <div>Progress</div>
-                <div>Payment</div>
-                <div className="text-right">Deadline</div>
-                <div className="text-right">Actions</div>
-              </div>
+                <RecordField label="Deadline" labelClassName="xl:hidden">
+                  <span className="whitespace-nowrap font-medium text-slate-950">
+                    {formatShortDate(project.deadline)}
+                  </span>
+                </RecordField>
 
-              <div className="divide-y divide-slate-200">
-                {filteredProjects.map((project) => (
-                  <div
-                    key={project.id}
-                    className="grid grid-cols-[minmax(0,2.2fr)_150px_minmax(0,0.85fr)_minmax(0,0.8fr)_96px_auto] items-center gap-4 px-5 py-4"
+                <RowActions
+                  labelClassName="xl:hidden"
+                  className="xl:justify-self-end"
+                >
+                  <Button
+                    variant="outline"
+                    className="h-9 px-3 hover:border-slate-400 hover:bg-slate-100"
+                    asChild
                   >
-                    <StackedCell>
-                      <p className="line-clamp-1 break-words font-medium text-slate-950">
-                        {project.name}
-                      </p>
-                      <p className="line-clamp-2 break-words text-sm leading-5 text-slate-500">
-                        {project.description}
-                      </p>
-                      <p className="line-clamp-1 break-words text-xs font-medium text-slate-700">
-                        {project.client.company} - {project.client.name}
-                      </p>
-                    </StackedCell>
-
-                    <BadgeWithMeta
-                      badge={<ProjectStatusBadge status={project.status} />}
-                    />
-
-                    <ProgressCell value={project.progress} />
-
-                    <BadgeWithMeta
-                      badge={
-                        <PaymentStatusBadge status={project.paymentStatus} />
-                      }
-                      meta={`${formatCurrencyFromCents(project.paidCents)} paid`}
-                    />
-
-                    <div className="whitespace-nowrap text-right text-slate-600">
-                      {formatShortDate(project.deadline)}
-                    </div>
-
-                    <div className="flex items-center justify-end gap-1.5">
-                      <Button
-                        variant="outline"
-                        className="h-9 px-3 hover:border-slate-400 hover:bg-slate-100"
-                        asChild
-                      >
-                        <Link href={`/admin/projects/${project.id}`}>View</Link>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="h-9 px-3 hover:border-slate-400 hover:bg-slate-100"
-                        asChild
-                      >
-                        <Link href={`/admin/projects/${project.id}/edit`}>
-                          Edit
-                        </Link>
-                      </Button>
-                      <ProjectRowActions project={project} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </>
+                    <Link href={`/admin/projects/${project.id}`}>View</Link>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-9 px-3 hover:border-slate-400 hover:bg-slate-100"
+                    asChild
+                  >
+                    <Link href={`/admin/projects/${project.id}/edit`}>
+                      Edit
+                    </Link>
+                  </Button>
+                  <ProjectRowActions project={project} />
+                </RowActions>
+              </RecordRow>
+            ))}
+          </RecordList>
         )}
       </CardContent>
     </Card>

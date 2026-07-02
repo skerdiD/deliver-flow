@@ -7,12 +7,13 @@ import { useMemo, useState, useTransition } from "react";
 
 import { EmptyState } from "@/components/shared/empty-state";
 import {
-  MobileRecordActions,
-  MobileRecordCard,
-  MobileRecordList,
-  MobileRecordMeta,
-} from "@/components/shared/mobile-record";
-import { BadgeWithMeta, StackedCell } from "@/components/shared/record-cell";
+  BadgeMetaField,
+  RecordField,
+  RecordHeader,
+  RecordList,
+  RecordRow,
+  RowActions,
+} from "@/components/shared/record-list";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -271,154 +272,111 @@ export function ClientsTable({ clients }: ClientsTableProps) {
         </div>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="p-0">
         {filteredClients.length === 0 ? (
-          <EmptyState
-            title="No clients found"
-            description="Try changing the search or status filter. New clients will appear here after you add them."
-          />
+          <div className="px-5 pb-5">
+            <EmptyState
+              title="No clients found"
+              description="Try changing the search or status filter. New clients will appear here after you add them."
+            />
+          </div>
         ) : (
-          <>
-            <MobileRecordList className="lg:block xl:hidden">
-              {filteredClients.map((client) => (
-                <MobileRecordCard key={client.id}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="break-words font-medium text-slate-950">
-                        {client.name}
-                      </p>
-                      <p className="mt-1 break-all text-xs text-slate-500">
-                        {client.email}
-                      </p>
-                    </div>
-                    <ClientStatusBadge status={client.status} />
-                  </div>
+          <RecordList>
+            <RecordHeader
+              columns={[
+                "Client",
+                "Status",
+                "Projects",
+                "Total paid",
+                "Activity",
+                "Actions",
+              ]}
+              className="xl:grid-cols-[minmax(220px,2fr)_minmax(82px,0.6fr)_minmax(82px,0.55fr)_minmax(96px,0.65fr)_minmax(124px,1fr)_170px] xl:gap-3"
+            />
+            {filteredClients.map((client) => (
+              <RecordRow
+                key={client.id}
+                className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[minmax(220px,2fr)_minmax(82px,0.6fr)_minmax(82px,0.55fr)_minmax(96px,0.65fr)_minmax(124px,1fr)_170px] xl:items-center xl:gap-3"
+              >
+                <RecordField
+                  label="Client"
+                  className="sm:col-span-2 lg:col-span-1"
+                  labelClassName="xl:hidden"
+                  valueClassName="space-y-1.5"
+                >
+                  <p className="line-clamp-1 break-words font-medium text-slate-950">
+                    {client.name}
+                  </p>
+                  <p className="truncate text-sm text-slate-500">
+                    {client.email}
+                  </p>
+                  <p className="line-clamp-1 break-words text-sm text-slate-500">
+                    {client.company ?? "Independent client"}
+                  </p>
+                </RecordField>
 
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                    <MobileRecordMeta label="Company">
-                      <span className="break-words">
-                        {client.company ?? "Independent client"}
-                      </span>
-                    </MobileRecordMeta>
-                    <MobileRecordMeta label="Active projects">
-                      {client.activeProjects}
-                    </MobileRecordMeta>
-                    <MobileRecordMeta label="Total paid">
-                      <span className="font-medium text-slate-950">
-                        {formatCurrencyFromCents(client.totalPaidCents)}
-                      </span>
-                    </MobileRecordMeta>
-                    <MobileRecordMeta label="Created">
-                      {formatShortDate(client.createdAt)}
-                    </MobileRecordMeta>
-                    <MobileRecordMeta
-                      label="Latest activity"
-                      className="sm:col-span-2"
-                    >
-                      <span className="break-words">
-                        {client.latestActivity}
-                      </span>
-                    </MobileRecordMeta>
-                  </div>
+                <BadgeMetaField
+                  label="Status"
+                  labelClassName="xl:hidden"
+                  badge={<ClientStatusBadge status={client.status} />}
+                />
 
-                  <MobileRecordActions>
-                    <Button
-                      variant="outline"
-                      className="h-10 w-full px-4 hover:border-slate-400 hover:bg-slate-100 sm:w-auto"
-                      asChild
-                    >
-                      <Link href={`/admin/clients/${client.id}`}>View</Link>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="h-10 w-full px-4 hover:border-slate-400 hover:bg-slate-100 sm:w-auto"
-                      asChild
-                    >
-                      <Link href={`/admin/clients/${client.id}/edit`}>
-                        Edit
-                      </Link>
-                    </Button>
-                    <div className="self-start sm:ml-auto">
-                      <ClientRowActions client={client} />
-                    </div>
-                  </MobileRecordActions>
-                </MobileRecordCard>
-              ))}
-            </MobileRecordList>
+                <RecordField label="Projects" labelClassName="xl:hidden">
+                  <span className="whitespace-nowrap font-medium text-slate-950">
+                    {client.activeProjects}{" "}
+                    {client.activeProjects === 1 ? "project" : "projects"}
+                  </span>
+                </RecordField>
 
-            <div className="hidden overflow-hidden rounded-lg border border-slate-200 xl:block">
-              <div className="grid grid-cols-[minmax(0,2fr)_120px_90px_120px_minmax(0,1.45fr)_auto] items-center gap-4 border-b border-slate-200 bg-slate-50 px-5 py-3 text-xs font-semibold uppercase tracking-[0.06em] text-slate-500">
-                <div>Client</div>
-                <div>Status</div>
-                <div>Projects</div>
-                <div>Total paid</div>
-                <div>Activity</div>
-                <div className="text-right">Actions</div>
-              </div>
+                <RecordField label="Total paid" labelClassName="xl:hidden">
+                  <span className="whitespace-nowrap font-medium text-slate-950">
+                    {formatCurrencyFromCents(client.totalPaidCents)}
+                  </span>
+                </RecordField>
 
-              <div className="divide-y divide-slate-200">
-                {filteredClients.map((client) => (
-                  <div
-                    key={client.id}
-                    className="grid grid-cols-[minmax(0,2fr)_120px_90px_120px_minmax(0,1.45fr)_auto] items-center gap-4 px-5 py-4"
+                <RecordField
+                  label="Activity"
+                  labelClassName="xl:hidden"
+                  valueClassName="space-y-1"
+                >
+                  <p className="line-clamp-2 break-words text-slate-700">
+                    {client.latestActivity}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {client.activeProjects}{" "}
+                    {client.activeProjects === 1 ? "project" : "projects"}{" "}
+                    assigned
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    Created {formatShortDate(client.createdAt)}
+                  </p>
+                </RecordField>
+
+                <RowActions
+                  labelClassName="xl:hidden"
+                  className="xl:justify-self-end"
+                >
+                  <Button
+                    variant="outline"
+                    className="h-9 px-3 hover:border-slate-400 hover:bg-slate-100"
+                    asChild
                   >
-                    <StackedCell>
-                      <p className="line-clamp-1 break-words font-medium text-slate-950">
-                        {client.name}
-                      </p>
-                      <p className="line-clamp-1 break-all text-sm text-slate-500">
-                        {client.email}
-                      </p>
-                      <p className="line-clamp-1 break-words text-sm text-slate-500">
-                        {client.company ?? "Independent client"}
-                      </p>
-                    </StackedCell>
-
-                    <BadgeWithMeta
-                      badge={<ClientStatusBadge status={client.status} />}
-                    />
-
-                    <div className="whitespace-nowrap text-slate-600">
-                      {client.activeProjects}
-                    </div>
-
-                    <div className="whitespace-nowrap font-medium text-slate-950">
-                      {formatCurrencyFromCents(client.totalPaidCents)}
-                    </div>
-
-                    <StackedCell className="text-slate-600">
-                      <p className="line-clamp-2 break-words">
-                        {client.latestActivity}
-                      </p>
-                      <p className="text-xs text-slate-500">
-                        Created {formatShortDate(client.createdAt)}
-                      </p>
-                    </StackedCell>
-
-                    <div className="flex items-center justify-end gap-1.5">
-                      <Button
-                        variant="outline"
-                        className="h-9 px-3 hover:border-slate-400 hover:bg-slate-100"
-                        asChild
-                      >
-                        <Link href={`/admin/clients/${client.id}`}>View</Link>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="h-9 px-3 hover:border-slate-400 hover:bg-slate-100"
-                        asChild
-                      >
-                        <Link href={`/admin/clients/${client.id}/edit`}>
-                          Edit
-                        </Link>
-                      </Button>
-                      <ClientRowActions client={client} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </>
+                    <Link href={`/admin/clients/${client.id}`}>View</Link>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-9 px-3 hover:border-slate-400 hover:bg-slate-100"
+                    asChild
+                  >
+                    <Link href={`/admin/clients/${client.id}/edit`}>
+                      Edit
+                    </Link>
+                  </Button>
+                  <ClientRowActions client={client} />
+                </RowActions>
+              </RecordRow>
+            ))}
+          </RecordList>
         )}
       </CardContent>
     </Card>

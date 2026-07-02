@@ -1,4 +1,5 @@
 import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
+import { cache } from "react";
 
 import { db } from "@/db";
 import {
@@ -649,49 +650,55 @@ export async function getProjectClientOptions() {
   return rows satisfies AdminProjectClient[];
 }
 
-export async function getAdminQuickActionProjects() {
-  const [projectRows, milestoneRows] = await Promise.all([
-    db
-      .select({
-        id: projects.id,
-        name: projects.name,
-        clientCompany: clients.companyName,
-      })
-      .from(projects)
-      .innerJoin(
-        projectAssignments,
-        eq(projectAssignments.projectId, projects.id),
-      )
-      .innerJoin(clients, eq(projectAssignments.clientId, clients.id))
-      .where(
-        and(
-          inArray(projects.status, [
-            "active",
-            "in_progress",
-            "waiting_feedback",
-          ]),
-          isNull(projects.archivedAt),
-          isNull(projects.deletedAt),
-          isNull(clients.deletedAt),
-        ),
-      )
-      .orderBy(asc(projects.name)),
-    db
-      .select({
-        id: milestones.id,
-        projectId: milestones.projectId,
-        title: milestones.title,
-      })
-      .from(milestones)
-      .where(
-        inArray(milestones.status, [
-          "not_started",
+export const getAdminQuickActionProjects = cache(async () => {
+  const projectRows = await db
+    .select({
+      id: projects.id,
+      name: projects.name,
+      clientCompany: clients.companyName,
+    })
+    .from(projects)
+    .innerJoin(
+      projectAssignments,
+      eq(projectAssignments.projectId, projects.id),
+    )
+    .innerJoin(clients, eq(projectAssignments.clientId, clients.id))
+    .where(
+      and(
+        inArray(projects.status, [
+          "active",
           "in_progress",
-          "waiting_approval",
+          "waiting_feedback",
         ]),
-      )
-      .orderBy(asc(milestones.position), asc(milestones.createdAt)),
-  ]);
+        isNull(projects.archivedAt),
+        isNull(projects.deletedAt),
+        isNull(clients.deletedAt),
+      ),
+    )
+    .orderBy(asc(projects.name));
+
+  const projectIds = projectRows.map((project) => project.id);
+  const milestoneRows =
+    projectIds.length > 0
+      ? await db
+          .select({
+            id: milestones.id,
+            projectId: milestones.projectId,
+            title: milestones.title,
+          })
+          .from(milestones)
+          .where(
+            and(
+              inArray(milestones.projectId, projectIds),
+              inArray(milestones.status, [
+                "not_started",
+                "in_progress",
+                "waiting_approval",
+              ]),
+            ),
+          )
+          .orderBy(asc(milestones.position), asc(milestones.createdAt))
+      : [];
 
   return projectRows.map((project) => ({
     id: project.id,
@@ -704,7 +711,7 @@ export async function getAdminQuickActionProjects() {
         title: milestone.title,
       })),
   }));
-}
+});
 
 async function replaceProjectPaymentSummary(
   projectId: string,

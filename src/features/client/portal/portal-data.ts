@@ -212,13 +212,13 @@ function mapApprovalRowToPortalApproval(row: {
   };
 }
 
-async function getClientPortalAccess(): Promise<ClientPortalAccess> {
+const getClientPortalAccess = cache(async (): Promise<ClientPortalAccess> => {
   const profile = await requireRole("client");
 
   return {
     profile,
   };
-}
+});
 
 async function getClientPortalAssignments(
   profileId: string,
@@ -629,6 +629,283 @@ function buildClientPortalProjectShell(
     ...overrides,
   };
 }
+
+async function buildClientPortalDashboardProjects(
+  assignments: ClientPortalAssignment[],
+): Promise<ClientPortalProject[]> {
+  if (assignments.length === 0) {
+    return [];
+  }
+
+  const projectIds = assignments.map((assignment) => assignment.projectId);
+  const assignmentByProjectId = new Map(
+    assignments.map((assignment) => [assignment.projectId, assignment]),
+  );
+  const [
+    projectMilestones,
+    projectTasks,
+    projectUpdatesList,
+    projectPayments,
+    projectFilesList,
+    projectApprovals,
+  ] = await Promise.all([
+    db
+      .select({
+        id: milestones.id,
+        projectId: milestones.projectId,
+        title: milestones.title,
+        description: milestones.description,
+        status: milestones.status,
+        dueDate: milestones.dueDate,
+      })
+      .from(milestones)
+      .where(
+        and(
+          inArray(milestones.projectId, projectIds),
+          eq(milestones.isVisibleToClient, true),
+        ),
+      )
+      .orderBy(asc(milestones.position), asc(milestones.createdAt)),
+    db
+      .select({
+        id: tasks.id,
+        projectId: tasks.projectId,
+        title: tasks.title,
+        description: tasks.description,
+        status: tasks.status,
+      })
+      .from(tasks)
+      .where(
+        and(
+          inArray(tasks.projectId, projectIds),
+          eq(tasks.isVisibleToClient, true),
+          isNull(tasks.deletedAt),
+        ),
+      )
+      .orderBy(asc(tasks.position), asc(tasks.createdAt)),
+    db
+      .select({
+        id: projectUpdates.id,
+        projectId: projectUpdates.projectId,
+        title: projectUpdates.title,
+        body: projectUpdates.body,
+        createdAt: projectUpdates.createdAt,
+      })
+      .from(projectUpdates)
+      .where(
+        and(
+          inArray(projectUpdates.projectId, projectIds),
+          eq(projectUpdates.isVisibleToClient, true),
+        ),
+      )
+      .orderBy(desc(projectUpdates.createdAt)),
+    db
+      .select({
+        id: payments.id,
+        projectId: payments.projectId,
+        amountCents: payments.amountCents,
+        status: payments.status,
+        dueDate: payments.dueDate,
+        paidAt: payments.paidAt,
+        notes: payments.notes,
+      })
+      .from(payments)
+      .where(
+        and(
+          inArray(payments.projectId, projectIds),
+          isNull(payments.deletedAt),
+          isNull(payments.voidedAt),
+        ),
+      )
+      .orderBy(asc(payments.dueDate), asc(payments.createdAt)),
+    db
+      .select({
+        id: projectFiles.id,
+        projectId: projectFiles.projectId,
+        fileName: projectFiles.fileName,
+        fileType: projectFiles.fileType,
+        fileSize: projectFiles.fileSize,
+        category: projectFiles.category,
+        createdAt: projectFiles.createdAt,
+      })
+      .from(projectFiles)
+      .where(
+        and(
+          inArray(projectFiles.projectId, projectIds),
+          eq(projectFiles.isVisibleToClient, true),
+          isNull(projectFiles.deletedAt),
+        ),
+      )
+      .orderBy(desc(projectFiles.createdAt)),
+    db
+      .select({
+        id: approvals.id,
+        projectId: approvals.projectId,
+        title: approvals.title,
+        description: approvals.description,
+        status: approvals.status,
+        milestoneName: milestones.title,
+        responseNote: approvals.responseNote,
+        requestedAt: approvals.requestedAt,
+        respondedAt: approvals.respondedAt,
+      })
+      .from(approvals)
+      .leftJoin(milestones, eq(approvals.milestoneId, milestones.id))
+      .where(
+        and(
+          inArray(approvals.projectId, projectIds),
+          isNull(approvals.deletedAt),
+        ),
+      )
+      .orderBy(desc(approvals.requestedAt)),
+  ]);
+
+  const milestonesByProjectId = new Map<string, ClientPortalProject["milestones"]>();
+  for (const milestone of projectMilestones) {
+    const assignment = assignmentByProjectId.get(milestone.projectId);
+    const items = milestonesByProjectId.get(milestone.projectId) ?? [];
+
+    items.push({
+      id: milestone.id,
+      title: milestone.title,
+      description:
+        milestone.description ?? "No milestone details have been added yet.",
+      status: milestone.status,
+      dueDate:
+        milestone.dueDate ??
+        assignment?.deadline ??
+        new Date().toISOString(),
+    });
+    milestonesByProjectId.set(milestone.projectId, items);
+  }
+
+  const tasksByProjectId = new Map<string, ClientPortalProject["tasks"]>();
+  for (const task of projectTasks) {
+    const items = tasksByProjectId.get(task.projectId) ?? [];
+
+    items.push({
+      id: task.id,
+      title: task.title,
+      description: task.description ?? "No task details have been added yet.",
+      status: mapTaskStatus(task.status),
+    });
+    tasksByProjectId.set(task.projectId, items);
+  }
+
+  const updatesByProjectId = new Map<string, ClientPortalProject["updates"]>();
+  for (const update of projectUpdatesList) {
+    const items = updatesByProjectId.get(update.projectId) ?? [];
+
+    items.push({
+      id: update.id,
+      title: update.title,
+      body: update.body,
+      createdAt: toIsoString(update.createdAt),
+    });
+    updatesByProjectId.set(update.projectId, items);
+  }
+
+  const paymentsByProjectId = new Map<string, ClientPortalProject["payments"]>();
+  for (const payment of projectPayments) {
+    const assignment = assignmentByProjectId.get(payment.projectId);
+    const items = paymentsByProjectId.get(payment.projectId) ?? [];
+
+    items.push({
+      id: payment.id,
+      label: payment.notes?.trim() ? payment.notes.trim() : "Project payment",
+      amountCents: payment.amountCents,
+      status: payment.status,
+      dueDate:
+        payment.dueDate ?? assignment?.deadline ?? new Date().toISOString(),
+      paidAt: payment.paidAt ? toIsoString(payment.paidAt) : undefined,
+    });
+    paymentsByProjectId.set(payment.projectId, items);
+  }
+
+  const filesByProjectId = new Map<string, ClientPortalProject["files"]>();
+  for (const file of projectFilesList) {
+    const items = filesByProjectId.get(file.projectId) ?? [];
+
+    items.push({
+      id: file.id,
+      name: file.fileName,
+      type: inferPortalFileType(file.fileName, file.fileType),
+      size: formatFileSize(file.fileSize),
+      category: fileCategoryLabels[file.category] ?? "Other",
+      uploadedAt: toIsoString(file.createdAt),
+    });
+    filesByProjectId.set(file.projectId, items);
+  }
+
+  const approvalsByProjectId = new Map<string, ClientPortalProject["approvals"]>();
+  for (const approval of projectApprovals) {
+    const assignment = assignmentByProjectId.get(approval.projectId);
+
+    if (!assignment) {
+      continue;
+    }
+
+    const items = approvalsByProjectId.get(approval.projectId) ?? [];
+    items.push(
+      mapApprovalRowToPortalApproval({
+        ...approval,
+        projectName: assignment.projectName,
+      }),
+    );
+    approvalsByProjectId.set(approval.projectId, items);
+  }
+
+  return assignments.map((assignment) => {
+    const mappedMilestones = milestonesByProjectId.get(assignment.projectId) ?? [];
+    const mappedPayments = paymentsByProjectId.get(assignment.projectId) ?? [];
+    const paidAmountCents = mappedPayments.reduce((sum, payment) => {
+      if (payment.status !== "paid") {
+        return sum;
+      }
+
+      return sum + payment.amountCents;
+    }, 0);
+    const totalAmountCents = mappedPayments.reduce(
+      (sum, payment) => sum + payment.amountCents,
+      0,
+    );
+    const currentMilestone =
+      mappedMilestones.find(
+        (milestone) =>
+          milestone.status !== "completed" && milestone.status !== "approved",
+      )?.title ??
+      mappedMilestones.at(-1)?.title ??
+      "No milestone has been added yet.";
+    const mappedApprovals = approvalsByProjectId.get(assignment.projectId) ?? [];
+
+    return buildClientPortalProjectShell(assignment, {
+      currentMilestone,
+      totalAmountCents,
+      paidAmountCents,
+      paymentStatus: derivePaymentStatus(mappedPayments),
+      milestones: mappedMilestones,
+      tasks: tasksByProjectId.get(assignment.projectId) ?? [],
+      updates: updatesByProjectId.get(assignment.projectId) ?? [],
+      files: filesByProjectId.get(assignment.projectId) ?? [],
+      payments: mappedPayments,
+      approvals: mappedApprovals,
+      approval: mappedApprovals[0] ?? null,
+    });
+  });
+}
+
+export const getClientPortalDashboardState = cache(
+  async (): Promise<ClientPortalState> => {
+    const access = await getClientPortalAccess();
+    const assignments = await getClientPortalAssignments(access.profile.id);
+    const projectsList = await buildClientPortalDashboardProjects(assignments);
+
+    return {
+      profile: access.profile,
+      projects: projectsList,
+    };
+  },
+);
 
 export const getClientPortalState = cache(
   async (): Promise<ClientPortalState> => {

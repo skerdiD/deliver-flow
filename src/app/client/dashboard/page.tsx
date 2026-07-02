@@ -4,14 +4,14 @@ import { FolderOpen } from "lucide-react";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
 import { ClientDashboardProjectCard } from "@/features/client/portal/client-dashboard-project-card";
-import { getClientPortalState } from "@/features/client/portal/portal-data";
+import { getClientPortalDashboardState } from "@/features/client/portal/portal-data";
 
 export const metadata: Metadata = {
   title: "Client Dashboard",
 };
 
 export default async function ClientDashboardPage() {
-  const { profile, projects } = await getClientPortalState();
+  const { profile, projects } = await getClientPortalDashboardState();
 
   const title = profile.full_name
     ? `Welcome back, ${profile.full_name}`
