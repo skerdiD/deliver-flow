@@ -92,6 +92,7 @@ test.describe("mobile responsive protected routes", () => {
       "/client/project",
       "/client/files",
       "/client/feedback",
+      "/client/approvals",
       "/client/payments",
     ];
 

@@ -1,16 +1,33 @@
 import type { Metadata } from "next";
 import { FolderOpen } from "lucide-react";
+import { redirect } from "next/navigation";
 
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
 import { ClientDashboardProjectCard } from "@/features/client/portal/client-dashboard-project-card";
-import { getClientPortalDashboardState } from "@/features/client/portal/portal-data";
+import {
+  getClientPortalDashboardState,
+  getSelectedClientProject,
+  type ClientProjectSearchParams,
+} from "@/features/client/portal/portal-data";
 
 export const metadata: Metadata = {
   title: "Client Dashboard",
 };
 
-export default async function ClientDashboardPage() {
+export default async function ClientDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<ClientProjectSearchParams>;
+}) {
+  const selection = await getSelectedClientProject(searchParams);
+
+  if (selection.didFallback && selection.selectedProjectId) {
+    redirect(
+      `/client/dashboard?projectId=${encodeURIComponent(selection.selectedProjectId)}`,
+    );
+  }
+
   const { profile, projects } = await getClientPortalDashboardState();
 
   const title = profile.full_name

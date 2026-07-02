@@ -2,7 +2,7 @@
 
 import { PanelLeftClose, PanelLeftOpen, type LucideIcon } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import { BrandLogo } from "@/components/shared/brand-logo";
@@ -28,7 +28,18 @@ type DashboardSidebarProps = {
   expandedWidthClass?: string;
   footerTitle: string;
   footerDescription: string;
+  preserveProjectId?: boolean;
 };
+
+function withProjectId(href: string, projectId: string | null) {
+  if (!projectId || !href.startsWith("/client/")) {
+    return href;
+  }
+
+  const params = new URLSearchParams({ projectId });
+
+  return `${href}?${params.toString()}`;
+}
 
 export function DashboardSidebar({
   homeHref,
@@ -37,8 +48,12 @@ export function DashboardSidebar({
   expandedWidthClass = "w-72",
   footerTitle,
   footerDescription,
+  preserveProjectId = false,
 }: DashboardSidebarProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const projectId = preserveProjectId ? searchParams.get("projectId") : null;
+  const resolvedHomeHref = withProjectId(homeHref, projectId);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
@@ -56,7 +71,7 @@ export function DashboardSidebar({
           )}
         >
           <Link
-            href={homeHref}
+            href={resolvedHomeHref}
             aria-label="DeliverFlow workspace"
             className={cn(
               "min-w-0 transition-all duration-200",
@@ -101,10 +116,11 @@ export function DashboardSidebar({
               const Icon = item.icon;
               const isActive =
                 pathname === item.href || pathname.startsWith(`${item.href}/`);
+              const href = withProjectId(item.href, projectId);
               const link = (
                 <Link
                   key={item.href}
-                  href={item.href}
+                  href={href}
                   aria-label={item.title}
                   aria-current={isActive ? "page" : undefined}
                   className={cn(

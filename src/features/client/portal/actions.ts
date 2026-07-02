@@ -129,6 +129,7 @@ export async function approveMilestoneAction(
   revalidatePath("/client/dashboard");
   revalidatePath("/client/project");
   revalidatePath(`/client/project/${projectIdParsed.data}`);
+  revalidatePath("/client/approvals");
 
   return {
     success: true,
@@ -200,6 +201,7 @@ export async function requestChangesAction(
   revalidatePath("/client/dashboard");
   revalidatePath("/client/project");
   revalidatePath(`/client/project/${projectIdParsed.data}`);
+  revalidatePath("/client/approvals");
 
   return {
     success: true,

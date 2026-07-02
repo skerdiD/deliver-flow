@@ -1,14 +1,17 @@
 import { AppTopbar } from "@/components/layouts/app-topbar";
 import { ClientSidebar } from "@/components/layouts/client-sidebar";
+import type { ClientProjectSwitcherProject } from "@/features/client/portal/portal-data";
 import type { Profile } from "@/types/database";
 
 type ClientPortalLayoutProps = {
   profile: Profile;
+  projects: ClientProjectSwitcherProject[];
   children: React.ReactNode;
 };
 
 export function ClientPortalLayout({
   profile,
+  projects,
   children,
 }: ClientPortalLayoutProps) {
   return (
@@ -22,6 +25,8 @@ export function ClientPortalLayout({
             description="Track projects, files, feedback, approvals, and payments."
             userName={profile.full_name}
             userRoleLabel="Client"
+            clientProjects={projects}
+            defaultClientProjectId={projects[0]?.id ?? null}
             mobileNavigationType="client"
           />
 

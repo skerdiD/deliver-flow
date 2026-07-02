@@ -84,6 +84,11 @@ export const clientNavigation = [
     icon: MessageSquare,
   },
   {
+    title: "Approvals",
+    href: routes.client.approvals,
+    icon: BadgeCheck,
+  },
+  {
     title: "Payments",
     href: routes.client.payments,
     icon: CreditCard,

@@ -1,23 +1,21 @@
 import type { Metadata } from "next";
-import { FolderOpen } from "lucide-react";
+import { BadgeCheck } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
-import { after } from "next/server";
 
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
-import { ClientProjectDetailView } from "@/features/client/portal/client-project-detail-view";
+import { ApprovalActionsCard } from "@/features/client/portal/approval-actions-card";
 import {
   getClientPortalProjectById,
   getSelectedClientProject,
-  recordClientProjectDetailViews,
   type ClientProjectSearchParams,
 } from "@/features/client/portal/portal-data";
 
 export const metadata: Metadata = {
-  title: "Project",
+  title: "Approvals",
 };
 
-export default async function ClientProjectPage({
+export default async function ClientApprovalsPage({
   searchParams,
 }: {
   searchParams: Promise<ClientProjectSearchParams>;
@@ -26,7 +24,7 @@ export default async function ClientProjectPage({
   const projectId = selection.selectedProjectId;
 
   if (selection.didFallback && projectId) {
-    redirect(`/client/project?projectId=${encodeURIComponent(projectId)}`);
+    redirect(`/client/approvals?projectId=${encodeURIComponent(projectId)}`);
   }
 
   if (projectId) {
@@ -36,27 +34,34 @@ export default async function ClientProjectPage({
       notFound();
     }
 
-    after(() => {
-      void recordClientProjectDetailViews(project).catch((error: unknown) => {
-        console.error("Failed to record client project views", error);
-      });
-    });
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          eyebrow="Approvals"
+          title={`${project.name} approvals`}
+          description="Review work that needs your sign-off, approve it, or ask for changes."
+        />
 
-    return <ClientProjectDetailView project={project} />;
+        <ApprovalActionsCard
+          projectId={project.id}
+          approvals={project.approvals}
+        />
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Project"
-        title="Project overview"
-        description="See what is done, what is active, what comes next, and what needs your review."
+        eyebrow="Approvals"
+        title="Project approvals"
+        description="Review work that needs your sign-off, approve it, or ask for changes."
       />
 
       <EmptyState
-        icon={FolderOpen}
+        icon={BadgeCheck}
         title="No active projects yet"
-        description="You will see project updates here once a project is added to your portal."
+        description="Approval requests will show here after a project is added to your portal."
       />
     </div>
   );

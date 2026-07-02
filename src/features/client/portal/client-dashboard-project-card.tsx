@@ -34,10 +34,12 @@ export function ClientDashboardProjectCard({
     (approval) => approval.status === "pending",
   );
   const latestApproval = project.approval;
-  const projectHref = `/client/project/${project.id}`;
-  const filesHref = `/client/files/${project.id}`;
-  const feedbackHref = `/client/feedback/${project.id}`;
-  const paymentsHref = `/client/payments/${project.id}`;
+  const projectQuery = `projectId=${encodeURIComponent(project.id)}`;
+  const projectHref = `/client/project?${projectQuery}`;
+  const filesHref = `/client/files?${projectQuery}`;
+  const feedbackHref = `/client/feedback?${projectQuery}`;
+  const approvalsHref = `/client/approvals?${projectQuery}`;
+  const paymentsHref = `/client/payments?${projectQuery}`;
 
   return (
     <Card className="rounded-lg border-slate-200 shadow-sm">
@@ -50,7 +52,12 @@ export function ClientDashboardProjectCard({
             </div>
 
             <h2 className="mt-4 break-words text-2xl font-semibold leading-8 text-slate-950">
-              {project.name}
+              <Link
+                href={projectHref}
+                className="rounded-sm outline-none transition-colors hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-slate-950/20 focus-visible:ring-offset-2"
+              >
+                {project.name}
+              </Link>
             </h2>
 
             <p className="mt-2 break-words text-sm leading-6 text-slate-600">
@@ -128,7 +135,7 @@ export function ClientDashboardProjectCard({
             </Button>
 
             <Button asChild variant="outline" className="w-full sm:w-auto">
-              <Link href={projectHref}>
+              <Link href={approvalsHref}>
                 <CheckCircle2 className="mr-2 size-4" />
                 Review Approvals
               </Link>

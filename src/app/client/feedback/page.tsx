@@ -1,21 +1,31 @@
 import type { Metadata } from "next";
 import { MessageSquareMore } from "lucide-react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
 import { FeedbackForm } from "@/features/client/portal/feedback-form";
 import {
   getClientPortalProjectFeedbackById,
-  getLatestClientPortalProjectId,
+  getSelectedClientProject,
+  type ClientProjectSearchParams,
 } from "@/features/client/portal/portal-data";
 
 export const metadata: Metadata = {
   title: "Feedback",
 };
 
-export default async function ClientFeedbackPage() {
-  const projectId = await getLatestClientPortalProjectId();
+export default async function ClientFeedbackPage({
+  searchParams,
+}: {
+  searchParams: Promise<ClientProjectSearchParams>;
+}) {
+  const selection = await getSelectedClientProject(searchParams);
+  const projectId = selection.selectedProjectId;
+
+  if (selection.didFallback && projectId) {
+    redirect(`/client/feedback?projectId=${encodeURIComponent(projectId)}`);
+  }
 
   if (projectId) {
     const project = await getClientPortalProjectFeedbackById(projectId);

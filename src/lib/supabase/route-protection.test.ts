@@ -139,6 +139,7 @@ describe("route protection policy", () => {
     expect(isProtectedRoute("/admin/projects/project_123")).toBe(true);
     expect(isProtectedRoute("/client/project")).toBe(true);
     expect(isProtectedRoute("/client/project/project_123")).toBe(true);
+    expect(isProtectedRoute("/client/approvals")).toBe(true);
     expect(isProtectedRoute("/login")).toBe(false);
     expect(isProtectedRoute("/api/client/files/file_123/download")).toBe(false);
     expect(isSupportedRole("admin")).toBe(true);

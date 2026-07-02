@@ -56,6 +56,25 @@ export type ClientPortalState = {
   projects: ClientPortalProject[];
 };
 
+export type ClientProjectSwitcherProject = {
+  id: string;
+  name: string;
+  status: ClientPortalProject["status"];
+  deadline: string | null;
+  paymentStatus: ClientPaymentStatus;
+};
+
+export type ClientProjectSearchParams = {
+  [key: string]: string | string[] | undefined;
+};
+
+export type ClientProjectSelection = {
+  projects: ClientProjectSwitcherProject[];
+  requestedProjectId: string | null;
+  selectedProjectId: string | null;
+  didFallback: boolean;
+};
+
 type ClientPortalAccess = {
   profile: Profile;
 };
@@ -251,6 +270,113 @@ async function getClientPortalAssignments(
       ),
     )
     .orderBy(desc(projectAssignments.assignedAt));
+}
+
+function readProjectIdSearchParam(
+  searchParams: ClientProjectSearchParams,
+): string | null {
+  const projectIdParam = searchParams.projectId;
+
+  if (Array.isArray(projectIdParam)) {
+    return projectIdParam[0] ?? null;
+  }
+
+  return projectIdParam ?? null;
+}
+
+function mapAssignmentToSwitcherProject(
+  assignment: ClientPortalAssignment,
+  paymentStatus: ClientPaymentStatus,
+): ClientProjectSwitcherProject {
+  return {
+    id: assignment.projectId,
+    name: assignment.projectName,
+    status: mapProjectStatus(assignment.projectStatus),
+    deadline: assignment.deadline,
+    paymentStatus,
+  };
+}
+
+export const getClientAssignedProjects = cache(
+  async (): Promise<ClientProjectSwitcherProject[]> => {
+    const access = await getClientPortalAccess();
+    const assignments = await getClientPortalAssignments(access.profile.id);
+
+    if (assignments.length === 0) {
+      return [];
+    }
+
+    const projectIds = assignments.map((assignment) => assignment.projectId);
+    const projectPayments = await db
+      .select({
+        projectId: payments.projectId,
+        status: payments.status,
+      })
+      .from(payments)
+      .where(
+        and(
+          inArray(payments.projectId, projectIds),
+          isNull(payments.deletedAt),
+          isNull(payments.voidedAt),
+        ),
+      );
+
+    const paymentsByProjectId = new Map<
+      string,
+      Array<{ status: ClientPaymentStatus }>
+    >();
+
+    for (const payment of projectPayments) {
+      const items = paymentsByProjectId.get(payment.projectId) ?? [];
+      items.push({ status: payment.status });
+      paymentsByProjectId.set(payment.projectId, items);
+    }
+
+    return assignments.map((assignment) =>
+      mapAssignmentToSwitcherProject(
+        assignment,
+        derivePaymentStatus(paymentsByProjectId.get(assignment.projectId) ?? []),
+      ),
+    );
+  },
+);
+
+export async function getSelectedClientProject(
+  searchParamsInput:
+    | ClientProjectSearchParams
+    | Promise<ClientProjectSearchParams>
+    | undefined,
+): Promise<ClientProjectSelection> {
+  const searchParams = searchParamsInput ? await searchParamsInput : {};
+  const requestedProjectId = readProjectIdSearchParam(searchParams);
+  const projectsList = await getClientAssignedProjects();
+  const selectedProjectId =
+    projectsList.find((project) => project.id === requestedProjectId)?.id ??
+    projectsList[0]?.id ??
+    null;
+
+  return {
+    projects: projectsList,
+    requestedProjectId,
+    selectedProjectId,
+    didFallback: Boolean(
+      requestedProjectId &&
+        selectedProjectId &&
+        requestedProjectId !== selectedProjectId,
+    ),
+  };
+}
+
+export async function requireClientProjectAccess(
+  projectId: string,
+): Promise<boolean> {
+  const access = await getClientPortalAccess();
+  const assignment = await getClientPortalAssignmentById(
+    access.profile.id,
+    projectId,
+  );
+
+  return Boolean(assignment);
 }
 
 async function getClientPortalAssignmentById(

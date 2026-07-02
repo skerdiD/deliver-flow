@@ -12,6 +12,7 @@ export function ClientSidebar() {
       expandedWidthClass="w-72"
       footerTitle="Project updates"
       footerDescription="Track files, approvals, feedback, and progress in one place."
+      preserveProjectId
     />
   );
 }

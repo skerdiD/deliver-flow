@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Menu } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -22,11 +22,23 @@ type MobileSidebarProps = {
   className?: string;
 };
 
+function withProjectId(href: string, projectId: string | null) {
+  if (!projectId || !href.startsWith("/client/")) {
+    return href;
+  }
+
+  const params = new URLSearchParams({ projectId });
+
+  return `${href}?${params.toString()}`;
+}
+
 export function MobileSidebar({ type, className }: MobileSidebarProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const navigation = type === "admin" ? adminNavigation : clientNavigation;
   const subtitle = type === "admin" ? "Admin workspace" : "Client portal";
+  const projectId = type === "client" ? searchParams.get("projectId") : null;
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -59,11 +71,12 @@ export function MobileSidebar({ type, className }: MobileSidebarProps) {
             const Icon = item.icon;
             const isActive =
               pathname === item.href || pathname.startsWith(`${item.href}/`);
+            const href = withProjectId(item.href, projectId);
 
             return (
               <Link
                 key={item.href}
-                href={item.href}
+                href={href}
                 aria-current={isActive ? "page" : undefined}
                 onClick={() => setOpen(false)}
                 className={cn(

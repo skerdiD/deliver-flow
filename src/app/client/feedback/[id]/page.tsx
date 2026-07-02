@@ -1,9 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-
-import { PageHeader } from "@/components/shared/page-header";
-import { FeedbackForm } from "@/features/client/portal/feedback-form";
-import { getClientPortalProjectFeedbackById } from "@/features/client/portal/portal-data";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Feedback",
@@ -15,21 +11,5 @@ export default async function ClientProjectFeedbackPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const project = await getClientPortalProjectFeedbackById(id);
-
-  if (!project) {
-    notFound();
-  }
-
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        eyebrow="Feedback"
-        title={`${project.name} feedback`}
-        description="Send feedback so your freelancer knows what to adjust."
-      />
-
-      <FeedbackForm projectId={project.id} feedback={project.feedback} />
-    </div>
-  );
+  redirect(`/client/feedback?projectId=${encodeURIComponent(id)}`);
 }

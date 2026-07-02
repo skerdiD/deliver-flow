@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { WalletCards } from "lucide-react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { after } from "next/server";
 
 import { EmptyState } from "@/components/shared/empty-state";
@@ -8,16 +8,26 @@ import { PageHeader } from "@/components/shared/page-header";
 import { ClientPaymentSummary } from "@/features/client/portal/client-payment-summary";
 import {
   getClientPortalProjectPaymentsById,
-  getLatestClientPortalProjectId,
+  getSelectedClientProject,
   recordClientProjectPaymentViews,
+  type ClientProjectSearchParams,
 } from "@/features/client/portal/portal-data";
 
 export const metadata: Metadata = {
   title: "Payments",
 };
 
-export default async function ClientPaymentsPage() {
-  const projectId = await getLatestClientPortalProjectId();
+export default async function ClientPaymentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<ClientProjectSearchParams>;
+}) {
+  const selection = await getSelectedClientProject(searchParams);
+  const projectId = selection.selectedProjectId;
+
+  if (selection.didFallback && projectId) {
+    redirect(`/client/payments?projectId=${encodeURIComponent(projectId)}`);
+  }
 
   if (projectId) {
     const project = await getClientPortalProjectPaymentsById(projectId);

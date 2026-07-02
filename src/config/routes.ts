@@ -26,6 +26,7 @@ export const routes = {
     project: "/client/project",
     files: "/client/files",
     feedback: "/client/feedback",
+    approvals: "/client/approvals",
     payments: "/client/payments",
   },
 } as const;
