@@ -65,7 +65,7 @@ body {
   display: block;
 }
 
-@media (min-width: 64rem) {
+@media (min-width: 80rem) {
   .dashboard-sidebar-shell {
     display: flex;
   }

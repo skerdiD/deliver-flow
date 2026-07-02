@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Menu } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { BrandLogo } from "@/components/shared/brand-logo";
@@ -18,55 +19,67 @@ import { cn } from "@/lib/utils";
 
 type MobileSidebarProps = {
   type: "admin" | "client";
+  className?: string;
 };
 
-export function MobileSidebar({ type }: MobileSidebarProps) {
+export function MobileSidebar({ type, className }: MobileSidebarProps) {
+  const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const navigation = type === "admin" ? adminNavigation : clientNavigation;
+  const subtitle = type === "admin" ? "Admin workspace" : "Client portal";
 
   return (
-    <div className="dashboard-mobile-nav border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur">
-      <Sheet>
-        <SheetTrigger asChild>
-          <Button variant="outline" className="gap-2 border-slate-200">
-            <Menu className="size-4" />
-            Menu
-          </Button>
-        </SheetTrigger>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          aria-label="Open navigation menu"
+          className={cn(
+            "dashboard-mobile-nav size-10 shrink-0 border-slate-200 bg-white/80 text-slate-700 hover:bg-slate-50 hover:text-slate-950",
+            className,
+          )}
+        >
+          <Menu className="size-5" />
+        </Button>
+      </SheetTrigger>
 
-        <SheetContent side="left" className="w-[min(20rem,calc(100vw-1rem))]">
-          <SheetHeader>
-            <BrandLogo
-              subtitle={type === "admin" ? "Admin workspace" : "Client portal"}
-            />
-            <SheetTitle className="sr-only">DeliverFlow navigation</SheetTitle>
-          </SheetHeader>
+      <SheetContent
+        side="left"
+        className="w-[min(20rem,calc(100vw-1rem))] p-0"
+      >
+        <SheetHeader className="border-b border-slate-200 px-4 py-4 pr-12">
+          <BrandLogo subtitle={subtitle} />
+          <SheetTitle className="sr-only">DeliverFlow navigation</SheetTitle>
+        </SheetHeader>
 
-          <nav className="mt-6 space-y-1">
-            {navigation.map((item) => {
-              const Icon = item.icon;
-              const isActive =
-                pathname === item.href || pathname.startsWith(`${item.href}/`);
+        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+          {navigation.map((item) => {
+            const Icon = item.icon;
+            const isActive =
+              pathname === item.href || pathname.startsWith(`${item.href}/`);
 
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "flex min-h-10 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                    isActive
-                      ? "bg-slate-950 text-white shadow-sm"
-                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-950",
-                  )}
-                >
-                  <Icon className="size-4 shrink-0" />
-                  <span className="truncate">{item.title}</span>
-                </Link>
-              );
-            })}
-          </nav>
-        </SheetContent>
-      </Sheet>
-    </div>
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={isActive ? "page" : undefined}
+                onClick={() => setOpen(false)}
+                className={cn(
+                  "flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-slate-950 text-white shadow-sm"
+                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-950",
+                )}
+              >
+                <Icon className="size-4 shrink-0" />
+                <span className="truncate">{item.title}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      </SheetContent>
+    </Sheet>
   );
 }

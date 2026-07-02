@@ -351,14 +351,14 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
                 >
                   <Button
                     variant="outline"
-                    className="h-9 px-3 hover:border-slate-400 hover:bg-slate-100"
+                    className="h-10 px-3 hover:border-slate-400 hover:bg-slate-100"
                     asChild
                   >
                     <Link href={`/admin/projects/${project.id}`}>View</Link>
                   </Button>
                   <Button
                     variant="outline"
-                    className="h-9 px-3 hover:border-slate-400 hover:bg-slate-100"
+                    className="h-10 px-3 hover:border-slate-400 hover:bg-slate-100"
                     asChild
                   >
                     <Link href={`/admin/projects/${project.id}/edit`}>

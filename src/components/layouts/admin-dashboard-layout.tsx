@@ -1,7 +1,6 @@
 import { AdminSidebar } from "@/components/layouts/admin-sidebar";
 import { AppTopbar } from "@/components/layouts/app-topbar";
 import type { AdminQuickActionProject } from "@/components/layouts/admin-quick-actions";
-import { MobileSidebar } from "@/components/layouts/mobile-sidebar";
 import type { Profile } from "@/types/database";
 
 type AdminDashboardLayoutProps = {
@@ -21,14 +20,13 @@ export function AdminDashboardLayout({
         <AdminSidebar />
 
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-          <MobileSidebar type="admin" />
-
           <AppTopbar
             title="Admin Dashboard"
             description="Manage delivery, clients, approvals, and payments."
             userName={profile.full_name}
             userRoleLabel="Admin"
             quickActionProjects={quickActionProjects}
+            mobileNavigationType="admin"
           />
 
           <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain">

@@ -177,7 +177,7 @@ export function RowActions({
       >
         Actions
       </p>
-      <div className="flex min-w-0 flex-wrap items-center gap-1.5 xl:flex-nowrap xl:justify-end">
+      <div className="flex min-w-0 flex-wrap items-center gap-2 xl:flex-nowrap xl:justify-end">
         {children}
       </div>
     </div>

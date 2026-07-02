@@ -358,14 +358,14 @@ export function ClientsTable({ clients }: ClientsTableProps) {
                 >
                   <Button
                     variant="outline"
-                    className="h-9 px-3 hover:border-slate-400 hover:bg-slate-100"
+                    className="h-10 px-3 hover:border-slate-400 hover:bg-slate-100"
                     asChild
                   >
                     <Link href={`/admin/clients/${client.id}`}>View</Link>
                   </Button>
                   <Button
                     variant="outline"
-                    className="h-9 px-3 hover:border-slate-400 hover:bg-slate-100"
+                    className="h-10 px-3 hover:border-slate-400 hover:bg-slate-100"
                     asChild
                   >
                     <Link href={`/admin/clients/${client.id}/edit`}>

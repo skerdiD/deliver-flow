@@ -33,7 +33,7 @@ export function ProjectDetailHeader({ project }: ProjectDetailHeaderProps) {
       <Card className="rounded-lg border-slate-200 shadow-sm">
         <CardContent className="p-5">
           <div className="flex flex-col justify-between gap-5 xl:flex-row xl:items-start">
-            <div className="max-w-3xl">
+            <div className="min-w-0 max-w-3xl">
               <div className="flex flex-wrap items-center gap-2">
                 <ProjectStatusBadge status={project.status} />
                 <PaymentStatusBadge status={project.paymentStatus} />
@@ -42,10 +42,10 @@ export function ProjectDetailHeader({ project }: ProjectDetailHeaderProps) {
               <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
                 <div className="rounded-lg border border-slate-200 p-4">
                   <p className="text-xs font-medium text-slate-500">Client</p>
-                  <p className="mt-2 text-sm font-semibold text-slate-950">
+                  <p className="mt-2 break-words text-sm font-semibold text-slate-950">
                     {project.client.company}
                   </p>
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 break-words text-xs text-slate-500">
                     {project.client.name}
                   </p>
                 </div>

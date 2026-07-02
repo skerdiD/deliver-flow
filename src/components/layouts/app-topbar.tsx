@@ -5,6 +5,7 @@ import {
   AdminQuickActions,
   type AdminQuickActionProject,
 } from "@/components/layouts/admin-quick-actions";
+import { MobileSidebar } from "@/components/layouts/mobile-sidebar";
 import { Input } from "@/components/ui/input";
 
 type AppTopbarProps = {
@@ -13,6 +14,7 @@ type AppTopbarProps = {
   userName?: string | null;
   userRoleLabel: string;
   quickActionProjects?: AdminQuickActionProject[];
+  mobileNavigationType?: "admin" | "client";
 };
 
 export function AppTopbar({
@@ -21,21 +23,28 @@ export function AppTopbar({
   userName,
   userRoleLabel,
   quickActionProjects,
+  mobileNavigationType,
 }: AppTopbarProps) {
   const showQuickActions = Boolean(quickActionProjects);
 
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
-      <div className="flex min-h-16 items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
-        <div className="min-w-0">
-          <h1 className="truncate text-sm font-semibold text-slate-950 sm:text-base">
-            {title}
-          </h1>
-          {description ? (
-            <p className="hidden max-w-xl truncate text-sm text-slate-500 sm:block">
-              {description}
-            </p>
+      <div className="flex min-h-16 items-center justify-between gap-2 px-4 sm:gap-3 sm:px-6 lg:px-8">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          {mobileNavigationType ? (
+            <MobileSidebar type={mobileNavigationType} />
           ) : null}
+
+          <div className="min-w-0">
+            <h1 className="truncate text-sm font-semibold text-slate-950 sm:text-base">
+              {title}
+            </h1>
+            {description ? (
+              <p className="hidden max-w-xl truncate text-sm text-slate-500 sm:block">
+                {description}
+              </p>
+            ) : null}
+          </div>
         </div>
 
         <div className="hidden h-10 w-full max-w-sm items-center gap-2 rounded-lg border border-slate-200 bg-slate-50/80 px-3 shadow-inner xl:flex">
@@ -46,7 +55,7 @@ export function AppTopbar({
           />
         </div>
 
-        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+        <div className="flex min-w-0 shrink-0 items-center gap-2 sm:gap-3">
           {showQuickActions ? (
             <AdminQuickActions projects={quickActionProjects ?? []} />
           ) : null}

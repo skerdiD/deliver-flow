@@ -1,6 +1,5 @@
 import { AppTopbar } from "@/components/layouts/app-topbar";
 import { ClientSidebar } from "@/components/layouts/client-sidebar";
-import { MobileSidebar } from "@/components/layouts/mobile-sidebar";
 import type { Profile } from "@/types/database";
 
 type ClientPortalLayoutProps = {
@@ -18,13 +17,12 @@ export function ClientPortalLayout({
         <ClientSidebar />
 
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-          <MobileSidebar type="client" />
-
           <AppTopbar
             title="Client Portal"
             description="Track projects, files, feedback, approvals, and payments."
             userName={profile.full_name}
             userRoleLabel="Client"
+            mobileNavigationType="client"
           />
 
           <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain">

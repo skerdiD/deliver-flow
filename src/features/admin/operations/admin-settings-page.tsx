@@ -106,15 +106,15 @@ function SettingRow(props: {
   return (
     <div className="rounded-lg border border-slate-200 p-4">
       <div className="flex items-start gap-3">
-        <div className="mt-0.5 grid size-10 place-items-center rounded-lg bg-slate-100 text-slate-600">
+        <div className="mt-0.5 grid size-10 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-600">
           <Icon className="size-4" />
         </div>
-        <div className="space-y-1">
+        <div className="min-w-0 space-y-1">
           <p className="text-sm font-medium text-slate-500">{props.label}</p>
-          <p className="text-base font-semibold text-slate-950">
+          <p className="break-words text-base font-semibold text-slate-950">
             {props.value}
           </p>
-          <p className="text-sm leading-6 text-slate-600">
+          <p className="break-words text-sm leading-6 text-slate-600">
             {props.description}
           </p>
         </div>
