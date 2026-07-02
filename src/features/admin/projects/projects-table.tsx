@@ -268,7 +268,7 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
               <SelectItem value="current">Current</SelectItem>
               <SelectItem value="active">Active</SelectItem>
               <SelectItem value="in_progress">In progress</SelectItem>
-              <SelectItem value="waiting_feedback">Waiting feedback</SelectItem>
+              <SelectItem value="waiting_feedback">Needs feedback</SelectItem>
               <SelectItem value="completed">Completed</SelectItem>
               <SelectItem value="archived">Archived</SelectItem>
             </SelectContent>
@@ -351,14 +351,14 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
                 >
                   <Button
                     variant="outline"
-                    className="h-10 px-3 hover:border-slate-400 hover:bg-slate-100"
+                    className="h-10 w-full px-3 hover:border-slate-400 hover:bg-slate-100 sm:w-auto"
                     asChild
                   >
                     <Link href={`/admin/projects/${project.id}`}>View</Link>
                   </Button>
                   <Button
                     variant="outline"
-                    className="h-10 px-3 hover:border-slate-400 hover:bg-slate-100"
+                    className="h-10 w-full px-3 hover:border-slate-400 hover:bg-slate-100 sm:w-auto"
                     asChild
                   >
                     <Link href={`/admin/projects/${project.id}/edit`}>

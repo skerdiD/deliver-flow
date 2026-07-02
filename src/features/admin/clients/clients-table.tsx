@@ -343,11 +343,6 @@ export function ClientsTable({ clients }: ClientsTableProps) {
                     {client.latestActivity}
                   </p>
                   <p className="text-xs text-slate-500">
-                    {client.activeProjects}{" "}
-                    {client.activeProjects === 1 ? "project" : "projects"}{" "}
-                    assigned
-                  </p>
-                  <p className="text-xs text-slate-500">
                     Created {formatShortDate(client.createdAt)}
                   </p>
                 </RecordField>
@@ -358,14 +353,14 @@ export function ClientsTable({ clients }: ClientsTableProps) {
                 >
                   <Button
                     variant="outline"
-                    className="h-10 px-3 hover:border-slate-400 hover:bg-slate-100"
+                    className="h-10 w-full px-3 hover:border-slate-400 hover:bg-slate-100 sm:w-auto"
                     asChild
                   >
                     <Link href={`/admin/clients/${client.id}`}>View</Link>
                   </Button>
                   <Button
                     variant="outline"
-                    className="h-10 px-3 hover:border-slate-400 hover:bg-slate-100"
+                    className="h-10 w-full px-3 hover:border-slate-400 hover:bg-slate-100 sm:w-auto"
                     asChild
                   >
                     <Link href={`/admin/clients/${client.id}/edit`}>

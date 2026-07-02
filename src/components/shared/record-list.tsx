@@ -10,7 +10,12 @@ type RecordListProps = {
 
 export function RecordList({ children, className }: RecordListProps) {
   return (
-    <div className={cn("border-t border-slate-200", className)}>
+    <div
+      className={cn(
+        "space-y-3 px-4 pb-4 sm:px-5 xl:space-y-0 xl:border-t xl:border-slate-200 xl:px-0 xl:pb-0",
+        className,
+      )}
+    >
       {children}
     </div>
   );
@@ -53,7 +58,7 @@ export function RecordRow({ children, className }: RecordRowProps) {
   return (
     <div
       className={cn(
-        "grid gap-4 border-b border-slate-200 px-5 py-5 last:border-b-0 sm:px-6 lg:py-4",
+        "grid gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm xl:rounded-none xl:border-x-0 xl:border-t-0 xl:px-5 xl:py-5 xl:shadow-none xl:last:border-b-0",
         className,
       )}
     >
@@ -177,7 +182,7 @@ export function RowActions({
       >
         Actions
       </p>
-      <div className="flex min-w-0 flex-wrap items-center gap-2 xl:flex-nowrap xl:justify-end">
+      <div className="flex min-w-0 flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-center xl:flex-nowrap xl:justify-end">
         {children}
       </div>
     </div>

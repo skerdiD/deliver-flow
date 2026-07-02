@@ -214,36 +214,46 @@ export function AdminTasksPage({ data }: AdminTasksPageProps) {
                   );
 
                   return (
-                    <MobileRecordCard key={task.id}>
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <MobileRecordCard key={task.id} className="p-4">
+                      <div className="flex flex-col gap-3">
                         <div className="min-w-0">
                           <p className="break-words text-base font-semibold text-slate-950">
                             {task.title}
                           </p>
-                          <p className="mt-1 break-words text-sm font-medium text-slate-700">
+                          <p className="mt-1 break-words text-sm font-semibold text-slate-700">
                             {task.projectName}
                           </p>
                           <p className="break-words text-sm text-slate-500">
                             {task.clientName}
                           </p>
                           {task.description ? (
-                            <p className="mt-3 line-clamp-2 break-words text-sm leading-6 text-slate-500">
+                            <p className="mt-2 line-clamp-2 break-words text-sm leading-5 text-slate-500">
                               {task.description}
                             </p>
                           ) : null}
                           {task.milestoneTitle ? (
-                            <p className="mt-1 break-words text-xs text-slate-500">
+                            <p className="mt-1 line-clamp-1 break-words text-xs text-slate-500">
                               Milestone: {task.milestoneTitle}
                             </p>
                           ) : null}
                         </div>
-                        <StatusBadge
-                          label={statusMeta.label}
-                          tone={statusMeta.tone}
-                        />
+                        <div className="flex flex-wrap items-center gap-2">
+                          <StatusBadge
+                            label={statusMeta.label}
+                            tone={statusMeta.tone}
+                          />
+                          <StatusBadge
+                            label={priorityMeta.label}
+                            tone={priorityMeta.tone}
+                          />
+                          <StatusBadge
+                            label={visibilityMeta.label}
+                            tone={visibilityMeta.tone}
+                          />
+                        </div>
                       </div>
 
-                      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      <div className="mt-4 grid grid-cols-2 gap-3">
                         <MobileRecordMeta label="Project link">
                           <Link
                             href={`${routes.admin.projects}/${task.projectId}`}
@@ -252,20 +262,8 @@ export function AdminTasksPage({ data }: AdminTasksPageProps) {
                             View project
                           </Link>
                         </MobileRecordMeta>
-                        <MobileRecordMeta label="Priority">
-                          <StatusBadge
-                            label={priorityMeta.label}
-                            tone={priorityMeta.tone}
-                          />
-                        </MobileRecordMeta>
                         <MobileRecordMeta label="Due date">
                           {formatDateLabel(task.dueDate)}
-                        </MobileRecordMeta>
-                        <MobileRecordMeta label="Visibility">
-                          <StatusBadge
-                            label={visibilityMeta.label}
-                            tone={visibilityMeta.tone}
-                          />
                         </MobileRecordMeta>
                       </div>
 

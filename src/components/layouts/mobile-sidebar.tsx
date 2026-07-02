@@ -47,14 +47,14 @@ export function MobileSidebar({ type, className }: MobileSidebarProps) {
 
       <SheetContent
         side="left"
-        className="w-[min(20rem,calc(100vw-1rem))] p-0"
+        className="w-[min(85vw,20rem)] gap-0 overflow-hidden border-slate-200 bg-white p-0 text-slate-950"
       >
-        <SheetHeader className="border-b border-slate-200 px-4 py-4 pr-12">
+        <SheetHeader className="shrink-0 border-b border-slate-200 bg-white px-4 py-4 pr-12">
           <BrandLogo subtitle={subtitle} />
           <SheetTitle className="sr-only">DeliverFlow navigation</SheetTitle>
         </SheetHeader>
 
-        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+        <nav className="flex-1 space-y-1 overflow-y-auto bg-white px-3 py-4">
           {navigation.map((item) => {
             const Icon = item.icon;
             const isActive =
@@ -67,10 +67,10 @@ export function MobileSidebar({ type, className }: MobileSidebarProps) {
                 aria-current={isActive ? "page" : undefined}
                 onClick={() => setOpen(false)}
                 className={cn(
-                  "flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                  "flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors",
                   isActive
                     ? "bg-slate-950 text-white shadow-sm"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-950",
+                    : "text-slate-700 hover:bg-slate-100 hover:text-slate-950",
                 )}
               >
                 <Icon className="size-4 shrink-0" />
