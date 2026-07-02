@@ -1,9 +1,13 @@
 import {
   CalendarDays,
+  CheckCircle2,
   ExternalLink,
   GitBranch,
+  ListChecks,
+  ShieldCheck,
   WalletCards,
 } from "lucide-react";
+import type { ComponentType } from "react";
 
 import {
   ClientPaymentStatusBadge,
@@ -21,22 +25,24 @@ type ClientProjectOverviewProps = {
 
 export function ClientProjectOverview({ project }: ClientProjectOverviewProps) {
   const remainingCents = project.totalAmountCents - project.paidAmountCents;
+  const completedTasks = project.tasks.filter(
+    (task) => task.status === "completed",
+  ).length;
+  const pendingApprovals = project.approvals.filter(
+    (approval) => approval.status === "pending",
+  ).length;
 
   return (
     <Card className="rounded-lg border-slate-200 shadow-sm">
       <CardContent className="p-5">
-        <div className="flex flex-col justify-between gap-5 xl:flex-row xl:items-start">
-          <div className="min-w-0 max-w-3xl">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <ClientProjectStatusBadge status={project.status} />
               <ClientPaymentStatusBadge status={project.paymentStatus} />
             </div>
 
-            <h1 className="mt-4 break-words text-2xl font-semibold leading-8 text-slate-950">
-              {project.name}
-            </h1>
-
-            <p className="mt-3 break-words text-sm leading-6 text-slate-600">
+            <p className="mt-4 max-w-4xl break-words text-sm leading-6 text-slate-600">
               {project.description}
             </p>
 
@@ -49,7 +55,7 @@ export function ClientProjectOverview({ project }: ClientProjectOverviewProps) {
             />
           </div>
 
-          <div className="flex w-full flex-col gap-3 sm:min-w-64 xl:w-auto">
+          <div className="flex w-full flex-col gap-3 xl:w-auto">
             {project.liveDemoUrl ? (
               <Button asChild className="w-full xl:w-auto">
                 <a href={project.liveDemoUrl} target="_blank" rel="noreferrer">
@@ -74,46 +80,64 @@ export function ClientProjectOverview({ project }: ClientProjectOverviewProps) {
           </div>
         </div>
 
-        <div className="mt-6 grid gap-3 md:grid-cols-4">
-          <div className="rounded-lg border border-slate-200 p-4">
-            <p className="text-xs font-medium text-slate-500">
-              Current milestone
-            </p>
-            <p className="mt-2 break-words text-sm font-semibold text-slate-950">
-              {project.currentMilestone}
-            </p>
-          </div>
-
-          <div className="rounded-lg border border-slate-200 p-4">
-            <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
-              <CalendarDays className="size-4" />
-              Deadline
-            </div>
-            <p className="mt-2 text-sm font-semibold text-slate-950">
-              {project.deadline
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+          <ProjectInsight
+            icon={ListChecks}
+            label="Current focus"
+            value={project.currentMilestone}
+          />
+          <ProjectInsight
+            icon={CalendarDays}
+            label="Deadline"
+            value={
+              project.deadline
                 ? formatShortDate(project.deadline)
-                : "Not scheduled yet"}
-            </p>
-          </div>
-
-          <div className="rounded-lg border border-slate-200 p-4">
-            <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
-              <WalletCards className="size-4" />
-              Paid
-            </div>
-            <p className="mt-2 text-sm font-semibold text-slate-950">
-              {formatCurrencyFromCents(project.paidAmountCents)}
-            </p>
-          </div>
-
-          <div className="rounded-lg border border-slate-200 p-4">
-            <p className="text-xs font-medium text-slate-500">Remaining</p>
-            <p className="mt-2 text-sm font-semibold text-slate-950">
-              {formatCurrencyFromCents(remainingCents)}
-            </p>
-          </div>
+                : "Not scheduled"
+            }
+          />
+          <ProjectInsight
+            icon={CheckCircle2}
+            label="Tasks done"
+            value={`${completedTasks} of ${project.tasks.length}`}
+          />
+          <ProjectInsight
+            icon={ShieldCheck}
+            label="Approvals"
+            value={
+              pendingApprovals > 0
+                ? `${pendingApprovals} waiting`
+                : "Nothing pending"
+            }
+          />
+          <ProjectInsight
+            icon={WalletCards}
+            label="Remaining"
+            value={formatCurrencyFromCents(remainingCents)}
+          />
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function ProjectInsight({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: ComponentType<{ className?: string }>;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="min-w-0 rounded-lg border border-slate-200 bg-slate-50/70 p-3">
+      <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
+        <Icon className="size-4 shrink-0" />
+        <span className="truncate">{label}</span>
+      </div>
+      <p className="mt-2 break-words text-sm font-semibold text-slate-950">
+        {value}
+      </p>
+    </div>
   );
 }

@@ -29,23 +29,25 @@ function getActivityIcon(activity: ClientPortalActivity) {
 }
 
 export function ClientActivityCard({ activity }: ClientActivityCardProps) {
+  const visibleActivity = activity.slice(0, 5);
+
   return (
     <Card className="rounded-lg border-slate-200 shadow-sm">
       <CardHeader>
-        <CardTitle>Project activity</CardTitle>
+        <CardTitle>Recent activity</CardTitle>
         <p className="text-sm text-slate-500">
-          Recent project moments worth keeping track of.
+          Latest changes across updates, files, approvals, and payments.
         </p>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3">
         {activity.length === 0 ? (
           <p className="text-sm leading-6 text-slate-600">
             Activity will appear here when updates, approvals, files, and
             payments move forward.
           </p>
         ) : (
-          activity.map((item) => {
+          visibleActivity.map((item) => {
             const Icon = getActivityIcon(item);
 
             return (
@@ -66,6 +68,13 @@ export function ClientActivityCard({ activity }: ClientActivityCardProps) {
             );
           })
         )}
+
+        {activity.length > visibleActivity.length ? (
+          <p className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500">
+            Showing the latest {visibleActivity.length} of {activity.length}{" "}
+            activity items.
+          </p>
+        ) : null}
       </CardContent>
     </Card>
   );

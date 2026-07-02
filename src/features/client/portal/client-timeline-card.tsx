@@ -14,13 +14,13 @@ export function ClientTimelineCard({ milestones }: ClientTimelineCardProps) {
   return (
     <Card className="rounded-lg border-slate-200 shadow-sm">
       <CardHeader>
-        <CardTitle>Progress timeline</CardTitle>
+        <CardTitle>Delivery timeline</CardTitle>
         <p className="text-sm text-slate-500">
-          Clear delivery steps, current status, and what comes next.
+          Milestones, review points, and planned delivery steps.
         </p>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3">
         {milestones.length === 0 ? (
           <p className="text-sm leading-6 text-slate-600">
             Milestones will appear here after the project plan is added.
@@ -30,24 +30,24 @@ export function ClientTimelineCard({ milestones }: ClientTimelineCardProps) {
             const isLast = index === milestones.length - 1;
 
             return (
-              <div key={milestone.id} className="relative flex gap-4">
+              <div key={milestone.id} className="relative flex gap-3">
                 {!isLast ? (
-                  <div className="absolute left-5 top-11 h-full w-px bg-slate-200" />
+                  <div className="absolute left-4 top-10 h-full w-px bg-slate-200" />
                 ) : null}
 
-                <div className="relative z-10 grid size-10 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-700">
+                <div className="relative z-10 grid size-8 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-700">
                   <Flag className="size-4" />
                 </div>
 
-                <div className="min-w-0 flex-1 rounded-lg border border-slate-200 p-4">
+                <div className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white p-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="font-semibold text-slate-950">
+                    <p className="break-words text-sm font-semibold text-slate-950">
                       {milestone.title}
                     </p>
                     <ClientMilestoneStatusBadge status={milestone.status} />
                   </div>
 
-                  <StackedCell className="mt-2 gap-2">
+                  <StackedCell className="mt-2 gap-1.5">
                     <p className="break-words text-sm leading-6 text-slate-600">
                       {milestone.description}
                     </p>

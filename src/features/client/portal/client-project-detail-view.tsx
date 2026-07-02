@@ -20,19 +20,20 @@ export function ClientProjectDetailView({
       <PageHeader
         eyebrow="Project"
         title={project.name}
-        description="See what is done, what is active, what comes next, and what needs your review."
+        description="A clear view of progress, active work, approvals, and recent project notes."
       />
 
       <ClientProjectOverview project={project} />
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(360px,0.85fr)]">
-        <div className="space-y-6">
+      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(340px,420px)]">
+        <div className="min-w-0 space-y-6">
           <ClientTimelineCard milestones={project.milestones} />
-          <ClientTasksCard tasks={project.tasks} />
           <ClientUpdatesCard updates={project.updates} />
         </div>
 
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
+          <ClientTasksCard tasks={project.tasks} />
+
           <ApprovalActionsCard
             projectId={project.id}
             approvals={project.approvals}
