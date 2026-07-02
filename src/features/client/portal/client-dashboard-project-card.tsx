@@ -54,6 +54,7 @@ export function ClientDashboardProjectCard({
             <h2 className="mt-4 break-words text-2xl font-semibold leading-8 text-slate-950">
               <Link
                 href={projectHref}
+                prefetch
                 className="rounded-sm outline-none transition-colors hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-slate-950/20 focus-visible:ring-offset-2"
               >
                 {project.name}
@@ -128,21 +129,21 @@ export function ClientDashboardProjectCard({
             ) : null}
 
             <Button asChild variant="outline" className="w-full sm:w-auto">
-              <Link href={feedbackHref}>
+              <Link href={feedbackHref} prefetch>
                 <MessageSquare className="mr-2 size-4" />
                 Send Feedback
               </Link>
             </Button>
 
             <Button asChild variant="outline" className="w-full sm:w-auto">
-              <Link href={approvalsHref}>
+              <Link href={approvalsHref} prefetch>
                 <CheckCircle2 className="mr-2 size-4" />
                 Review Approvals
               </Link>
             </Button>
 
             <Button asChild variant="outline" className="w-full sm:w-auto">
-              <Link href={paymentsHref}>
+              <Link href={paymentsHref} prefetch>
                 <WalletCards className="mr-2 size-4" />
                 View Payments
               </Link>
@@ -213,7 +214,9 @@ export function ClientDashboardProjectCard({
                 : "No files have been shared for this project yet."}
             </p>
             <Button asChild variant="outline" className="mt-4 w-full sm:w-auto">
-              <Link href={filesHref}>Open files</Link>
+              <Link href={filesHref} prefetch>
+                Open files
+              </Link>
             </Button>
           </div>
         </div>

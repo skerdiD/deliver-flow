@@ -12,7 +12,8 @@ import {
   WalletCards,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -34,6 +35,12 @@ import { cn } from "@/lib/utils";
 type ClientProjectControlsProps = {
   projects: ClientProjectSwitcherProject[];
   defaultProjectId: string | null;
+};
+
+type OptimisticProjectSelection = {
+  projectId: string;
+  pathname: string;
+  currentProjectId: string | null;
 };
 
 const projectAwareRoutes = [
@@ -98,13 +105,46 @@ export function ClientProjectControls({
   defaultProjectId,
 }: ClientProjectControlsProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const searchParams = useSearchParams();
+  const search = searchParams.toString();
   const currentProjectId = searchParams.get("projectId") ?? defaultProjectId;
+  const [optimisticSelection, setOptimisticSelection] =
+    useState<OptimisticProjectSelection | null>(null);
+  const displayProjectId =
+    optimisticSelection?.pathname === pathname &&
+    optimisticSelection.currentProjectId === currentProjectId
+      ? optimisticSelection.projectId
+      : currentProjectId;
   const selectedProject =
-    projects.find((project) => project.id === currentProjectId) ??
+    projects.find((project) => project.id === displayProjectId) ??
     projects[0] ??
     null;
   const selectedProjectId = selectedProject?.id ?? null;
+  const projectHrefs = useMemo(
+    () =>
+      projects.map((project) =>
+        buildProjectHref(pathname, search, project.id),
+      ),
+    [pathname, projects, search],
+  );
+  const quickActionHrefs = useMemo(
+    () =>
+      selectedProjectId
+        ? quickActions.map((action) =>
+            buildSectionHref(action.href, selectedProjectId),
+          )
+        : [],
+    [selectedProjectId],
+  );
+  const prefetchHrefs = useCallback(
+    (hrefs: string[]) => {
+      for (const href of hrefs) {
+        router.prefetch(href);
+      }
+    },
+    [router],
+  );
 
   if (!selectedProject || !selectedProjectId) {
     return (
@@ -124,7 +164,13 @@ export function ClientProjectControls({
 
   return (
     <div className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none">
-      <DropdownMenu>
+      <DropdownMenu
+        onOpenChange={(open) => {
+          if (open) {
+            prefetchHrefs(projectHrefs);
+          }
+        }}
+      >
         <DropdownMenuTrigger asChild>
           <Button
             type="button"
@@ -148,11 +194,7 @@ export function ClientProjectControls({
           <DropdownMenuSeparator />
           {projects.map((project) => {
             const isSelected = project.id === selectedProjectId;
-            const href = buildProjectHref(
-              pathname,
-              searchParams.toString(),
-              project.id,
-            );
+            const href = buildProjectHref(pathname, search, project.id);
 
             return (
               <DropdownMenuItem
@@ -160,7 +202,18 @@ export function ClientProjectControls({
                 asChild
                 className="items-start gap-3 px-2.5 py-3"
               >
-                <Link href={href}>
+                <Link
+                  href={href}
+                  prefetch
+                  onClick={() =>
+                    setOptimisticSelection({
+                      projectId: project.id,
+                      pathname,
+                      currentProjectId,
+                    })
+                  }
+                  onMouseEnter={() => router.prefetch(href)}
+                >
                   <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center">
                     {isSelected ? (
                       <Check className="size-4 text-slate-950" />
@@ -187,7 +240,13 @@ export function ClientProjectControls({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <DropdownMenu>
+      <DropdownMenu
+        onOpenChange={(open) => {
+          if (open) {
+            prefetchHrefs(quickActionHrefs);
+          }
+        }}
+      >
         <DropdownMenuTrigger asChild>
           <Button
             type="button"
@@ -210,6 +269,7 @@ export function ClientProjectControls({
           <DropdownMenuSeparator />
           {quickActions.map((action) => {
             const Icon = action.icon;
+            const href = buildSectionHref(action.href, selectedProjectId);
 
             return (
               <DropdownMenuItem
@@ -217,7 +277,11 @@ export function ClientProjectControls({
                 asChild
                 className="gap-3 px-2.5 py-2.5"
               >
-                <Link href={buildSectionHref(action.href, selectedProjectId)}>
+                <Link
+                  href={href}
+                  prefetch
+                  onMouseEnter={() => router.prefetch(href)}
+                >
                   <Icon className="size-4 text-slate-500" />
                   <span>{action.label}</span>
                 </Link>

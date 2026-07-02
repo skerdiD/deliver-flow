@@ -6,7 +6,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
 import { ApprovalActionsCard } from "@/features/client/portal/approval-actions-card";
 import {
-  getClientPortalProjectById,
+  getClientPortalProjectApprovalsById,
   getSelectedClientProject,
   type ClientProjectSearchParams,
 } from "@/features/client/portal/portal-data";
@@ -28,7 +28,7 @@ export default async function ClientApprovalsPage({
   }
 
   if (projectId) {
-    const project = await getClientPortalProjectById(projectId);
+    const project = await getClientPortalProjectApprovalsById(projectId);
 
     if (!project) {
       notFound();

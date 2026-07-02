@@ -231,6 +231,25 @@ function mapApprovalRowToPortalApproval(row: {
   };
 }
 
+function sortClientPortalApprovals(
+  approvalsList: ClientPortalApproval[],
+): ClientPortalApproval[] {
+  return approvalsList.sort((left, right) => {
+    if (left.status === "pending" && right.status !== "pending") {
+      return -1;
+    }
+
+    if (left.status !== "pending" && right.status === "pending") {
+      return 1;
+    }
+
+    return (
+      new Date(right.requestedAt).getTime() -
+      new Date(left.requestedAt).getTime()
+    );
+  });
+}
+
 const getClientPortalAccess = cache(async (): Promise<ClientPortalAccess> => {
   const profile = await requireRole("client");
 
@@ -645,22 +664,9 @@ async function buildClientPortalProject(
     }),
   );
 
-  const mappedApprovals = projectApprovals
-    .map(mapApprovalRowToPortalApproval)
-    .sort((left, right) => {
-      if (left.status === "pending" && right.status !== "pending") {
-        return -1;
-      }
-
-      if (left.status !== "pending" && right.status === "pending") {
-        return 1;
-      }
-
-      return (
-        new Date(right.requestedAt).getTime() -
-        new Date(left.requestedAt).getTime()
-      );
-    });
+  const mappedApprovals = sortClientPortalApprovals(
+    projectApprovals.map(mapApprovalRowToPortalApproval),
+  );
 
   const mappedActivity: ClientPortalActivity[] = projectActivityRows.map(
     (activity) => ({
@@ -1183,6 +1189,55 @@ export const getClientPortalProjectFeedbackById = cache(
         createdAt: toIsoString(item.createdAt),
         adminResponse: item.adminResponse,
       })),
+    });
+  },
+);
+
+export const getClientPortalProjectApprovalsById = cache(
+  async (projectId: string): Promise<ClientPortalProject | null> => {
+    const access = await getClientPortalAccess();
+    const assignment = await getClientPortalAssignmentById(
+      access.profile.id,
+      projectId,
+    );
+
+    if (!assignment) {
+      return null;
+    }
+
+    const projectApprovals = await db
+      .select({
+        id: approvals.id,
+        title: approvals.title,
+        description: approvals.description,
+        status: approvals.status,
+        milestoneName: milestones.title,
+        responseNote: approvals.responseNote,
+        requestedAt: approvals.requestedAt,
+        respondedAt: approvals.respondedAt,
+      })
+      .from(approvals)
+      .leftJoin(milestones, eq(approvals.milestoneId, milestones.id))
+      .where(
+        and(
+          eq(approvals.projectId, assignment.projectId),
+          isNull(approvals.deletedAt),
+        ),
+      )
+      .orderBy(desc(approvals.requestedAt));
+
+    const mappedApprovals = sortClientPortalApprovals(
+      projectApprovals.map((approval) =>
+        mapApprovalRowToPortalApproval({
+          ...approval,
+          projectName: assignment.projectName,
+        }),
+      ),
+    );
+
+    return buildClientPortalProjectShell(assignment, {
+      approvals: mappedApprovals,
+      approval: mappedApprovals[0] ?? null,
     });
   },
 );

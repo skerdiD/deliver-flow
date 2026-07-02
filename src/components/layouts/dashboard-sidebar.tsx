@@ -61,27 +61,28 @@ export function DashboardSidebar({
       <aside
         className={cn(
           "dashboard-sidebar-shell h-dvh shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-white transition-[width] duration-300 ease-in-out",
-          isCollapsed ? "w-20" : expandedWidthClass,
+          isCollapsed ? "w-24" : expandedWidthClass,
         )}
       >
         <div
           className={cn(
-            "relative flex h-16 shrink-0 items-center border-b border-slate-200",
-            isCollapsed ? "justify-center px-3" : "px-5 pr-12",
+            "flex h-16 shrink-0 items-center gap-2 border-b border-slate-200",
+            isCollapsed ? "justify-between px-3" : "px-5",
           )}
         >
           <Link
             href={resolvedHomeHref}
+            prefetch={preserveProjectId ? true : undefined}
             aria-label="DeliverFlow workspace"
             className={cn(
-              "min-w-0 transition-all duration-200",
-              isCollapsed && "flex justify-center",
+              "min-w-0 flex-1 transition-all duration-200",
+              isCollapsed && "flex-none",
             )}
           >
             <BrandLogo
               subtitle={subtitle}
               showText={!isCollapsed}
-              iconClassName={isCollapsed ? "size-10" : undefined}
+              iconClassName={isCollapsed ? "size-9" : undefined}
             />
           </Link>
 
@@ -90,10 +91,7 @@ export function DashboardSidebar({
             variant="ghost"
             size="icon-sm"
             aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className={cn(
-              "absolute top-1/2 z-20 size-8 -translate-y-1/2 rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950",
-              isCollapsed ? "right-2" : "right-3",
-            )}
+            className="size-8 shrink-0 rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950"
             onClick={() => setIsCollapsed((current) => !current)}
           >
             {isCollapsed ? (
@@ -121,6 +119,7 @@ export function DashboardSidebar({
                 <Link
                   key={item.href}
                   href={href}
+                  prefetch={preserveProjectId ? true : undefined}
                   aria-label={item.title}
                   aria-current={isActive ? "page" : undefined}
                   className={cn(

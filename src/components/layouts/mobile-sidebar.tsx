@@ -77,6 +77,7 @@ export function MobileSidebar({ type, className }: MobileSidebarProps) {
               <Link
                 key={item.href}
                 href={href}
+                prefetch={type === "client" ? true : undefined}
                 aria-current={isActive ? "page" : undefined}
                 onClick={() => setOpen(false)}
                 className={cn(
