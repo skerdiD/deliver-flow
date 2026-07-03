@@ -66,8 +66,8 @@ export function FeedbackForm({ projectId, feedback }: FeedbackFormProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(360px,0.8fr)]">
-      <Card className="self-start rounded-lg border-slate-200 shadow-sm">
+    <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(380px,0.8fr)]">
+      <Card className="h-auto self-start rounded-lg border-slate-200 shadow-sm">
         <CardHeader>
           <CardTitle>Send feedback</CardTitle>
           <p className="text-sm text-slate-500">
@@ -140,7 +140,7 @@ export function FeedbackForm({ projectId, feedback }: FeedbackFormProps) {
               description="Your submitted feedback for this project will appear here once you send your first note."
             />
           ) : (
-            <div className="space-y-4 pr-1 xl:max-h-[650px] xl:overflow-y-auto">
+            <div className="space-y-4 pr-1 lg:max-h-[560px] lg:overflow-y-auto">
               {feedback.map((item) => (
                 <div
                   key={item.id}

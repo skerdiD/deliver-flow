@@ -1,13 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
-import { and, eq, isNull } from "drizzle-orm";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { db } from "@/db";
-import { clients, profiles } from "@/db/schema";
-import {
-  getRouteAccessDecision,
-  isSupportedRole,
-} from "@/lib/supabase/route-protection";
+import { routes } from "@/config/routes";
 import type { Database } from "@/types/database";
 
 export async function updateSession(request: NextRequest) {
@@ -46,106 +40,56 @@ export async function updateSession(request: NextRequest) {
   });
 
   const pathname = request.nextUrl.pathname;
-
-  // 1. Ask Supabase for the authenticated user. getUser() validates the token
-  // with Supabase instead of trusting the local cookie contents.
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return applyRouteDecision(
-      request,
-      response,
-      getRouteAccessDecision(pathname, request.nextUrl.search, {
-        status: "unauthenticated",
-      }),
-    );
-  }
-
-  // 2. Resolve the app profile role from the database. The session alone only
-  // proves identity; profiles.role is the authorization source of truth.
-  const [profile] = await db
-    .select({
-      role: profiles.role,
-    })
-    .from(profiles)
-    .where(eq(profiles.id, user.id))
-    .limit(1);
-
-  if (!profile) {
-    return applyRouteDecision(
-      request,
-      response,
-      getRouteAccessDecision(pathname, request.nextUrl.search, {
-        status: "missing_profile",
-      }),
-    );
-  }
-
-  if (!isSupportedRole(profile.role)) {
-    return applyRouteDecision(
-      request,
-      response,
-      getRouteAccessDecision(pathname, request.nextUrl.search, {
-        status: "invalid_role",
-      }),
-    );
-  }
-
-  if (profile.role === "client") {
-    const [client] = await db
-      .select({ id: clients.id })
-      .from(clients)
-      .where(
-        and(
-          eq(clients.profileId, user.id),
-          eq(clients.status, "active"),
-          isNull(clients.archivedAt),
-          isNull(clients.deletedAt),
-        ),
-      )
-      .limit(1);
-
-    if (!client) {
-      return applyRouteDecision(
-        request,
+    if (isProtectedRoute(pathname)) {
+      return redirectWithSessionCookies(
         response,
-        getRouteAccessDecision(pathname, request.nextUrl.search, {
-          status: "missing_client",
-        }),
+        buildLoginUrl(request, `${pathname}${request.nextUrl.search}`),
       );
     }
-  }
 
-  // 3. Apply role-based route policy. Admin and client layouts also call
-  // requireRole(), so direct server renders remain protected if proxy is
-  // bypassed or future routes are added under these segments.
-  return applyRouteDecision(
-    request,
-    response,
-    getRouteAccessDecision(pathname, request.nextUrl.search, {
-      status: "authenticated",
-      role: profile.role,
-    }),
-  );
-}
-
-function applyRouteDecision(
-  request: NextRequest,
-  response: NextResponse,
-  decision: ReturnType<typeof getRouteAccessDecision>,
-) {
-  if (decision.type === "allow") {
     return response;
   }
 
-  const redirectUrl = request.nextUrl.clone();
-  const [pathname, search = ""] = decision.destination.split("?");
-  redirectUrl.pathname = pathname;
-  redirectUrl.search = search;
+  if (pathname === routes.auth.login) {
+    return redirectWithSessionCookies(response, buildHomeUrl(request));
+  }
 
-  return redirectWithSessionCookies(response, redirectUrl);
+  return response;
+}
+
+function isProtectedRoute(pathname: string) {
+  return (
+    pathMatchesPrefix(pathname, "/admin") || pathMatchesPrefix(pathname, "/client")
+  );
+}
+
+function pathMatchesPrefix(pathname: string, prefix: string) {
+  return pathname === prefix || pathname.startsWith(`${prefix}/`);
+}
+
+function buildLoginUrl(request: NextRequest, next?: string) {
+  const url = request.nextUrl.clone();
+  url.pathname = routes.auth.login;
+  url.search = "";
+
+  if (next) {
+    url.searchParams.set("next", next);
+  }
+
+  return url;
+}
+
+function buildHomeUrl(request: NextRequest) {
+  const url = request.nextUrl.clone();
+  url.pathname = routes.home;
+  url.search = "";
+
+  return url;
 }
 
 function redirectWithSessionCookies(response: NextResponse, url: URL) {
