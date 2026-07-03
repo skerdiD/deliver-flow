@@ -35,31 +35,35 @@ export function ClientProjectOverview({ project }: ClientProjectOverviewProps) {
     (approval) => approval.status === "pending",
   ).length;
   const projectQuery = `projectId=${encodeURIComponent(project.id)}`;
+  const filesHref = `/client/files?${projectQuery}`;
+  const feedbackHref = `/client/feedback?${projectQuery}`;
+  const approvalsHref = `/client/approvals?${projectQuery}`;
+  const paymentsHref = `/client/payments?${projectQuery}`;
 
   return (
-    <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
-      <Card className="h-auto self-start rounded-lg border-slate-200 shadow-sm">
-        <CardContent className="p-5">
-          <div className="min-w-0">
+    <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.7fr)_minmax(340px,1fr)]">
+      <Card className="h-full rounded-lg border-slate-200 shadow-sm">
+        <CardContent className="flex h-full flex-col p-6">
+          <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <ClientProjectStatusBadge status={project.status} />
               <ClientPaymentStatusBadge status={project.paymentStatus} />
             </div>
 
-            <p className="mt-4 max-w-4xl break-words text-sm leading-6 text-slate-600">
+            <p className="mt-5 max-w-4xl break-words text-sm leading-7 text-slate-600">
               {project.description}
             </p>
 
             <ProgressCell
               value={project.progress}
               label="Overall progress"
-              className="mt-5 max-w-none"
+              className="mt-6 max-w-none"
               labelClassName="text-sm font-medium text-slate-700"
               valueClassName="font-semibold text-slate-950"
             />
           </div>
 
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             <ProjectInsight
               icon={ListChecks}
               label="Current focus"
@@ -97,68 +101,87 @@ export function ClientProjectOverview({ project }: ClientProjectOverviewProps) {
         </CardContent>
       </Card>
 
-      <Card className="h-auto self-start rounded-lg border-slate-200 shadow-sm">
-        <CardContent className="p-5">
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-slate-950">
+      <Card className="h-full rounded-lg border-slate-200 shadow-sm">
+        <CardContent className="flex h-full flex-col p-6">
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold uppercase tracking-[0.08em] text-slate-500">
               Project actions
             </p>
-            <p className="mt-1 text-sm leading-6 text-slate-600">
-              Open the dedicated workspace areas when you need to review,
-              download, or respond.
+            <p className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">
+              Quick links for this project.
+            </p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              Jump straight into review, files, approvals, payments, or the
+              latest live build.
             </p>
 
-            <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
-              <Button asChild variant="outline" className="justify-start">
-                <Link href={`/client/files?${projectQuery}`} prefetch>
+            {project.liveDemoUrl ? (
+              <Button asChild size="lg" className="mt-5 w-full justify-start">
+                <a href={project.liveDemoUrl} target="_blank" rel="noreferrer">
+                  <ExternalLink className="size-4" />
+                  View Live Demo
+                </a>
+              </Button>
+            ) : null}
+
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <Button
+                asChild
+                variant="outline"
+                className="h-14 justify-start rounded-lg px-4 text-left"
+              >
+                <Link href={filesHref} prefetch>
                   <FileText className="mr-2 size-4" />
                   Files
                 </Link>
               </Button>
 
-              <Button asChild variant="outline" className="justify-start">
-                <Link href={`/client/feedback?${projectQuery}`} prefetch>
+              <Button
+                asChild
+                variant="outline"
+                className="h-14 justify-start rounded-lg px-4 text-left"
+              >
+                <Link href={feedbackHref} prefetch>
                   <MessageSquare className="mr-2 size-4" />
                   Feedback
                 </Link>
               </Button>
 
-              <Button asChild variant="outline" className="justify-start">
-                <Link href={`/client/approvals?${projectQuery}`} prefetch>
+              <Button
+                asChild
+                variant="outline"
+                className="h-14 justify-start rounded-lg px-4 text-left"
+              >
+                <Link href={approvalsHref} prefetch>
                   <ShieldCheck className="mr-2 size-4" />
                   Approvals
                 </Link>
               </Button>
 
-              <Button asChild variant="outline" className="justify-start">
-                <Link href={`/client/payments?${projectQuery}`} prefetch>
+              <Button
+                asChild
+                variant="outline"
+                className="h-14 justify-start rounded-lg px-4 text-left"
+              >
+                <Link href={paymentsHref} prefetch>
                   <WalletCards className="mr-2 size-4" />
                   Payments
                 </Link>
               </Button>
             </div>
 
-            {project.liveDemoUrl ? (
-              <Button asChild className="mt-3 w-full justify-start">
-                <a href={project.liveDemoUrl} target="_blank" rel="noreferrer">
-                  <ExternalLink className="mr-2 size-4" />
-                  View Live Demo
-                </a>
-              </Button>
-            ) : null}
-
             {project.repositoryUrl ? (
               <Button
                 asChild
                 variant="outline"
-                className="mt-3 w-full justify-start"
+                className="mt-3 w-full justify-start rounded-lg border-dashed text-sm text-slate-700"
               >
                 <a
                   href={project.repositoryUrl}
                   target="_blank"
                   rel="noreferrer"
                 >
-                  <GitBranch className="mr-2 size-4" />
+                  <GitBranch className="size-4" />
                   View repository
                 </a>
               </Button>
@@ -180,12 +203,12 @@ function ProjectInsight({
   value: string;
 }) {
   return (
-    <div className="min-w-0 rounded-lg border border-slate-200 bg-slate-50/70 p-3">
+    <div className="min-w-0 rounded-xl border border-slate-200 bg-slate-50/80 p-3.5">
       <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
         <Icon className="size-4 shrink-0" />
         <span className="truncate">{label}</span>
       </div>
-      <p className="mt-2 break-words text-sm font-semibold text-slate-950">
+      <p className="mt-2 break-words text-base font-semibold text-slate-950">
         {value}
       </p>
     </div>
