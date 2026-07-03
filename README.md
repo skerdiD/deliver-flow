@@ -8,46 +8,27 @@ It helps freelancers and small agencies manage clients, projects, tasks, files, 
 
 ---
 
-## Demo Account
-
-Use the demo client account below to explore the private client portal.
-
-Email: [client@deliverflow.demo](mailto:client@deliverflow.demo)
-Password: Demo123456!
-
-The demo client can view assigned projects, project progress, shared files, payment records, feedback, and approval requests.
-
-The admin dashboard is protected and not publicly shared in the demo. Screenshots are included below to show the admin experience.
-
----
-
 ## Preview
 
 Explore the deployed app: [deliver-flow.vercel.app](https://deliver-flow.vercel.app)
 
-### Landing Page
+Updated preview assets: the app screenshots in `public/screenshots/` have been renamed and organized below.
 
-<img src="./public/landing-page.png" alt="DeliverFlow landing page" width="100%">
+| `client-portal-overview.png` | `client-project-files.png` |
+| --- | --- |
+| ![Client portal overview](public/screenshots/client-portal-overview.png) | ![Client project files](public/screenshots/client-project-files.png) |
 
-### Admin Dashboard
+| `client-project-detail.png` | `admin-dashboard-overview.png` |
+| --- | --- |
+| ![Client project detail](public/screenshots/client-project-detail.png) | ![Admin dashboard overview](public/screenshots/admin-dashboard-overview.png) |
 
-<img src="./public/admin-dashboard.png" alt="DeliverFlow admin dashboard" width="100%">
+| `admin-dashboard-attention-and-feedback.png` | `admin-clients-table.png` |
+| --- | --- |
+| ![Admin dashboard attention and feedback](public/screenshots/admin-dashboard-attention-and-feedback.png) | ![Admin clients table](public/screenshots/admin-clients-table.png) |
 
-### Projects
-
-<img src="./public/projects-management.png" alt="DeliverFlow projects management" width="100%">
-
-### Client Portal
-
-<img src="./public/client-dashboard.png" alt="DeliverFlow client dashboard" width="100%">
-
-### Files, Payments, and Approvals
-
-<img src="./public/files-management.png" alt="DeliverFlow files management" width="100%">
-<img src="./public/payments-management.png" alt="DeliverFlow payments management" width="100%">
-<img src="./public/approvals-management.png" alt="DeliverFlow approvals management" width="100%">
-
----
+| `admin-projects-table.png` | `admin-tasks-table.png` |
+| --- | --- |
+| ![Admin projects table](public/screenshots/admin-projects-table.png) | ![Admin tasks table](public/screenshots/admin-tasks-table.png) |
 
 ## Overview
 
