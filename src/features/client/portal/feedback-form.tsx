@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Send } from "lucide-react";
+import { Loader2, MessageSquareMore, Send } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
@@ -12,6 +12,7 @@ import {
   type ClientFeedbackValues,
 } from "@/features/client/portal/portal-validation";
 import type { ClientPortalFeedback } from "@/features/client/portal/types";
+import { EmptyState } from "@/components/shared/empty-state";
 import { FormStatus } from "@/components/shared/form-status";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
@@ -65,8 +66,8 @@ export function FeedbackForm({ projectId, feedback }: FeedbackFormProps) {
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(320px,420px)]">
-      <Card className="rounded-lg border-slate-200 shadow-sm">
+    <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(360px,0.8fr)]">
+      <Card className="self-start rounded-lg border-slate-200 shadow-sm">
         <CardHeader>
           <CardTitle>Send feedback</CardTitle>
           <p className="text-sm text-slate-500">
@@ -90,7 +91,7 @@ export function FeedbackForm({ projectId, feedback }: FeedbackFormProps) {
                     <FormLabel>Your message</FormLabel>
                     <FormControl>
                       <Textarea
-                        className="min-h-44"
+                        className="min-h-[200px] resize-y"
                         placeholder="Write what looks good, what feels unclear, or what should be changed."
                         disabled={isPending}
                         {...field}
@@ -123,7 +124,7 @@ export function FeedbackForm({ projectId, feedback }: FeedbackFormProps) {
         </CardContent>
       </Card>
 
-      <Card className="rounded-lg border-slate-200 shadow-sm">
+      <Card className="self-start rounded-lg border-slate-200 shadow-sm">
         <CardHeader>
           <CardTitle>Previous feedback</CardTitle>
           <p className="text-sm text-slate-500">
@@ -131,59 +132,63 @@ export function FeedbackForm({ projectId, feedback }: FeedbackFormProps) {
           </p>
         </CardHeader>
 
-        <CardContent className="space-y-4">
+        <CardContent>
           {feedback.length === 0 ? (
-            <p className="text-sm leading-6 text-slate-600">
-              No feedback has been sent yet.
-            </p>
+            <EmptyState
+              icon={MessageSquareMore}
+              title="No feedback yet"
+              description="Your submitted feedback for this project will appear here once you send your first note."
+            />
           ) : (
-            feedback.map((item) => (
-              <div
-                key={item.id}
-                className="rounded-lg border border-slate-200 p-4"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <StatusBadge
-                    label={
-                      item.status === "open"
-                        ? "Open"
-                        : item.status === "reviewed"
-                          ? "Reviewed"
-                          : "Resolved"
-                    }
-                    tone={
-                      item.status === "open"
-                        ? "yellow"
-                        : item.status === "reviewed"
-                          ? "blue"
-                          : "green"
-                    }
-                  />
-                  <span className="text-xs text-slate-500">
-                    {formatShortDate(item.createdAt)}
-                  </span>
-                </div>
-
-                <p className="mt-3 break-words text-sm leading-6 text-slate-600">
-                  {item.message}
-                </p>
-
-                {item.adminResponse ? (
-                  <div className="mt-4 rounded-lg bg-slate-50 p-3">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                      Reply from your freelancer
-                    </p>
-                    <p className="mt-2 break-words text-sm leading-6 text-slate-600">
-                      {item.adminResponse}
-                    </p>
+            <div className="space-y-4 pr-1 xl:max-h-[650px] xl:overflow-y-auto">
+              {feedback.map((item) => (
+                <div
+                  key={item.id}
+                  className="min-w-0 rounded-lg border border-slate-200 p-4"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <StatusBadge
+                      label={
+                        item.status === "open"
+                          ? "Open"
+                          : item.status === "reviewed"
+                            ? "Reviewed"
+                            : "Resolved"
+                      }
+                      tone={
+                        item.status === "open"
+                          ? "yellow"
+                          : item.status === "reviewed"
+                            ? "blue"
+                            : "green"
+                      }
+                    />
+                    <span className="text-xs text-slate-500">
+                      {formatShortDate(item.createdAt)}
+                    </span>
                   </div>
-                ) : (
-                  <p className="mt-4 rounded-lg bg-slate-50 p-3 text-sm text-slate-500">
-                    No admin response yet.
+
+                  <p className="mt-3 break-words text-sm leading-6 text-slate-600">
+                    {item.message}
                   </p>
-                )}
-              </div>
-            ))
+
+                  {item.adminResponse ? (
+                    <div className="mt-4 rounded-lg bg-slate-50 p-3">
+                      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                        Reply from your freelancer
+                      </p>
+                      <p className="mt-2 break-words text-sm leading-6 text-slate-600">
+                        {item.adminResponse}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="mt-4 rounded-lg bg-slate-50 p-3 text-sm text-slate-500">
+                      No admin response yet.
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>
