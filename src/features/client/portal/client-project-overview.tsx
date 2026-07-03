@@ -37,9 +37,9 @@ export function ClientProjectOverview({ project }: ClientProjectOverviewProps) {
   const projectQuery = `projectId=${encodeURIComponent(project.id)}`;
 
   return (
-    <Card className="rounded-lg border-slate-200 shadow-sm">
-      <CardContent className="p-5">
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+    <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
+      <Card className="h-auto self-start rounded-lg border-slate-200 shadow-sm">
+        <CardContent className="p-5">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <ClientProjectStatusBadge status={project.status} />
@@ -53,13 +53,53 @@ export function ClientProjectOverview({ project }: ClientProjectOverviewProps) {
             <ProgressCell
               value={project.progress}
               label="Overall progress"
-              className="mt-6 max-w-none"
+              className="mt-5 max-w-none"
               labelClassName="text-sm font-medium text-slate-700"
               valueClassName="font-semibold text-slate-950"
             />
           </div>
 
-          <div className="min-w-0 rounded-lg border border-slate-200 bg-slate-50/70 p-4">
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <ProjectInsight
+              icon={ListChecks}
+              label="Current focus"
+              value={project.currentMilestone}
+            />
+            <ProjectInsight
+              icon={CalendarDays}
+              label="Deadline"
+              value={
+                project.deadline
+                  ? formatShortDate(project.deadline)
+                  : "Not scheduled"
+              }
+            />
+            <ProjectInsight
+              icon={CheckCircle2}
+              label="Tasks done"
+              value={`${completedTasks} of ${project.tasks.length}`}
+            />
+            <ProjectInsight
+              icon={ShieldCheck}
+              label="Approvals"
+              value={
+                pendingApprovals > 0
+                  ? `${pendingApprovals} waiting`
+                  : "Nothing pending"
+              }
+            />
+            <ProjectInsight
+              icon={WalletCards}
+              label="Remaining"
+              value={formatCurrencyFromCents(remainingCents)}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="h-auto self-start rounded-lg border-slate-200 shadow-sm">
+        <CardContent className="p-5">
+          <div className="min-w-0">
             <p className="text-sm font-semibold text-slate-950">
               Project actions
             </p>
@@ -108,7 +148,11 @@ export function ClientProjectOverview({ project }: ClientProjectOverviewProps) {
             ) : null}
 
             {project.repositoryUrl ? (
-              <Button asChild variant="outline" className="mt-3 w-full justify-start">
+              <Button
+                asChild
+                variant="outline"
+                className="mt-3 w-full justify-start"
+              >
                 <a
                   href={project.repositoryUrl}
                   target="_blank"
@@ -120,45 +164,9 @@ export function ClientProjectOverview({ project }: ClientProjectOverviewProps) {
               </Button>
             ) : null}
           </div>
-        </div>
-
-        <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-          <ProjectInsight
-            icon={ListChecks}
-            label="Current focus"
-            value={project.currentMilestone}
-          />
-          <ProjectInsight
-            icon={CalendarDays}
-            label="Deadline"
-            value={
-              project.deadline
-                ? formatShortDate(project.deadline)
-                : "Not scheduled"
-            }
-          />
-          <ProjectInsight
-            icon={CheckCircle2}
-            label="Tasks done"
-            value={`${completedTasks} of ${project.tasks.length}`}
-          />
-          <ProjectInsight
-            icon={ShieldCheck}
-            label="Approvals"
-            value={
-              pendingApprovals > 0
-                ? `${pendingApprovals} waiting`
-                : "Nothing pending"
-            }
-          />
-          <ProjectInsight
-            icon={WalletCards}
-            label="Remaining"
-            value={formatCurrencyFromCents(remainingCents)}
-          />
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 

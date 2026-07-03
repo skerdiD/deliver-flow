@@ -27,22 +27,21 @@ export function ClientProjectDetailView({
 
       <ClientProjectOverview project={project} />
 
-      <div className="grid items-start gap-6 2xl:grid-cols-2">
-        <ClientTasksCard tasks={project.tasks} />
-        <ClientTimelineCard milestones={project.milestones} />
-      </div>
+      <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
+        <div className="min-w-0 space-y-6">
+          <ClientTasksCard tasks={project.tasks} />
+          <ClientUpdatesCard updates={project.updates} />
+        </div>
 
-      <ClientUpdatesCard updates={project.updates} />
-
-      <div className="grid items-start gap-6 xl:grid-cols-3">
-        <ClientFilesPreviewCard projectId={project.id} files={project.files} />
-
-        <ClientApprovalPreviewCard
-          projectId={project.id}
-          approvals={project.approvals}
-        />
-
-        <ClientActivityCard activity={project.activity} />
+        <div className="min-w-0 space-y-6">
+          <ClientTimelineCard milestones={project.milestones} />
+          <ClientFilesPreviewCard projectId={project.id} files={project.files} />
+          <ClientApprovalPreviewCard
+            projectId={project.id}
+            approvals={project.approvals}
+          />
+          <ClientActivityCard activity={project.activity} />
+        </div>
       </div>
     </div>
   );
