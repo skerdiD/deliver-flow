@@ -770,6 +770,7 @@ async function buildClientPortalDashboardProjects(
   }
 
   const projectIds = assignments.map((assignment) => assignment.projectId);
+  const clientIds = assignments.map((assignment) => assignment.clientId);
   const assignmentByProjectId = new Map(
     assignments.map((assignment) => [assignment.projectId, assignment]),
   );
@@ -779,6 +780,7 @@ async function buildClientPortalDashboardProjects(
     projectUpdatesList,
     projectPayments,
     projectFilesList,
+    projectFeedback,
     projectApprovals,
   ] = await Promise.all([
     db
@@ -869,6 +871,27 @@ async function buildClientPortalDashboardProjects(
         ),
       )
       .orderBy(desc(projectFiles.createdAt)),
+    db
+      .select({
+        id: feedback.id,
+        projectId: feedback.projectId,
+        clientId: feedback.clientId,
+        message: feedback.message,
+        status: feedback.status,
+        adminResponse: feedback.adminResponse,
+        createdAt: feedback.createdAt,
+      })
+      .from(feedback)
+      .where(
+        and(
+          inArray(feedback.projectId, projectIds),
+          inArray(feedback.clientId, clientIds),
+          eq(feedback.isVisibleToClient, true),
+          isNull(feedback.archivedAt),
+          isNull(feedback.deletedAt),
+        ),
+      )
+      .orderBy(desc(feedback.createdAt)),
     db
       .select({
         id: approvals.id,
@@ -969,6 +992,26 @@ async function buildClientPortalDashboardProjects(
     filesByProjectId.set(file.projectId, items);
   }
 
+  const feedbackByProjectId = new Map<string, ClientPortalProject["feedback"]>();
+  for (const item of projectFeedback) {
+    const assignment = assignmentByProjectId.get(item.projectId);
+
+    if (!assignment || assignment.clientId !== item.clientId) {
+      continue;
+    }
+
+    const items = feedbackByProjectId.get(item.projectId) ?? [];
+
+    items.push({
+      id: item.id,
+      message: item.message,
+      status: item.status,
+      createdAt: toIsoString(item.createdAt),
+      adminResponse: item.adminResponse,
+    });
+    feedbackByProjectId.set(item.projectId, items);
+  }
+
   const approvalsByProjectId = new Map<string, ClientPortalProject["approvals"]>();
   for (const approval of projectApprovals) {
     const assignment = assignmentByProjectId.get(approval.projectId);
@@ -1020,6 +1063,7 @@ async function buildClientPortalDashboardProjects(
       updates: updatesByProjectId.get(assignment.projectId) ?? [],
       files: filesByProjectId.get(assignment.projectId) ?? [],
       payments: mappedPayments,
+      feedback: feedbackByProjectId.get(assignment.projectId) ?? [],
       approvals: mappedApprovals,
       approval: mappedApprovals[0] ?? null,
     });

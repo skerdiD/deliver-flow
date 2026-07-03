@@ -22,12 +22,12 @@ describe("route protection policy", () => {
 
   it("redirects unauthenticated users from client routes to login with next", () => {
     expect(
-      getRouteAccessDecision("/client/dashboard", "", {
+      getRouteAccessDecision("/client/overview", "", {
         status: "unauthenticated",
       }),
     ).toEqual({
         type: "redirect",
-        destination: "/login?next=%2Fclient%2Fdashboard",
+        destination: "/login?next=%2Fclient%2Foverview",
       });
   });
 
@@ -40,7 +40,7 @@ describe("route protection policy", () => {
     ).toEqual({ type: "allow" });
 
     expect(
-      getRouteAccessDecision("/client/dashboard", "", {
+      getRouteAccessDecision("/client/overview", "", {
         status: "authenticated",
         role: "admin",
       }),
@@ -102,7 +102,7 @@ describe("route protection policy", () => {
       });
 
     expect(
-      getRouteAccessDecision("/client/dashboard", "", {
+      getRouteAccessDecision("/client/overview", "", {
         status: "invalid_role",
       }),
     ).toEqual({
@@ -111,7 +111,7 @@ describe("route protection policy", () => {
       });
 
     expect(
-      getRouteAccessDecision("/client/dashboard", "", {
+      getRouteAccessDecision("/client/overview", "", {
         status: "missing_client",
       }),
     ).toEqual({

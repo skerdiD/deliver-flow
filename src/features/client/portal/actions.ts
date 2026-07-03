@@ -53,7 +53,7 @@ export async function sendClientFeedbackAction(
     };
   }
 
-  revalidatePath("/client/dashboard");
+  revalidatePath("/client/overview");
   revalidatePath("/client/project");
   revalidatePath(`/client/project/${projectIdParsed.data}`);
   revalidatePath("/client/feedback");
@@ -126,7 +126,7 @@ export async function approveMilestoneAction(
     };
   }
 
-  revalidatePath("/client/dashboard");
+  revalidatePath("/client/overview");
   revalidatePath("/client/project");
   revalidatePath(`/client/project/${projectIdParsed.data}`);
   revalidatePath("/client/approvals");
@@ -198,7 +198,7 @@ export async function requestChangesAction(
     };
   }
 
-  revalidatePath("/client/dashboard");
+  revalidatePath("/client/overview");
   revalidatePath("/client/project");
   revalidatePath(`/client/project/${projectIdParsed.data}`);
   revalidatePath("/client/approvals");

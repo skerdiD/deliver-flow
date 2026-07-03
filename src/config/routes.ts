@@ -22,7 +22,8 @@ export const routes = {
   },
 
   client: {
-    dashboard: "/client/dashboard",
+    dashboard: "/client/overview",
+    legacyDashboard: "/client/dashboard",
     project: "/client/project",
     files: "/client/files",
     feedback: "/client/feedback",

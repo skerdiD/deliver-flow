@@ -155,7 +155,7 @@ export async function archiveClientAction(
 
   revalidatePath("/admin/clients");
   revalidatePath(`/admin/clients/${idParsed.data.clientId}`);
-  revalidatePath("/client/dashboard");
+  revalidatePath("/client/overview");
   revalidatePath("/client/project");
 
   return {
@@ -189,7 +189,7 @@ export async function deleteClientAction(
 
   revalidatePath("/admin/clients");
   revalidatePath(`/admin/clients/${idParsed.data.clientId}`);
-  revalidatePath("/client/dashboard");
+  revalidatePath("/client/overview");
   revalidatePath("/client/project");
 
   return {

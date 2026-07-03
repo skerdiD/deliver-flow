@@ -32,8 +32,8 @@ test("logged-out user cannot access /admin/dashboard", async ({ page }) => {
   ).toBeVisible();
 });
 
-test("logged-out user cannot access /client/dashboard", async ({ page }) => {
-  await page.goto("/client/dashboard");
+test("logged-out user cannot access /client/overview", async ({ page }) => {
+  await page.goto("/client/overview");
 
   await expect(page).toHaveURL(/\/login(?:\?|$)/);
   await expect(
@@ -60,9 +60,9 @@ test.describe("authenticated route access", () => {
     await signIn(page, clientEmail!, clientPassword!);
     await page.goto("/admin/dashboard");
 
-    await expect(page).toHaveURL(/\/client\/dashboard$/);
+    await expect(page).toHaveURL(/\/client\/overview$/);
     await expect(
-      page.getByRole("heading", { name: /welcome back/i }),
+      page.getByRole("heading", { name: "Overview" }),
     ).toBeVisible();
   });
 
@@ -76,13 +76,13 @@ test.describe("authenticated route access", () => {
     ).toBeVisible();
   });
 
-  test("client can access /client/dashboard", async ({ page }) => {
+  test("client can access /client/overview", async ({ page }) => {
     await signIn(page, clientEmail!, clientPassword!);
-    await page.goto("/client/dashboard");
+    await page.goto("/client/overview");
 
-    await expect(page).toHaveURL(/\/client\/dashboard$/);
+    await expect(page).toHaveURL(/\/client\/overview$/);
     await expect(
-      page.getByRole("heading", { name: /welcome back/i }),
+      page.getByRole("heading", { name: "Overview" }),
     ).toBeVisible();
   });
 });

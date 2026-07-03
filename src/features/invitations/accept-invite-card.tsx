@@ -78,7 +78,7 @@ export function AcceptInviteCard({
           return;
         }
 
-        router.push("/client/dashboard");
+        router.push(routes.client.dashboard);
         router.refresh();
       });
   }, [password, router, state.email, state.success]);
@@ -88,7 +88,7 @@ export function AcceptInviteCard({
       return;
     }
 
-    router.push("/client/dashboard");
+    router.push(routes.client.dashboard);
     router.refresh();
   }, [router, signedInState.success]);
 

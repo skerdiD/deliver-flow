@@ -88,7 +88,7 @@ test.describe("mobile responsive protected routes", () => {
     await signIn(page, clientEmail!, clientPassword!);
 
     const clientRoutes = [
-      "/client/dashboard",
+      "/client/overview",
       "/client/project",
       "/client/files",
       "/client/feedback",

@@ -50,7 +50,7 @@ export async function acceptInviteAction(
   });
 
   if (result.success) {
-    revalidatePath("/client/dashboard");
+    revalidatePath("/client/overview");
     revalidatePath("/admin/clients");
   }
 
@@ -75,7 +75,7 @@ export async function acceptSignedInInviteAction(
   const result = await acceptClientInvite(parsed.data.token);
 
   if (result.success) {
-    revalidatePath("/client/dashboard");
+    revalidatePath("/client/overview");
     revalidatePath("/admin/clients");
   }
 

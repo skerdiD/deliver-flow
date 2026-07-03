@@ -2,11 +2,14 @@ import {
   CalendarDays,
   CheckCircle2,
   ExternalLink,
+  FileText,
   GitBranch,
   ListChecks,
+  MessageSquare,
   ShieldCheck,
   WalletCards,
 } from "lucide-react";
+import Link from "next/link";
 import type { ComponentType } from "react";
 
 import {
@@ -31,11 +34,12 @@ export function ClientProjectOverview({ project }: ClientProjectOverviewProps) {
   const pendingApprovals = project.approvals.filter(
     (approval) => approval.status === "pending",
   ).length;
+  const projectQuery = `projectId=${encodeURIComponent(project.id)}`;
 
   return (
     <Card className="rounded-lg border-slate-200 shadow-sm">
       <CardContent className="p-5">
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <ClientProjectStatusBadge status={project.status} />
@@ -55,9 +59,47 @@ export function ClientProjectOverview({ project }: ClientProjectOverviewProps) {
             />
           </div>
 
-          <div className="flex w-full flex-col gap-3 xl:w-auto">
+          <div className="min-w-0 rounded-lg border border-slate-200 bg-slate-50/70 p-4">
+            <p className="text-sm font-semibold text-slate-950">
+              Project actions
+            </p>
+            <p className="mt-1 text-sm leading-6 text-slate-600">
+              Open the dedicated workspace areas when you need to review,
+              download, or respond.
+            </p>
+
+            <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
+              <Button asChild variant="outline" className="justify-start">
+                <Link href={`/client/files?${projectQuery}`} prefetch>
+                  <FileText className="mr-2 size-4" />
+                  Files
+                </Link>
+              </Button>
+
+              <Button asChild variant="outline" className="justify-start">
+                <Link href={`/client/feedback?${projectQuery}`} prefetch>
+                  <MessageSquare className="mr-2 size-4" />
+                  Feedback
+                </Link>
+              </Button>
+
+              <Button asChild variant="outline" className="justify-start">
+                <Link href={`/client/approvals?${projectQuery}`} prefetch>
+                  <ShieldCheck className="mr-2 size-4" />
+                  Approvals
+                </Link>
+              </Button>
+
+              <Button asChild variant="outline" className="justify-start">
+                <Link href={`/client/payments?${projectQuery}`} prefetch>
+                  <WalletCards className="mr-2 size-4" />
+                  Payments
+                </Link>
+              </Button>
+            </div>
+
             {project.liveDemoUrl ? (
-              <Button asChild className="w-full xl:w-auto">
+              <Button asChild className="mt-3 w-full justify-start">
                 <a href={project.liveDemoUrl} target="_blank" rel="noreferrer">
                   <ExternalLink className="mr-2 size-4" />
                   View Live Demo
@@ -66,7 +108,7 @@ export function ClientProjectOverview({ project }: ClientProjectOverviewProps) {
             ) : null}
 
             {project.repositoryUrl ? (
-              <Button asChild variant="outline" className="w-full xl:w-auto">
+              <Button asChild variant="outline" className="mt-3 w-full justify-start">
                 <a
                   href={project.repositoryUrl}
                   target="_blank"
