@@ -13,6 +13,7 @@ export const routes = {
     dashboard: "/admin/dashboard",
     clients: "/admin/clients",
     projects: "/admin/projects",
+    milestones: "/admin/milestones",
     tasks: "/admin/tasks",
     feedback: "/admin/feedback",
     payments: "/admin/payments",

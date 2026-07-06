@@ -1,10 +1,10 @@
 import "server-only";
 
 import {
+  BadgeCheck,
   CheckCircle2,
   CreditCard,
   FolderKanban,
-  MessageSquare,
   PlusCircle,
   Send,
   Upload,
@@ -18,8 +18,6 @@ import {
   eq,
   inArray,
   isNull,
-  lte,
-  ne,
   sum,
 } from "drizzle-orm";
 
@@ -33,7 +31,6 @@ import {
   projectAssignments,
   projectUpdates,
   projects,
-  tasks,
 } from "@/db/schema";
 import type {
   ActivityType,
@@ -70,7 +67,6 @@ const activeProjectStatuses = [
 
 const completedMilestoneStatuses = ["approved", "completed"] as const;
 const outstandingPaymentStatuses = ["unpaid", "partial", "overdue"] as const;
-const dueSoonWindowMs = 1000 * 60 * 60 * 24 * 7;
 
 const adminDashboardQuickActions: DashboardQuickAction[] = [
   {
@@ -118,10 +114,6 @@ function truncateText(text: string, maxLength: number) {
   }
 
   return `${text.slice(0, maxLength - 3).trimEnd()}...`;
-}
-
-function formatDateOnly(value: Date) {
-  return value.toISOString().slice(0, 10);
 }
 
 function getSafeProjectStatus(status: string): ProjectStatus {
@@ -336,7 +328,7 @@ async function getProjectCards(
 
 function getMetrics(input: {
   activeProjectsCount: number;
-  pendingFeedbackCount: number;
+  readyForReviewCount: number;
   completedMilestonesCount: number;
   outstandingPaymentCents: number;
 }): DashboardMetric[] {
@@ -348,13 +340,13 @@ function getMetrics(input: {
       icon: FolderKanban,
     },
     {
-      title: "Feedback waiting for review",
-      value: String(input.pendingFeedbackCount),
-      description: "Open client notes that still need attention",
-      icon: MessageSquare,
+      title: "Ready for review",
+      value: String(input.readyForReviewCount),
+      description: "Milestones waiting on client sign-off",
+      icon: BadgeCheck,
     },
     {
-      title: "Completed milestones",
+      title: "Approved milestones",
       value: String(input.completedMilestonesCount),
       description: "Milestones already approved or marked complete",
       icon: CheckCircle2,
@@ -370,11 +362,10 @@ function getMetrics(input: {
 
 export async function getAdminDashboardData(): Promise<AdminDashboardData> {
   await requireRole("admin");
-  const dueSoonDate = formatDateOnly(new Date(Date.now() + dueSoonWindowMs));
 
   const [
     [activeProjectsResult],
-    [pendingFeedbackResult],
+    [readyForReviewResult],
     [completedMilestonesResult],
     [outstandingPaymentsResult],
     progressProjectRows,
@@ -383,10 +374,9 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     recentUpdateRows,
     paymentSummaryRows,
     attentionPaymentRows,
-    blockedTaskRows,
-    pendingApprovalRows,
+    readyForReviewMilestoneRows,
+    changesRequestedRows,
     openFeedbackRows,
-    highPriorityTaskRows,
   ] = await Promise.all([
     db
       .select({ value: count() })
@@ -400,17 +390,13 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       ),
     db
       .select({ value: count() })
-      .from(feedback)
-      .innerJoin(projects, eq(feedback.projectId, projects.id))
-      .innerJoin(clients, eq(feedback.clientId, clients.id))
+      .from(milestones)
+      .innerJoin(projects, eq(milestones.projectId, projects.id))
       .where(
         and(
-          eq(feedback.status, "open"),
-          isNull(feedback.archivedAt),
-          isNull(feedback.deletedAt),
+          eq(milestones.status, "waiting_approval"),
           isNull(projects.archivedAt),
           isNull(projects.deletedAt),
-          isNull(clients.deletedAt),
         ),
       ),
     db
@@ -558,24 +544,23 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       .limit(6),
     db
       .select({
-        id: tasks.id,
-        projectId: tasks.projectId,
+        id: milestones.id,
+        projectId: milestones.projectId,
         project: projects.name,
-        title: tasks.title,
-        dueDate: tasks.dueDate,
-        updatedAt: tasks.updatedAt,
+        title: milestones.title,
+        dueDate: milestones.dueDate,
+        updatedAt: milestones.updatedAt,
       })
-      .from(tasks)
-      .innerJoin(projects, eq(tasks.projectId, projects.id))
+      .from(milestones)
+      .innerJoin(projects, eq(milestones.projectId, projects.id))
       .where(
         and(
-          eq(tasks.status, "blocked"),
-          isNull(tasks.deletedAt),
+          eq(milestones.status, "waiting_approval"),
           isNull(projects.archivedAt),
           isNull(projects.deletedAt),
         ),
       )
-      .orderBy(asc(tasks.dueDate), desc(tasks.updatedAt))
+      .orderBy(asc(milestones.dueDate), desc(milestones.updatedAt))
       .limit(4),
     db
       .select({
@@ -583,19 +568,22 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
         projectId: approvals.projectId,
         project: projects.name,
         title: approvals.title,
-        requestedAt: approvals.requestedAt,
+        milestoneTitle: milestones.title,
+        responseNote: approvals.responseNote,
+        respondedAt: approvals.respondedAt,
       })
       .from(approvals)
       .innerJoin(projects, eq(approvals.projectId, projects.id))
+      .leftJoin(milestones, eq(approvals.milestoneId, milestones.id))
       .where(
         and(
-          eq(approvals.status, "pending"),
+          eq(approvals.status, "changes_requested"),
           isNull(approvals.deletedAt),
           isNull(projects.archivedAt),
           isNull(projects.deletedAt),
         ),
       )
-      .orderBy(asc(approvals.requestedAt))
+      .orderBy(desc(approvals.respondedAt), desc(approvals.updatedAt))
       .limit(4),
     db
       .select({
@@ -621,29 +609,6 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       )
       .orderBy(asc(feedback.createdAt))
       .limit(4),
-    db
-      .select({
-        id: tasks.id,
-        projectId: tasks.projectId,
-        project: projects.name,
-        title: tasks.title,
-        dueDate: tasks.dueDate,
-        updatedAt: tasks.updatedAt,
-      })
-      .from(tasks)
-      .innerJoin(projects, eq(tasks.projectId, projects.id))
-      .where(
-        and(
-          eq(tasks.priority, "high"),
-          ne(tasks.status, "completed"),
-          lte(tasks.dueDate, dueSoonDate),
-          isNull(tasks.deletedAt),
-          isNull(projects.archivedAt),
-          isNull(projects.deletedAt),
-        ),
-      )
-      .orderBy(asc(tasks.dueDate), desc(tasks.updatedAt))
-      .limit(4),
   ]);
 
   const projectProgress = await getProjectCards(progressProjectRows);
@@ -653,10 +618,9 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       ...recentUpdateRows.map((row) => row.projectId),
       ...paymentSummaryRows.map((row) => row.projectId),
       ...attentionPaymentRows.map((row) => row.projectId),
-      ...blockedTaskRows.map((row) => row.projectId),
-      ...pendingApprovalRows.map((row) => row.projectId),
+      ...readyForReviewMilestoneRows.map((row) => row.projectId),
+      ...changesRequestedRows.map((row) => row.projectId),
       ...openFeedbackRows.map((row) => row.projectId),
-      ...highPriorityTaskRows.map((row) => row.projectId),
       ...projectProgress
         .filter(
           (project) =>
@@ -694,32 +658,36 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
         priority: row.status === "overdue" ? 1 : 6,
         sortDate: row.dueDate,
       })),
-      ...blockedTaskRows.map((row) => ({
-        id: `task-blocked-${row.id}`,
-        kind: "blocked_task" as const,
-        title: "Blocked task",
+      ...readyForReviewMilestoneRows.map((row) => ({
+        id: `milestone-review-${row.id}`,
+        kind: "milestone_review" as const,
+        title: "Milestone ready for review",
         context: `${row.title} · ${row.project}`,
         reason:
-          "This task is blocked and needs a decision before delivery can move.",
-        badgeLabel: "Blocked",
-        badgeTone: "red" as const,
-        href: "/admin/tasks",
-        actionLabel: "View task",
+          row.dueDate
+            ? `Due ${formatShortDate(row.dueDate)} and waiting on a client decision.`
+            : "Waiting on a client decision.",
+        badgeLabel: "Ready for review",
+        badgeTone: "yellow" as const,
+        href: `/admin/projects/${row.projectId}`,
+        actionLabel: "Review milestone",
         priority: 2,
         sortDate: row.dueDate,
       })),
-      ...pendingApprovalRows.map((row) => ({
-        id: `approval-${row.id}`,
-        kind: "approval" as const,
-        title: "Approval waiting",
+      ...changesRequestedRows.map((row) => ({
+        id: `approval-changes-${row.id}`,
+        kind: "changes_requested" as const,
+        title: "Changes requested",
         context: `${row.title} · ${row.project}`,
-        reason: "Client approval is still pending.",
-        badgeLabel: "Pending",
-        badgeTone: "purple" as const,
-        href: "/admin/approvals",
-        actionLabel: "View approval",
+        reason:
+          row.responseNote?.trim() ||
+          "The client requested revisions on this milestone.",
+        badgeLabel: "Changes requested",
+        badgeTone: "yellow" as const,
+        href: `/admin/projects/${row.projectId}`,
+        actionLabel: "Review response",
         priority: 3,
-        sortDate: toIsoString(row.requestedAt),
+        sortDate: row.respondedAt ? toIsoString(row.respondedAt) : null,
       })),
       ...openFeedbackRows.map((row) => ({
         id: `feedback-${row.id}`,
@@ -733,21 +701,6 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
         actionLabel: "Review",
         priority: 4,
         sortDate: toIsoString(row.createdAt),
-      })),
-      ...highPriorityTaskRows.map((row) => ({
-        id: `task-high-${row.id}`,
-        kind: "high_priority_task" as const,
-        title: "High priority task due soon",
-        context: `${row.title} · ${row.project}`,
-        reason: row.dueDate
-          ? `Due ${formatShortDate(row.dueDate)}`
-          : "High priority task needs a due date.",
-        badgeLabel: "High",
-        badgeTone: "red" as const,
-        href: "/admin/tasks",
-        actionLabel: "View task",
-        priority: 5,
-        sortDate: row.dueDate,
       })),
       ...projectProgress
         .filter(
@@ -768,7 +721,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
           badgeTone: "slate" as const,
           href: `/admin/projects/${project.id}`,
           actionLabel: "View project",
-          priority: 7,
+          priority: 5,
           sortDate: project.deadline,
         })),
     ] satisfies ScoredAttentionItem[]
@@ -917,7 +870,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
 
   const metrics = getMetrics({
     activeProjectsCount: Number(activeProjectsResult?.value ?? 0),
-    pendingFeedbackCount: Number(pendingFeedbackResult?.value ?? 0),
+    readyForReviewCount: Number(readyForReviewResult?.value ?? 0),
     completedMilestonesCount: Number(completedMilestonesResult?.value ?? 0),
     outstandingPaymentCents: Number(outstandingPaymentsResult?.value ?? 0),
   });

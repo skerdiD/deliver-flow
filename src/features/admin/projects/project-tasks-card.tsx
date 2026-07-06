@@ -84,7 +84,7 @@ export function ProjectTasksCard({ projectId, tasks }: ProjectTasksCardProps) {
       <CardHeader>
         <CardTitle>Tasks</CardTitle>
         <p className="text-sm text-slate-500">
-          Break the project into clear work items the client can understand.
+          Keep the active work clear and actionable.
         </p>
       </CardHeader>
 
@@ -105,10 +105,10 @@ export function ProjectTasksCard({ projectId, tasks }: ProjectTasksCardProps) {
           {tasks.map((task) => (
             <div
               key={task.id}
-              className="rounded-lg border border-slate-200 p-4"
+              className="rounded-xl border border-slate-200 p-4"
             >
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <StackedCell className="gap-2">
+              <div className="flex min-w-0 flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                <StackedCell className="min-w-0 flex-1 gap-2">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="font-semibold text-slate-950">{task.title}</p>
                     <StatusBadge
@@ -133,17 +133,9 @@ export function ProjectTasksCard({ projectId, tasks }: ProjectTasksCardProps) {
                         tone={getPriorityTone(task.priority)}
                       />
                     ) : null}
-                    <StatusBadge
-                      label={
-                        task.isVisibleToClient === false
-                          ? "Internal only"
-                          : "Client-visible"
-                      }
-                      tone={task.isVisibleToClient === false ? "slate" : "blue"}
-                    />
                   </div>
 
-                  <p className="text-sm leading-6 text-slate-600">
+                  <p className="break-words text-sm leading-6 text-slate-600">
                     {task.description}
                   </p>
 
@@ -152,11 +144,11 @@ export function ProjectTasksCard({ projectId, tasks }: ProjectTasksCardProps) {
                   </p>
                 </StackedCell>
 
-                <div className="flex shrink-0 flex-wrap items-center gap-2 sm:justify-end">
+                <div className="flex min-w-0 shrink-0 flex-col gap-2 sm:flex-row xl:justify-end">
                   {task.status !== "completed" ? (
                     <Button
                       variant="outline"
-                      className="shrink-0"
+                      className="w-full shrink-0 sm:w-auto"
                       disabled={isPending}
                       onClick={() => handleMarkComplete(task.id)}
                     >
@@ -210,7 +202,7 @@ export function ProjectTasksCard({ projectId, tasks }: ProjectTasksCardProps) {
                 )}
               />
 
-              <div className="grid gap-4 md:grid-cols-[1fr_180px]">
+              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_200px]">
                 <FormField
                   control={form.control}
                   name="description"

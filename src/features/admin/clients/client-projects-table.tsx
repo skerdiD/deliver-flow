@@ -1,4 +1,5 @@
 import { FolderKanban } from "lucide-react";
+import Link from "next/link";
 
 import { EmptyState } from "@/components/shared/empty-state";
 import {
@@ -80,9 +81,12 @@ export function ClientProjectsTable({ projects }: ClientProjectsTableProps) {
                 <MobileRecordCard key={project.id}>
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
-                      <p className="break-words font-medium text-slate-950">
-                        {project.name}
-                      </p>
+                      <Link
+                        href={`/admin/projects/${project.id}`}
+                        className="inline-flex max-w-full rounded-sm font-medium text-slate-950 outline-none transition-colors hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-slate-950/20 focus-visible:ring-offset-2"
+                      >
+                        <span className="break-words">{project.name}</span>
+                      </Link>
                       <p className="mt-1 break-words text-xs text-slate-500">
                         {project.nextMilestone}
                       </p>
@@ -138,9 +142,14 @@ export function ClientProjectsTable({ projects }: ClientProjectsTableProps) {
                     <TableRow key={project.id}>
                       <TableCell className="whitespace-normal">
                         <StackedCell>
-                          <p className="line-clamp-1 break-words font-medium text-slate-950">
-                            {project.name}
-                          </p>
+                          <Link
+                            href={`/admin/projects/${project.id}`}
+                            className="inline-flex max-w-full rounded-sm font-medium text-slate-950 outline-none transition-colors hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-slate-950/20 focus-visible:ring-offset-2"
+                          >
+                            <span className="line-clamp-1 break-words">
+                              {project.name}
+                            </span>
+                          </Link>
                           <p className="line-clamp-1 break-words text-xs text-slate-500">
                             {project.nextMilestone}
                           </p>

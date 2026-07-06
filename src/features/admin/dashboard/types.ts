@@ -71,10 +71,9 @@ export type DashboardQuickAction = {
 
 export type AttentionKind =
   | "payment"
-  | "blocked_task"
-  | "approval"
+  | "milestone_review"
+  | "changes_requested"
   | "feedback"
-  | "high_priority_task"
   | "project_setup";
 
 export type DashboardAttentionItem = {

@@ -2,6 +2,7 @@ import { formatCurrencyFromCents } from "@/lib/format";
 import type {
   ApprovalStatus,
   FeedbackStatus,
+  MilestoneStatus,
   PaymentStatus,
   ProjectFileCategory,
   TaskPriority,
@@ -36,6 +37,29 @@ export type AdminTasksPageData = {
     completed: number;
     blocked: number;
     dueSoon: number;
+  };
+};
+
+export type AdminMilestoneRecord = AdminProjectContext & {
+  id: string;
+  title: string;
+  description: string | null;
+  status: MilestoneStatus;
+  dueDate: string | null;
+  position: number | null;
+  approvalStatus: ApprovalStatus | null;
+  responseNote: string | null;
+  requestedAt: string | null;
+  respondedAt: string | null;
+};
+
+export type AdminMilestonesPageData = {
+  milestones: AdminMilestoneRecord[];
+  summary: {
+    total: number;
+    readyForReview: number;
+    approved: number;
+    changesRequested: number;
   };
 };
 
@@ -155,6 +179,44 @@ export function getTaskPriorityMeta(priority: TaskPriority): {
       return { label: "Medium", tone: "yellow" };
     default:
       return { label: "Low", tone: "slate" };
+  }
+}
+
+export function getMilestoneStatusMeta(status: MilestoneStatus): {
+  label: string;
+  tone: BadgeTone;
+} {
+  switch (status) {
+    case "completed":
+      return { label: "Completed", tone: "green" };
+    case "approved":
+      return { label: "Approved", tone: "green" };
+    case "waiting_approval":
+      return { label: "Ready for review", tone: "yellow" };
+    case "in_progress":
+      return { label: "In progress", tone: "blue" };
+    default:
+      return { label: "Not started", tone: "slate" };
+  }
+}
+
+export function getMilestoneApprovalMeta(status: ApprovalStatus | null): {
+  label: string;
+  tone: BadgeTone;
+} | null {
+  if (!status) {
+    return null;
+  }
+
+  switch (status) {
+    case "approved":
+      return { label: "Approved", tone: "green" };
+    case "changes_requested":
+      return { label: "Changes requested", tone: "yellow" };
+    case "cancelled":
+      return { label: "Cancelled", tone: "slate" };
+    default:
+      return { label: "Pending review", tone: "purple" };
   }
 }
 

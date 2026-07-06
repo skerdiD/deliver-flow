@@ -95,14 +95,14 @@ export function ProjectPaymentsCard({
       <CardHeader>
         <CardTitle>Payments</CardTitle>
         <p className="text-sm text-slate-500">
-          Manual payment tracking for this project. No checkout is connected.
+          Track manual invoices and follow-up in one place.
         </p>
       </CardHeader>
 
-      <CardContent className="space-y-3">
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+      <CardContent className="space-y-5">
+        <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
           <div className="grid gap-3">
-            <div className="grid gap-3 sm:grid-cols-[120px_150px_160px]">
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="payment-amount">Amount</Label>
                 <Input
@@ -113,7 +113,7 @@ export function ProjectPaymentsCard({
                   value={amountDollars}
                   onChange={(event) => setAmountDollars(event.target.value)}
                   placeholder="1200"
-                  className="bg-white"
+                  className="w-full bg-white"
                   disabled={isPending}
                 />
               </div>
@@ -127,7 +127,7 @@ export function ProjectPaymentsCard({
                   }
                   disabled={isPending}
                 >
-                  <SelectTrigger className="bg-white">
+                  <SelectTrigger className="w-full bg-white">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -146,7 +146,7 @@ export function ProjectPaymentsCard({
                   type="date"
                   value={dueDate}
                   onChange={(event) => setDueDate(event.target.value)}
-                  className="bg-white"
+                  className="w-full bg-white"
                   disabled={isPending}
                 />
               </div>
@@ -159,7 +159,7 @@ export function ProjectPaymentsCard({
                 value={notes}
                 onChange={(event) => setNotes(event.target.value)}
                 placeholder="Final delivery invoice"
-                className="min-h-20 bg-white"
+                className="min-h-24 bg-white"
                 disabled={isPending}
               />
             </div>
@@ -197,10 +197,10 @@ export function ProjectPaymentsCard({
             return (
               <div
                 key={payment.id}
-                className="rounded-lg border border-slate-200 p-4"
+                className="rounded-xl border border-slate-200 p-4"
               >
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <StackedCell className="gap-2">
+                <div className="flex min-w-0 flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                  <StackedCell className="min-w-0 flex-1 gap-2">
                     <p className="font-semibold text-slate-950">
                       {formatCurrencyFromCents(
                         payment.amountCents,
@@ -220,9 +220,9 @@ export function ProjectPaymentsCard({
                     </p>
                   </StackedCell>
 
-                  <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">
+                  <div className="flex min-w-0 shrink-0 flex-col items-start gap-2 lg:items-end">
                     <BadgeWithMeta
-                      className="sm:items-end"
+                      className="lg:items-end"
                       badge={
                         <StatusBadge
                           label={statusMeta.label}
@@ -231,7 +231,7 @@ export function ProjectPaymentsCard({
                       }
                       meta={`Paid ${formatNullableDate(payment.paidAt, "not yet")}`}
                     />
-                    <div className="flex items-center gap-2">
+                    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
                       <Select
                         defaultValue={payment.status}
                         onValueChange={(value) =>
@@ -242,7 +242,7 @@ export function ProjectPaymentsCard({
                         }
                         disabled={isPending}
                       >
-                        <SelectTrigger className="h-8 w-32 bg-white text-xs">
+                        <SelectTrigger className="h-9 w-full bg-white text-xs sm:w-32">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>

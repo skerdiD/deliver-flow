@@ -45,6 +45,10 @@ export type ClientPortalMilestone = {
   description: string;
   status: ClientMilestoneStatus;
   dueDate: string;
+  approvalStatus?: ClientApprovalStatus | null;
+  responseNote?: string | null;
+  requestedAt?: string | null;
+  respondedAt?: string | null;
 };
 
 export type ClientPortalUpdate = {

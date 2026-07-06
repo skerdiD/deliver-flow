@@ -25,10 +25,14 @@ type ClientDashboardProjectCardProps = {
 export function ClientDashboardProjectCard({
   project,
 }: ClientDashboardProjectCardProps) {
-  const completedTasks = project.tasks.filter(
-    (task) => task.status === "completed",
+  const completedMilestones = project.milestones.filter(
+    (milestone) =>
+      milestone.status === "approved" || milestone.status === "completed",
   ).length;
-  const nextTasks = project.tasks.filter((task) => task.status !== "completed");
+  const upcomingMilestones = project.milestones.filter(
+    (milestone) =>
+      milestone.status !== "approved" && milestone.status !== "completed",
+  );
   const latestUpdate = project.updates[0];
   const pendingApprovals = project.approvals.filter(
     (approval) => approval.status === "pending",
@@ -85,10 +89,12 @@ export function ClientDashboardProjectCard({
 
               <div className="rounded-lg border border-slate-200 p-3">
                 <p className="text-xs font-medium text-slate-500">
-                  Completed tasks
+                  Milestones completed
                 </p>
                 <p className="mt-1 text-sm font-semibold text-slate-950">
-                  {completedTasks} of {project.tasks.length}
+                  {project.milestones.length > 0
+                    ? `${completedMilestones} of ${project.milestones.length}`
+                    : "No milestones yet"}
                 </p>
               </div>
 
@@ -138,7 +144,7 @@ export function ClientDashboardProjectCard({
             <Button asChild variant="outline" className="w-full sm:w-auto">
               <Link href={approvalsHref} prefetch>
                 <CheckCircle2 className="mr-2 size-4" />
-                Review Approvals
+                Review Milestones
               </Link>
             </Button>
 
@@ -182,20 +188,22 @@ export function ClientDashboardProjectCard({
 
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
           <div className="rounded-lg border border-slate-200 p-4">
-            <p className="text-sm font-semibold text-slate-950">Next steps</p>
+            <p className="text-sm font-semibold text-slate-950">
+              Delivery roadmap
+            </p>
             <ul className="mt-3 space-y-2">
-              {nextTasks.length > 0 ? (
-                nextTasks.slice(0, 3).map((task) => (
+              {upcomingMilestones.length > 0 ? (
+                upcomingMilestones.slice(0, 3).map((milestone) => (
                   <li
-                    key={task.id}
+                    key={milestone.id}
                     className="break-words text-sm text-slate-600"
                   >
-                    {task.title}
+                    {milestone.title}
                   </li>
                 ))
               ) : (
                 <li className="text-sm text-slate-600">
-                  No open tasks right now.
+                  No remaining milestones right now.
                 </li>
               )}
             </ul>

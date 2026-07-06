@@ -91,9 +91,9 @@ export function ClientApprovalPreviewCard({
       <CardHeader>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <CardTitle>Approval preview</CardTitle>
+            <CardTitle>Review preview</CardTitle>
             <p className="mt-2 text-sm text-slate-500">
-              Review requests and recent approval decisions.
+              Milestones waiting for review and the latest client decisions.
             </p>
           </div>
 
@@ -115,7 +115,7 @@ export function ClientApprovalPreviewCard({
               No approvals requested yet
             </p>
             <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-600">
-              Approval requests will appear here when work is ready for review.
+              Milestone reviews will appear here when work is ready for review.
             </p>
           </div>
         ) : (

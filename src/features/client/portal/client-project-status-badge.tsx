@@ -37,7 +37,7 @@ export function ClientMilestoneStatusBadge({
   const labels: Record<ClientMilestoneStatus, string> = {
     not_started: "Not started",
     in_progress: "In progress",
-    waiting_approval: "Waiting approval",
+    waiting_approval: "Ready for review",
     approved: "Approved",
     completed: "Completed",
   };

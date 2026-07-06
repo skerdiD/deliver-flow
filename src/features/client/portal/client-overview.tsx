@@ -145,8 +145,9 @@ function AttentionRow({ item }: { item: AttentionItem }) {
 }
 
 function OverviewProjectCard({ project }: { project: ClientPortalProject }) {
-  const completedTasks = project.tasks.filter(
-    (task) => task.status === "completed",
+  const completedMilestones = project.milestones.filter(
+    (milestone) =>
+      milestone.status === "approved" || milestone.status === "completed",
   ).length;
   const latestUpdate = project.updates[0];
   const pendingApproval = project.approvals.find(
@@ -197,8 +198,12 @@ function OverviewProjectCard({ project }: { project: ClientPortalProject }) {
           <div className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-4">
             <ProjectMeta label="Current milestone" value={project.currentMilestone} />
             <ProjectMeta
-              label="Tasks completed"
-              value={`${completedTasks} of ${project.tasks.length}`}
+              label="Milestones completed"
+              value={
+                project.milestones.length > 0
+                  ? `${completedMilestones} of ${project.milestones.length}`
+                  : "No milestones yet"
+              }
             />
             <ProjectMeta
               label="Deadline"
@@ -234,7 +239,7 @@ function OverviewProjectCard({ project }: { project: ClientPortalProject }) {
               {pendingApproval ? (
                 <ContextAction
                   href={`/client/approvals?${projectQuery}`}
-                  label="Review approval"
+                  label="Review milestone"
                 />
               ) : null}
               {attentionPayment ? (
@@ -292,13 +297,15 @@ function buildAttentionItems(projects: ClientPortalProject[]) {
       items.push({
         id: `approval-${approval.id}`,
         icon: BadgeCheck,
-        title: "Approval waiting for review",
+        title: "Milestone ready for review",
         projectName: project.name,
-        reason: approval.description,
-        badgeLabel: "Approval needed",
+        reason:
+          approval.milestoneName ??
+          approval.description,
+        badgeLabel: "Review needed",
         badgeTone: "blue",
         href: `/client/approvals?${projectQuery}`,
-        actionLabel: "Review approval",
+        actionLabel: "Review milestone",
         priority: 10,
       });
     }

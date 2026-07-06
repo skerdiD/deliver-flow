@@ -27,7 +27,7 @@ export default async function NewProjectPage() {
       <PageHeader
         eyebrow="New project"
         title="Create a delivery workspace"
-        description="Set up the client, timeline, budget, and status details before adding tasks, milestones, files, and updates."
+        description="Set up the client, timeline, budget, and status details before adding milestones, files, approvals, and updates."
       />
 
       <ProjectForm

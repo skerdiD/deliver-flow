@@ -38,7 +38,7 @@ export default async function ClientApprovalsPage({
       <div className="space-y-6">
         <PageHeader
           eyebrow="Approvals"
-          title={`${project.name} approvals`}
+          title={`${project.name} milestone reviews`}
           description="Review work that needs your sign-off, approve it, or ask for changes."
         />
 
@@ -54,7 +54,7 @@ export default async function ClientApprovalsPage({
     <div className="space-y-6">
       <PageHeader
         eyebrow="Approvals"
-        title="Project approvals"
+        title="Milestone reviews"
         description="Review work that needs your sign-off, approve it, or ask for changes."
       />
 

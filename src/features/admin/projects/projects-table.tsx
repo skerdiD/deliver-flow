@@ -142,7 +142,7 @@ function ProjectRowActions({ project }: ProjectRowActionsProps) {
             <DialogTitle>Archive project?</DialogTitle>
             <DialogDescription>
               This hides {project.name} from current project lists while keeping
-              every task, file, payment, approval, and note intact.
+              every milestone, file, payment, approval, and note intact.
             </DialogDescription>
           </DialogHeader>
           {result?.success === false ? (
@@ -242,7 +242,7 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
         <div className="min-w-0">
           <CardTitle>Projects</CardTitle>
           <p className="mt-1 text-sm text-slate-500">
-            Manage delivery progress, milestones, tasks, updates, and approvals.
+            Manage delivery progress, milestones, updates, approvals, and client-facing files.
           </p>
         </div>
 
@@ -308,15 +308,25 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
                   labelClassName="xl:hidden"
                   valueClassName="space-y-1.5"
                 >
-                  <p className="line-clamp-1 break-words font-medium text-slate-950">
-                    {project.name}
-                  </p>
+                  <Link
+                    href={`/admin/projects/${project.id}`}
+                    className="inline-flex max-w-full rounded-sm font-medium text-slate-950 outline-none transition-colors hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-slate-950/20 focus-visible:ring-offset-2"
+                  >
+                    <span className="line-clamp-1 break-words">
+                      {project.name}
+                    </span>
+                  </Link>
                   <p className="line-clamp-2 break-words text-sm leading-5 text-slate-500">
                     {project.description}
                   </p>
-                  <p className="truncate text-xs font-medium text-slate-700">
-                    {project.client.company} - {project.client.name}
-                  </p>
+                  <Link
+                    href={`/admin/clients/${project.client.id}`}
+                    className="inline-flex max-w-full rounded-sm text-xs font-medium text-slate-700 outline-none transition-colors hover:text-slate-950 focus-visible:ring-2 focus-visible:ring-slate-950/20 focus-visible:ring-offset-2"
+                  >
+                    <span className="truncate">
+                      {project.client.company} - {project.client.name}
+                    </span>
+                  </Link>
                 </RecordField>
 
                 <BadgeMetaField

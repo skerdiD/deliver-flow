@@ -84,6 +84,7 @@ const approvalStatusSchema = approvalIdSchema.extend({
 
 function revalidateProjectOperations(projectId: string) {
   revalidatePath(routes.admin.dashboard);
+  revalidatePath(routes.admin.milestones);
   revalidatePath(routes.admin.tasks);
   revalidatePath(routes.admin.files);
   revalidatePath(routes.admin.payments);

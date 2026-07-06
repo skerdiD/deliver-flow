@@ -22,6 +22,8 @@ import type {
   AdminFeedbackRecord,
   AdminFileRecord,
   AdminFilesPageData,
+  AdminMilestoneRecord,
+  AdminMilestonesPageData,
   AdminPaymentsPageData,
   AdminPaymentRecord,
   AdminSettingsData,
@@ -73,6 +75,116 @@ async function getProjectClientMap(projectIds: string[]) {
   }
 
   return projectClientMap;
+}
+
+export async function getAdminMilestonesPageData(): Promise<AdminMilestonesPageData> {
+  await requireRole("admin");
+
+  const milestoneRows = await db
+    .select({
+      id: milestones.id,
+      projectId: milestones.projectId,
+      projectName: projects.name,
+      title: milestones.title,
+      description: milestones.description,
+      status: milestones.status,
+      dueDate: milestones.dueDate,
+      position: milestones.position,
+      createdAt: milestones.createdAt,
+    })
+    .from(milestones)
+    .innerJoin(projects, eq(milestones.projectId, projects.id))
+    .where(and(isNull(projects.archivedAt), isNull(projects.deletedAt)))
+    .orderBy(asc(milestones.dueDate), asc(milestones.position), desc(milestones.createdAt));
+
+  const projectClientMap = await getProjectClientMap(
+    Array.from(new Set(milestoneRows.map((row) => row.projectId))),
+  );
+
+  const milestoneIds = milestoneRows.map((row) => row.id);
+  const approvalRows =
+    milestoneIds.length === 0
+      ? []
+      : await db
+          .select({
+            milestoneId: approvals.milestoneId,
+            status: approvals.status,
+            responseNote: approvals.responseNote,
+            requestedAt: approvals.requestedAt,
+            respondedAt: approvals.respondedAt,
+          })
+          .from(approvals)
+          .where(
+            and(
+              inArray(approvals.milestoneId, milestoneIds),
+              isNull(approvals.deletedAt),
+            ),
+          )
+          .orderBy(desc(approvals.requestedAt));
+
+  const latestApprovalByMilestoneId = new Map<
+    string,
+    {
+      status: AdminMilestoneRecord["approvalStatus"];
+      responseNote: string | null;
+      requestedAt: string | null;
+      respondedAt: string | null;
+    }
+  >();
+
+  for (const row of approvalRows) {
+    if (!row.milestoneId || latestApprovalByMilestoneId.has(row.milestoneId)) {
+      continue;
+    }
+
+    latestApprovalByMilestoneId.set(row.milestoneId, {
+      status: row.status,
+      responseNote: row.responseNote,
+      requestedAt: toIsoString(row.requestedAt),
+      respondedAt: row.respondedAt ? toIsoString(row.respondedAt) : null,
+    });
+  }
+
+  const normalizedMilestones: AdminMilestoneRecord[] = milestoneRows.map((row) => {
+    const latestApproval = latestApprovalByMilestoneId.get(row.id);
+
+    return {
+      id: row.id,
+      projectId: row.projectId,
+      projectName: row.projectName,
+      clientName:
+        projectClientMap.get(row.projectId)?.clientName ?? "Unassigned client",
+      clientEmail: projectClientMap.get(row.projectId)?.clientEmail ?? null,
+      title: row.title,
+      description: row.description,
+      status: row.status,
+      dueDate: row.dueDate,
+      position: row.position,
+      approvalStatus: latestApproval?.status ?? null,
+      responseNote: latestApproval?.responseNote ?? null,
+      requestedAt: latestApproval?.requestedAt ?? null,
+      respondedAt: latestApproval?.respondedAt ?? null,
+    };
+  });
+
+  return {
+    milestones: normalizedMilestones,
+    summary: {
+      total: normalizedMilestones.length,
+      readyForReview: normalizedMilestones.filter(
+        (milestone) =>
+          milestone.status === "waiting_approval" ||
+          milestone.approvalStatus === "pending",
+      ).length,
+      approved: normalizedMilestones.filter(
+        (milestone) =>
+          milestone.status === "approved" || milestone.status === "completed",
+      ).length,
+      changesRequested: normalizedMilestones.filter(
+        (milestone) => milestone.approvalStatus === "changes_requested",
+      ).length,
+    },
+  };
 }
 
 export async function getAdminTasksPageData(): Promise<AdminTasksPageData> {

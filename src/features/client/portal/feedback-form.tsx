@@ -33,6 +33,30 @@ type FeedbackFormProps = {
   feedback: ClientPortalFeedback[];
 };
 
+function getFeedbackStatusLabel(status: ClientPortalFeedback["status"]) {
+  if (status === "open") {
+    return "Open";
+  }
+
+  if (status === "reviewed") {
+    return "Reviewed";
+  }
+
+  return "Resolved";
+}
+
+function getFeedbackStatusTone(status: ClientPortalFeedback["status"]) {
+  if (status === "open") {
+    return "yellow" as const;
+  }
+
+  if (status === "reviewed") {
+    return "blue" as const;
+  }
+
+  return "green" as const;
+}
+
 export function FeedbackForm({ projectId, feedback }: FeedbackFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -132,60 +156,48 @@ export function FeedbackForm({ projectId, feedback }: FeedbackFormProps) {
           </p>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="space-y-4">
           {feedback.length === 0 ? (
             <EmptyState
               icon={MessageSquareMore}
               title="No feedback yet"
-              description="Your submitted feedback for this project will appear here once you send your first note."
+              description="Your feedback history will appear here after you send your first note for this project."
             />
           ) : (
-            <div className="space-y-4 pr-1 lg:max-h-[560px] lg:overflow-y-auto">
+            <div className="max-h-[460px] space-y-4 overflow-y-auto pr-2 md:max-h-[560px]">
               {feedback.map((item) => (
                 <div
                   key={item.id}
-                  className="min-w-0 rounded-lg border border-slate-200 p-4"
+                  className="min-w-0 rounded-lg border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/40"
                 >
-                  <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-start justify-between gap-3">
                     <StatusBadge
-                      label={
-                        item.status === "open"
-                          ? "Open"
-                          : item.status === "reviewed"
-                            ? "Reviewed"
-                            : "Resolved"
-                      }
-                      tone={
-                        item.status === "open"
-                          ? "yellow"
-                          : item.status === "reviewed"
-                            ? "blue"
-                            : "green"
-                      }
+                      label={getFeedbackStatusLabel(item.status)}
+                      tone={getFeedbackStatusTone(item.status)}
                     />
-                    <span className="text-xs text-slate-500">
+                    <span className="shrink-0 text-right text-xs font-medium text-slate-500">
                       {formatShortDate(item.createdAt)}
                     </span>
                   </div>
 
-                  <p className="mt-3 break-words text-sm leading-6 text-slate-600">
+                  <p className="mt-3 break-words text-sm leading-6 text-slate-700">
                     {item.message}
                   </p>
 
-                  {item.adminResponse ? (
-                    <div className="mt-4 rounded-lg bg-slate-50 p-3">
-                      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                        Reply from your freelancer
-                      </p>
+                  <div className="mt-4 rounded-lg border border-slate-200/80 bg-slate-50 p-3">
+                    <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">
+                      Reply from your freelancer
+                    </p>
+                    {item.adminResponse ? (
                       <p className="mt-2 break-words text-sm leading-6 text-slate-600">
                         {item.adminResponse}
                       </p>
-                    </div>
-                  ) : (
-                    <p className="mt-4 rounded-lg bg-slate-50 p-3 text-sm text-slate-500">
-                      No admin response yet.
-                    </p>
-                  )}
+                    ) : (
+                      <p className="mt-2 text-sm text-slate-500">
+                        No admin response yet.
+                      </p>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

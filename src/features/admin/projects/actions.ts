@@ -158,6 +158,7 @@ function getActorName(profile: { full_name: string | null; email: string }) {
 
 function revalidateProjectWorkflow(projectId: string) {
   revalidatePath(routes.admin.dashboard);
+  revalidatePath(routes.admin.milestones);
   revalidatePath(routes.admin.projects);
   revalidatePath(`${routes.admin.projects}/${projectId}`);
   revalidatePath(routes.admin.approvals);

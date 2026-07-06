@@ -113,7 +113,7 @@ export function ProjectForm({
         </CardTitle>
         <CardDescription>
           {mode === "create"
-            ? "Set up the delivery workspace before adding tasks, milestones, files, and updates."
+            ? "Set up the delivery workspace before adding milestones, files, approvals, and updates."
             : "Update the project details clients and admins will see."}
         </CardDescription>
       </CardHeader>

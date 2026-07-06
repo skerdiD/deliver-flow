@@ -50,7 +50,7 @@ export default async function ClientProjectPage({
       <PageHeader
         eyebrow="Project"
         title="Project overview"
-        description="See what is done, what is active, what comes next, and what needs your review."
+        description="See the roadmap, review milestones, and track files, payments, and updates in one place."
       />
 
       <EmptyState

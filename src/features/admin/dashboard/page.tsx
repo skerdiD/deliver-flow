@@ -26,7 +26,7 @@ export default async function AdminDashboardPage() {
       <PageHeader
         eyebrow="Admin workspace"
         title="Delivery overview"
-        description="Projects that need attention, feedback waiting for review, and payments still open."
+        description="Projects that need attention, milestones ready for review, client feedback, and payments still open."
       >
         <Button asChild variant="outline">
           <Link href={routes.admin.projects}>

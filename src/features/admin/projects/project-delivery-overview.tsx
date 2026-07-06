@@ -16,8 +16,9 @@ export function ProjectDeliveryOverview({
   const pendingApprovals = approvals.filter(
     (approval) => approval.status === "pending",
   ).length;
-  const openTasks = project.tasks.filter(
-    (task) => task.status !== "completed",
+  const activeMilestones = project.milestones.filter(
+    (milestone) =>
+      milestone.status !== "approved" && milestone.status !== "completed",
   ).length;
   const outstandingFeedback = project.feedback.filter(
     (item) => item.status === "open",
@@ -59,8 +60,8 @@ export function ProjectDeliveryOverview({
           />
           <OverviewMetric
             icon={CheckCircle2}
-            label="Open tasks"
-            value={String(openTasks)}
+            label="Active milestones"
+            value={String(activeMilestones)}
           />
           <OverviewMetric
             icon={MessageSquare}

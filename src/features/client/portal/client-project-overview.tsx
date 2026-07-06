@@ -28,12 +28,23 @@ type ClientProjectOverviewProps = {
 
 export function ClientProjectOverview({ project }: ClientProjectOverviewProps) {
   const remainingCents = project.totalAmountCents - project.paidAmountCents;
-  const completedTasks = project.tasks.filter(
-    (task) => task.status === "completed",
+  const completedMilestones = project.milestones.filter(
+    (milestone) =>
+      milestone.status === "approved" || milestone.status === "completed",
   ).length;
   const pendingApprovals = project.approvals.filter(
     (approval) => approval.status === "pending",
   ).length;
+  const hasChangesRequested = project.approvals.some(
+    (approval) => approval.status === "changes_requested",
+  );
+  const hasApprovedReview = project.approvals.some(
+    (approval) => approval.status === "approved",
+  );
+  const milestoneProgressLabel =
+    project.milestones.length > 0
+      ? `${completedMilestones} of ${project.milestones.length} complete`
+      : "No milestones yet";
   const projectQuery = `projectId=${encodeURIComponent(project.id)}`;
   const filesHref = `/client/files?${projectQuery}`;
   const feedbackHref = `/client/feedback?${projectQuery}`;
@@ -80,16 +91,20 @@ export function ClientProjectOverview({ project }: ClientProjectOverviewProps) {
             />
             <ProjectInsight
               icon={CheckCircle2}
-              label="Tasks done"
-              value={`${completedTasks} of ${project.tasks.length}`}
+              label="Milestones"
+              value={milestoneProgressLabel}
             />
             <ProjectInsight
               icon={ShieldCheck}
-              label="Approvals"
+              label="Review state"
               value={
                 pendingApprovals > 0
                   ? `${pendingApprovals} waiting`
-                  : "Nothing pending"
+                  : hasChangesRequested
+                    ? "Changes requested"
+                    : hasApprovedReview
+                      ? "Approved"
+                      : "Nothing pending"
               }
             />
             <ProjectInsight
@@ -111,8 +126,8 @@ export function ClientProjectOverview({ project }: ClientProjectOverviewProps) {
               Quick links for this project.
             </p>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              Jump straight into review, files, approvals, payments, or the
-              latest live build.
+              Open the roadmap, files, approvals, payments, or the latest live
+              build whenever you need it.
             </p>
 
             {project.liveDemoUrl ? (

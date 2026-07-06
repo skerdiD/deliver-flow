@@ -1,7 +1,10 @@
 import { Flag } from "lucide-react";
 
 import { StackedCell } from "@/components/shared/record-cell";
-import { ClientMilestoneStatusBadge } from "@/features/client/portal/client-project-status-badge";
+import {
+  ClientApprovalStatusBadge,
+  ClientMilestoneStatusBadge,
+} from "@/features/client/portal/client-project-status-badge";
 import type { ClientPortalMilestone } from "@/features/client/portal/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatShortDate } from "@/lib/format";
@@ -14,9 +17,10 @@ export function ClientTimelineCard({ milestones }: ClientTimelineCardProps) {
   return (
     <Card className="rounded-lg border-slate-200 shadow-sm">
       <CardHeader>
-        <CardTitle>Delivery timeline</CardTitle>
+        <CardTitle>Project roadmap</CardTitle>
         <p className="text-sm text-slate-500">
-          Milestones, review points, and planned delivery steps.
+          Follow each delivery phase, see what is ready for review, and track
+          the latest client response.
         </p>
       </CardHeader>
 
@@ -41,10 +45,23 @@ export function ClientTimelineCard({ milestones }: ClientTimelineCardProps) {
 
                 <div className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white p-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="break-words text-sm font-semibold text-slate-950">
-                      {milestone.title}
-                    </p>
-                    <ClientMilestoneStatusBadge status={milestone.status} />
+                    <div className="flex min-w-0 flex-wrap items-center gap-2">
+                      <p className="break-words text-sm font-semibold text-slate-950">
+                        {milestone.title}
+                      </p>
+                      <span className="rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+                        Step {index + 1}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      <ClientMilestoneStatusBadge status={milestone.status} />
+                      {milestone.approvalStatus ? (
+                        <ClientApprovalStatusBadge
+                          status={milestone.approvalStatus}
+                        />
+                      ) : null}
+                    </div>
                   </div>
 
                   <StackedCell className="mt-2 gap-1.5">
@@ -55,6 +72,22 @@ export function ClientTimelineCard({ milestones }: ClientTimelineCardProps) {
                     <p className="text-xs text-slate-500">
                       Due {formatShortDate(milestone.dueDate)}
                     </p>
+
+                    {milestone.approvalStatus === "pending" ? (
+                      <div className="rounded-lg border border-amber-200 bg-amber-50/80 px-3 py-2 text-xs leading-5 text-amber-900">
+                        This milestone is ready for your review in the approvals
+                        section.
+                      </div>
+                    ) : null}
+
+                    {milestone.responseNote ? (
+                      <div className="rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-2 text-xs leading-5 text-slate-600">
+                        <span className="font-medium text-slate-700">
+                          Latest response:
+                        </span>{" "}
+                        {milestone.responseNote}
+                      </div>
+                    ) : null}
                   </StackedCell>
                 </div>
               </div>

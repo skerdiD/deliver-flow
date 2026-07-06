@@ -5,7 +5,6 @@ import { notFound } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { ApprovalStatusCard } from "@/features/admin/projects/approval-status-card";
-import { ProjectDeliveryOverview } from "@/features/admin/projects/project-delivery-overview";
 import { ProjectDetailHeader } from "@/features/admin/projects/project-detail-header";
 import { ProjectActivityTimeline } from "@/features/admin/projects/project-activity-timeline";
 import { ProjectFeedbackPreview } from "@/features/admin/projects/project-feedback-preview";
@@ -13,7 +12,6 @@ import { ProjectFilesCard } from "@/features/admin/projects/project-files-card";
 import { ProjectMilestonesCard } from "@/features/admin/projects/project-milestones-card";
 import { ProjectPaymentsCard } from "@/features/admin/projects/project-payments-card";
 import { ProjectProgressControl } from "@/features/admin/projects/project-progress-control";
-import { ProjectTasksCard } from "@/features/admin/projects/project-tasks-card";
 import { ProjectUpdatesCard } from "@/features/admin/projects/project-updates-card";
 import { getAdminProjectById } from "@/features/admin/projects/projects-data";
 
@@ -50,31 +48,27 @@ export default async function ProjectDetailPage({
 
       <ProjectDetailHeader project={project} />
 
-      <ProjectDeliveryOverview project={project} />
-
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.85fr)]">
-        <div className="space-y-6">
+      <div className="grid gap-6 xl:grid-cols-12 xl:items-start">
+        <div className="min-w-0 space-y-6 xl:col-span-7">
           <ProjectMilestonesCard
             projectId={project.id}
             milestones={project.milestones}
           />
-
-          <ProjectTasksCard projectId={project.id} tasks={project.tasks} />
 
           <ProjectUpdatesCard
             projectId={project.id}
             updates={project.updates}
           />
 
-          <ProjectFilesCard
+          <ProjectPaymentsCard
             projectId={project.id}
-            files={project.files ?? []}
+            payments={project.payments ?? []}
           />
 
-          <ProjectFeedbackPreview feedback={project.feedback} />
+          <ProjectFilesCard projectId={project.id} files={project.files ?? []} />
         </div>
 
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6 xl:col-span-5">
           <ProjectProgressControl
             projectId={project.id}
             progress={project.progress}
@@ -87,10 +81,7 @@ export default async function ProjectDetailPage({
             approvals={approvals}
           />
 
-          <ProjectPaymentsCard
-            projectId={project.id}
-            payments={project.payments ?? []}
-          />
+          <ProjectFeedbackPreview feedback={project.feedback} />
 
           <ProjectActivityTimeline activity={project.activity} />
         </div>

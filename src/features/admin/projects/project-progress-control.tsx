@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { updateProjectProgressAction } from "@/features/admin/projects/actions";
+import { ProjectStatusBadge } from "@/features/admin/projects/project-status-badge";
 import {
   progressFormSchema,
   type ProgressFormValues,
@@ -32,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
 
 type ProjectProgressControlProps = {
   projectId: string;
@@ -82,13 +84,28 @@ export function ProjectProgressControl({
   return (
     <Card className="rounded-lg border-slate-200 shadow-sm">
       <CardHeader>
-        <CardTitle>Update project status</CardTitle>
+        <CardTitle>Project status</CardTitle>
         <p className="text-sm text-slate-500">
-          Keep progress and status clear for you and the client.
+          Keep progress clear without digging through the full project record.
         </p>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="space-y-5">
+        <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-[0.08em] text-slate-500">
+                Current progress
+              </p>
+              <p className="mt-2 text-3xl font-semibold text-slate-950">
+                {progress}%
+              </p>
+            </div>
+            <ProjectStatusBadge status={status} />
+          </div>
+          <Progress value={progress} className="mt-4" />
+        </div>
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormStatus

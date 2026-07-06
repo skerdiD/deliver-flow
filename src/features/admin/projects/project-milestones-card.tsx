@@ -84,9 +84,10 @@ export function ProjectMilestonesCard({
   return (
     <Card className="rounded-lg border-slate-200 shadow-sm">
       <CardHeader>
-        <CardTitle>Milestones</CardTitle>
+        <CardTitle>Project roadmap</CardTitle>
         <p className="text-sm text-slate-500">
-          Keep delivery steps clear, reviewable, and easy to approve.
+          Keep each delivery phase clear, reviewable, and easy for the client
+          to approve.
         </p>
       </CardHeader>
 
@@ -131,7 +132,7 @@ export function ProjectMilestonesCard({
                             : milestone.status === "approved"
                               ? "Approved"
                               : milestone.status === "waiting_approval"
-                                ? "Waiting approval"
+                                ? "Ready for review"
                                 : milestone.status === "in_progress"
                                   ? "In progress"
                                   : "Not started"

@@ -1,10 +1,9 @@
 import {
-  AlertTriangle,
   BadgeCheck,
   CheckCircle2,
   CreditCard,
+  Flag,
   MessageSquare,
-  ShieldAlert,
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -24,10 +23,9 @@ type NeedsAttentionPanelProps = {
 
 const iconByKind: Record<AttentionKind, LucideIcon> = {
   payment: CreditCard,
-  blocked_task: ShieldAlert,
-  approval: BadgeCheck,
+  milestone_review: Flag,
+  changes_requested: BadgeCheck,
   feedback: MessageSquare,
-  high_priority_task: AlertTriangle,
   project_setup: CheckCircle2,
 };
 
@@ -52,8 +50,8 @@ export function NeedsAttentionPanel({ items }: NeedsAttentionPanelProps) {
               All clear
             </h3>
             <p className="mt-2 max-w-md text-sm leading-6 text-slate-600">
-              No urgent feedback, approvals, payments, or blocked tasks need
-              attention right now.
+              No urgent milestone reviews, feedback, or payments need attention
+              right now.
             </p>
             <Button asChild variant="outline" className="mt-5">
               <Link href={routes.admin.projects}>View projects</Link>

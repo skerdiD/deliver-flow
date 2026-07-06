@@ -250,6 +250,60 @@ function sortClientPortalApprovals(
   });
 }
 
+function getLatestApprovalByMilestoneId(
+  approvalsList: Array<{
+    milestoneId: string | null;
+    status: ClientApprovalStatus;
+    responseNote: string | null;
+    requestedAt: Date | string;
+    respondedAt: Date | string | null;
+  }>,
+) {
+  const latestApprovalByMilestoneId = new Map<
+    string,
+    {
+      approvalStatus: ClientApprovalStatus;
+      responseNote: string | null;
+      requestedAt: string;
+      respondedAt: string | null;
+    }
+  >();
+
+  for (const approval of approvalsList) {
+    if (!approval.milestoneId || latestApprovalByMilestoneId.has(approval.milestoneId)) {
+      continue;
+    }
+
+    latestApprovalByMilestoneId.set(approval.milestoneId, {
+      approvalStatus: approval.status,
+      responseNote: approval.responseNote,
+      requestedAt: toIsoString(approval.requestedAt),
+      respondedAt: approval.respondedAt
+        ? toIsoString(approval.respondedAt)
+        : null,
+    });
+  }
+
+  return latestApprovalByMilestoneId;
+}
+
+function attachApprovalStateToMilestones(
+  milestonesList: ClientPortalProject["milestones"],
+  latestApprovalByMilestoneId: ReturnType<typeof getLatestApprovalByMilestoneId>,
+): ClientPortalProject["milestones"] {
+  return milestonesList.map((milestone) => {
+    const latestApproval = latestApprovalByMilestoneId.get(milestone.id);
+
+    return {
+      ...milestone,
+      approvalStatus: latestApproval?.approvalStatus ?? null,
+      responseNote: latestApproval?.responseNote ?? null,
+      requestedAt: latestApproval?.requestedAt ?? null,
+      respondedAt: latestApproval?.respondedAt ?? null,
+    };
+  });
+}
+
 const getClientPortalAccess = cache(async (): Promise<ClientPortalAccess> => {
   const profile = await requireRole("client");
 
@@ -559,6 +613,7 @@ async function buildClientPortalProject(
     db
       .select({
         id: approvals.id,
+        milestoneId: approvals.milestoneId,
         title: approvals.title,
         description: approvals.description,
         status: approvals.status,
@@ -607,15 +662,21 @@ async function buildClientPortalProject(
       .limit(12),
   ]);
 
-  const mappedMilestones = projectMilestones.map((milestone) => ({
-    id: milestone.id,
-    title: milestone.title,
-    description:
-      milestone.description ?? "No milestone details have been added yet.",
-    status: milestone.status,
-    dueDate:
-      milestone.dueDate ?? assignment.deadline ?? new Date().toISOString(),
-  }));
+  const latestApprovalByMilestoneId =
+    getLatestApprovalByMilestoneId(projectApprovals);
+
+  const mappedMilestones = attachApprovalStateToMilestones(
+    projectMilestones.map((milestone) => ({
+      id: milestone.id,
+      title: milestone.title,
+      description:
+        milestone.description ?? "No milestone details have been added yet.",
+      status: milestone.status,
+      dueDate:
+        milestone.dueDate ?? assignment.deadline ?? new Date().toISOString(),
+    })),
+    latestApprovalByMilestoneId,
+  );
 
   const mappedTasks = projectTasks.map((task) => ({
     id: task.id,
@@ -896,6 +957,7 @@ async function buildClientPortalDashboardProjects(
       .select({
         id: approvals.id,
         projectId: approvals.projectId,
+        milestoneId: approvals.milestoneId,
         title: approvals.title,
         description: approvals.description,
         status: approvals.status,
@@ -915,10 +977,13 @@ async function buildClientPortalDashboardProjects(
       .orderBy(desc(approvals.requestedAt)),
   ]);
 
+  const latestApprovalByMilestoneId =
+    getLatestApprovalByMilestoneId(projectApprovals);
   const milestonesByProjectId = new Map<string, ClientPortalProject["milestones"]>();
   for (const milestone of projectMilestones) {
     const assignment = assignmentByProjectId.get(milestone.projectId);
     const items = milestonesByProjectId.get(milestone.projectId) ?? [];
+    const latestApproval = latestApprovalByMilestoneId.get(milestone.id);
 
     items.push({
       id: milestone.id,
@@ -930,6 +995,10 @@ async function buildClientPortalDashboardProjects(
         milestone.dueDate ??
         assignment?.deadline ??
         new Date().toISOString(),
+      approvalStatus: latestApproval?.approvalStatus ?? null,
+      responseNote: latestApproval?.responseNote ?? null,
+      requestedAt: latestApproval?.requestedAt ?? null,
+      respondedAt: latestApproval?.respondedAt ?? null,
     });
     milestonesByProjectId.set(milestone.projectId, items);
   }

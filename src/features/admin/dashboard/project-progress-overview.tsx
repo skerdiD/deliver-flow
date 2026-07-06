@@ -43,7 +43,7 @@ export function ProjectProgressOverview({
       <CardHeader>
         <CardTitle>Project progress</CardTitle>
         <p className="text-sm text-slate-500">
-          Track completed work, next steps, and anything waiting for approval.
+          Track the current roadmap step, review status, and delivery momentum.
         </p>
       </CardHeader>
 

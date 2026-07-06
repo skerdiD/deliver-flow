@@ -47,10 +47,10 @@ export function ApprovalActionsCard({
       <CardHeader>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <CardTitle>Approval requests</CardTitle>
+            <CardTitle>Milestone reviews</CardTitle>
             <p className="mt-2 text-sm text-slate-500">
-              Review the work, approve it, or ask for changes with a clear
-              note.
+              Review each milestone, approve it, or ask for changes with a
+              clear note.
             </p>
           </div>
 
@@ -68,7 +68,7 @@ export function ApprovalActionsCard({
               No approvals requested yet
             </p>
             <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-600">
-              You will see review requests here when work is ready for your
+              You will see milestone reviews here when work is ready for your
               sign-off.
             </p>
           </div>

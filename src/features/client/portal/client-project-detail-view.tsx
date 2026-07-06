@@ -1,11 +1,10 @@
 import { PageHeader } from "@/components/shared/page-header";
+import { ApprovalActionsCard } from "@/features/client/portal/approval-actions-card";
 import { ClientActivityCard } from "@/features/client/portal/client-activity-card";
 import {
-  ClientApprovalPreviewCard,
   ClientFilesPreviewCard,
 } from "@/features/client/portal/client-project-previews";
 import { ClientProjectOverview } from "@/features/client/portal/client-project-overview";
-import { ClientTasksCard } from "@/features/client/portal/client-tasks-card";
 import { ClientTimelineCard } from "@/features/client/portal/client-timeline-card";
 import { ClientUpdatesCard } from "@/features/client/portal/client-updates-card";
 import type { ClientPortalProject } from "@/features/client/portal/types";
@@ -22,18 +21,21 @@ export function ClientProjectDetailView({
       <PageHeader
         eyebrow="Project"
         title={project.name}
-        description="A clear view of progress, active work, approvals, and recent project notes."
+        description="A clear view of progress, milestones, approvals, and recent project notes."
       />
 
       <ClientProjectOverview project={project} />
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-12 xl:items-start">
         <div className="min-w-0 xl:col-span-7">
-          <ClientTasksCard tasks={project.tasks} />
+          <ClientTimelineCard milestones={project.milestones} />
         </div>
 
         <div className="min-w-0 xl:col-span-5">
-          <ClientTimelineCard milestones={project.milestones} />
+          <ApprovalActionsCard
+            projectId={project.id}
+            approvals={project.approvals}
+          />
         </div>
 
         <div className="min-w-0 xl:col-span-7">
@@ -44,15 +46,8 @@ export function ClientProjectDetailView({
           <ClientActivityCard activity={project.activity} />
         </div>
 
-        <div className="min-w-0 xl:col-span-6">
+        <div className="min-w-0 xl:col-span-12">
           <ClientFilesPreviewCard projectId={project.id} files={project.files} />
-        </div>
-
-        <div className="min-w-0 xl:col-span-6">
-          <ClientApprovalPreviewCard
-            projectId={project.id}
-            approvals={project.approvals}
-          />
         </div>
       </div>
     </div>

@@ -304,9 +304,14 @@ export function ClientsTable({ clients }: ClientsTableProps) {
                   labelClassName="xl:hidden"
                   valueClassName="space-y-1.5"
                 >
-                  <p className="line-clamp-1 break-words font-medium text-slate-950">
-                    {client.name}
-                  </p>
+                  <Link
+                    href={`/admin/clients/${client.id}`}
+                    className="inline-flex max-w-full rounded-sm font-medium text-slate-950 outline-none transition-colors hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-slate-950/20 focus-visible:ring-offset-2"
+                  >
+                    <span className="line-clamp-1 break-words">
+                      {client.name}
+                    </span>
+                  </Link>
                   <p className="truncate text-sm text-slate-500">
                     {client.email}
                   </p>

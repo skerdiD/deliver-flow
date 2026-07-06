@@ -2,9 +2,9 @@ import {
   BarChart3,
   BadgeCheck,
   BriefcaseBusiness,
-  CheckSquare,
   CreditCard,
   Files,
+  Flag,
   FolderKanban,
   Home,
   MessageSquare,
@@ -31,9 +31,9 @@ export const adminNavigation = [
     icon: FolderKanban,
   },
   {
-    title: "Tasks",
-    href: routes.admin.tasks,
-    icon: CheckSquare,
+    title: "Milestones",
+    href: routes.admin.milestones,
+    icon: Flag,
   },
   {
     title: "Feedback",

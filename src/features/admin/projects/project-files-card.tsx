@@ -51,19 +51,19 @@ export function ProjectFilesCard({ projectId, files }: ProjectFilesCardProps) {
       <CardContent className="space-y-3">
         <form
           action={uploadAction}
-          className="rounded-lg border border-slate-200 bg-slate-50 p-4"
+          className="rounded-xl border border-slate-200 bg-slate-50/80 p-4"
         >
           <input type="hidden" name="projectId" value={projectId} />
 
           <div className="grid gap-3">
-            <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(180px,0.7fr)_160px]">
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,0.9fr)_180px]">
               <div className="space-y-2">
                 <Label htmlFor="project-file-upload">Deliverable file</Label>
                 <Input
                   id="project-file-upload"
                   name="file"
                   type="file"
-                  className="bg-white"
+                  className="w-full bg-white"
                   disabled={isUploading}
                 />
               </div>
@@ -75,7 +75,7 @@ export function ProjectFilesCard({ projectId, files }: ProjectFilesCardProps) {
                   name="label"
                   type="text"
                   placeholder="Final handoff"
-                  className="bg-white"
+                  className="w-full bg-white"
                   disabled={isUploading}
                 />
               </div>
@@ -87,7 +87,7 @@ export function ProjectFilesCard({ projectId, files }: ProjectFilesCardProps) {
                   defaultValue="deliverable"
                   disabled={isUploading}
                 >
-                  <SelectTrigger className="bg-white">
+                  <SelectTrigger className="w-full bg-white">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
