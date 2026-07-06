@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 
 import {
+  adminNotes,
   approvals,
   clientInvitations,
   clients,
@@ -59,6 +60,9 @@ export const profilesRelations = relations(profiles, ({ many }) => ({
   }),
   acceptedClientInvitations: many(clientInvitations, {
     relationName: "clientInvitationAcceptor",
+  }),
+  createdAdminNotes: many(adminNotes, {
+    relationName: "adminNoteCreator",
   }),
 }));
 
@@ -246,6 +250,14 @@ export const approvalsRelations = relations(approvals, ({ one }) => ({
     fields: [approvals.respondedBy],
     references: [profiles.id],
     relationName: "approvalResponder",
+  }),
+}));
+
+export const adminNotesRelations = relations(adminNotes, ({ one }) => ({
+  creator: one(profiles, {
+    fields: [adminNotes.createdBy],
+    references: [profiles.id],
+    relationName: "adminNoteCreator",
   }),
 }));
 

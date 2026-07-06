@@ -581,6 +581,22 @@ export const approvals = pgTable(
   }),
 );
 
+export const adminNotes = pgTable("admin_notes", {
+  id: uuid("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  content: text("content").notNull(),
+  createdBy: uuid("created_by").references(() => profiles.id, {
+    onDelete: "set null",
+  }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 export const payments = pgTable(
   "payments",
   {
@@ -706,6 +722,9 @@ export type NewFeedback = typeof feedback.$inferInsert;
 
 export type Approval = typeof approvals.$inferSelect;
 export type NewApproval = typeof approvals.$inferInsert;
+
+export type AdminNote = typeof adminNotes.$inferSelect;
+export type NewAdminNote = typeof adminNotes.$inferInsert;
 
 export type Payment = typeof payments.$inferSelect;
 export type NewPayment = typeof payments.$inferInsert;

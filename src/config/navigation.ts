@@ -6,6 +6,7 @@ import {
   Files,
   Flag,
   FolderKanban,
+  FileText,
   Home,
   MessageSquare,
   Settings,
@@ -29,6 +30,11 @@ export const adminNavigation = [
     title: "Projects",
     href: routes.admin.projects,
     icon: FolderKanban,
+  },
+  {
+    title: "Notes",
+    href: routes.admin.notes,
+    icon: FileText,
   },
   {
     title: "Milestones",
