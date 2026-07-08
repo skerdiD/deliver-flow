@@ -1,5 +1,3 @@
-import { Search } from "lucide-react";
-
 import { LogoutButton } from "@/components/auth/logout-button";
 import { ClientProjectControls } from "@/components/layouts/client-project-controls";
 import {
@@ -7,7 +5,6 @@ import {
   type AdminQuickActionProject,
 } from "@/components/layouts/admin-quick-actions";
 import { MobileSidebar } from "@/components/layouts/mobile-sidebar";
-import { Input } from "@/components/ui/input";
 import type { ClientProjectSwitcherProject } from "@/features/client/portal/portal-data";
 
 type AppTopbarProps = {
@@ -36,7 +33,7 @@ export function AppTopbar({
 
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
-      <div className="flex min-h-16 flex-wrap items-center justify-between gap-2 px-4 py-2 sm:gap-3 sm:px-6 lg:flex-nowrap lg:px-8">
+      <div className="flex min-h-16 flex-wrap items-center gap-2 px-4 py-2 sm:gap-3 sm:px-6 lg:flex-nowrap lg:px-8">
         <div className="flex min-w-0 flex-1 items-center gap-3">
           {mobileNavigationType ? (
             <MobileSidebar type={mobileNavigationType} />
@@ -61,17 +58,9 @@ export function AppTopbar({
               defaultProjectId={defaultClientProjectId}
             />
           </div>
-        ) : (
-          <div className="hidden h-10 w-full max-w-sm items-center gap-2 rounded-lg border border-slate-200 bg-slate-50/80 px-3 shadow-inner xl:flex">
-            <Search className="size-4 text-slate-400" />
-            <Input
-              className="h-9 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
-              placeholder="Search projects, clients, files..."
-            />
-          </div>
-        )}
+        ) : null}
 
-        <div className="flex min-w-0 shrink-0 items-center gap-2 sm:gap-3">
+        <div className="ml-auto flex min-w-0 shrink-0 items-center gap-2 sm:gap-3">
           {showQuickActions ? (
             <AdminQuickActions projects={quickActionProjects ?? []} />
           ) : null}
