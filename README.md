@@ -12,23 +12,32 @@ It helps freelancers and small agencies manage clients, projects, tasks, files, 
 
 Explore the deployed app: [deliver-flow.vercel.app](https://deliver-flow.vercel.app)
 
-Updated preview assets: the app screenshots in `public/screenshots/` have been renamed and organized below.
+## Screenshots
 
-| `client-portal-overview.png` | `client-project-files.png` |
-| --- | --- |
-| ![Client portal overview](public/screenshots/client-portal-overview.png) | ![Client project files](public/screenshots/client-project-files.png) |
+### Admin dashboard
+Main workspace overview for tracking delivery progress, approvals, feedback, and payments.
 
-| `client-project-detail.png` | `admin-dashboard-overview.png` |
-| --- | --- |
-| ![Client project detail](public/screenshots/client-project-detail.png) | ![Admin dashboard overview](public/screenshots/admin-dashboard-overview.png) |
+<img src="./public/screenshots/admin-dashboard.png" alt="DeliverFlow admin dashboard" width="100%" />
 
-| `admin-dashboard-attention-and-feedback.png` | `admin-clients-table.png` |
-| --- | --- |
-| ![Admin dashboard attention and feedback](public/screenshots/admin-dashboard-attention-and-feedback.png) | ![Admin clients table](public/screenshots/admin-clients-table.png) |
+### Client management
+Manage client accounts, project access, and delivery history.
 
-| `admin-projects-table.png` | `admin-tasks-table.png` |
-| --- | --- |
-| ![Admin projects table](public/screenshots/admin-projects-table.png) | ![Admin tasks table](public/screenshots/admin-tasks-table.png) |
+<img src="./public/screenshots/admin-client-management.png" alt="DeliverFlow client management" width="100%" />
+
+### Project management
+Track projects, progress, payment status, deadlines, and client assignments.
+
+<img src="./public/screenshots/admin-project-management.png" alt="DeliverFlow project management" width="100%" />
+
+### Task tracking
+Manage project tasks by status, priority, due date, and visibility.
+
+<img src="./public/screenshots/admin-task-tracking.png" alt="DeliverFlow task tracking" width="100%" />
+
+### Client portal
+Client-facing workspace for project updates, files, feedback, approvals, and payments.
+
+<img src="./public/screenshots/client-portal.png" alt="DeliverFlow client portal" width="100%" />
 
 ## Overview
 
