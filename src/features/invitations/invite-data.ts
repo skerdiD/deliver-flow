@@ -126,6 +126,7 @@ export async function acceptClientInvite(
     .select({
       id: profiles.id,
       role: profiles.role,
+      workspaceId: profiles.workspaceId,
     })
     .from(profiles)
     .where(eq(profiles.id, user.id))
@@ -158,12 +159,14 @@ export async function acceptClientInvite(
       invite.clientId
         ? and(
             eq(clients.profileId, user.id),
+            eq(clients.workspaceId, invite.workspaceId),
             ne(clients.id, invite.clientId),
             isNull(clients.archivedAt),
             isNull(clients.deletedAt),
           )
         : and(
             eq(clients.profileId, user.id),
+            eq(clients.workspaceId, invite.workspaceId),
             isNull(clients.archivedAt),
             isNull(clients.deletedAt),
           ),
@@ -189,8 +192,9 @@ export async function acceptClientInvite(
           .from(clients)
           .where(
             and(
-              eq(clients.id, invite.clientId),
-              isNull(clients.archivedAt),
+            eq(clients.id, invite.clientId),
+            eq(clients.workspaceId, invite.workspaceId),
+            isNull(clients.archivedAt),
               isNull(clients.deletedAt),
             ),
           )
@@ -225,6 +229,7 @@ export async function acceptClientInvite(
       await db
         .insert(clients)
         .values({
+          workspaceId: invite.workspaceId,
           email: invite.email,
           contactName:
             user.user_metadata?.full_name?.toString() ?? invite.email,
@@ -248,6 +253,7 @@ export async function acceptClientInvite(
       .insert(profiles)
       .values({
         id: user.id,
+        workspaceId: invite.workspaceId,
         email: userEmail,
         fullName: user.user_metadata?.full_name?.toString() ?? null,
         avatarUrl: user.user_metadata?.avatar_url?.toString() ?? null,
@@ -257,6 +263,7 @@ export async function acceptClientInvite(
         target: profiles.id,
         set: {
           email: userEmail,
+          workspaceId: invite.workspaceId,
           role: "client",
           updatedAt: new Date(),
         },
@@ -272,6 +279,7 @@ export async function acceptClientInvite(
       .where(
         and(
           eq(clients.id, clientId),
+          eq(clients.workspaceId, invite.workspaceId),
           eq(clients.email, invite.email),
           isNull(clients.archivedAt),
           isNull(clients.deletedAt),
@@ -295,6 +303,7 @@ export async function acceptClientInvite(
       .where(
         and(
           eq(clientInvitations.id, invite.id),
+          eq(clientInvitations.workspaceId, invite.workspaceId),
           eq(clientInvitations.status, "pending"),
         ),
       )
@@ -364,6 +373,7 @@ export async function acceptClientInviteWithPassword(input: {
     .where(
       and(
         eq(clients.id, invite.clientId),
+        eq(clients.workspaceId, invite.workspaceId),
         isNull(clients.archivedAt),
         isNull(clients.deletedAt),
       ),
@@ -429,6 +439,7 @@ export async function acceptClientInviteWithPassword(input: {
 
       await tx.insert(profiles).values({
         id: userId,
+        workspaceId: invite.workspaceId,
         email: invite.email,
         fullName: invitedClient.contactName,
         avatarUrl: null,
@@ -445,6 +456,7 @@ export async function acceptClientInviteWithPassword(input: {
         .where(
           and(
             eq(clients.id, invitedClient.id),
+            eq(clients.workspaceId, invite.workspaceId),
             eq(clients.email, invite.email),
             isNull(clients.archivedAt),
             isNull(clients.deletedAt),
@@ -468,6 +480,7 @@ export async function acceptClientInviteWithPassword(input: {
         .where(
           and(
             eq(clientInvitations.id, invite.id),
+            eq(clientInvitations.workspaceId, invite.workspaceId),
             eq(clientInvitations.status, "pending"),
           ),
         )
@@ -510,6 +523,7 @@ async function getInviteByToken(token: string) {
       id: clientInvitations.id,
       email: clientInvitations.email,
       clientId: clientInvitations.clientId,
+      workspaceId: clientInvitations.workspaceId,
       status: clientInvitations.status,
       expiresAt: clientInvitations.expiresAt,
     })

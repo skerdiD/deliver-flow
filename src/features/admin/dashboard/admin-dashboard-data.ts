@@ -48,7 +48,7 @@ import type {
   ProjectStatus,
 } from "@/features/admin/dashboard/types";
 import { formatCurrencyFromCents, formatShortDate } from "@/lib/format";
-import { requireRole } from "@/lib/supabase/auth";
+import { requireAdminWorkspace } from "@/lib/supabase/auth";
 
 type ProjectSummaryRow = {
   id: string;
@@ -165,7 +165,7 @@ function buildActivityItem(input: {
   return input;
 }
 
-async function getProjectSupportMaps(projectIds: string[]) {
+async function getProjectSupportMaps(projectIds: string[], workspaceId: string) {
   if (projectIds.length === 0) {
     return {
       clientByProjectId: new Map<string, string>(),
@@ -188,6 +188,8 @@ async function getProjectSupportMaps(projectIds: string[]) {
       .where(
         and(
           inArray(projectAssignments.projectId, projectIds),
+          eq(projectAssignments.workspaceId, workspaceId),
+          eq(clients.workspaceId, workspaceId),
           isNull(clients.deletedAt),
         ),
       )
@@ -201,7 +203,12 @@ async function getProjectSupportMaps(projectIds: string[]) {
         createdAt: milestones.createdAt,
       })
       .from(milestones)
-      .where(inArray(milestones.projectId, projectIds))
+      .where(
+        and(
+          inArray(milestones.projectId, projectIds),
+          eq(milestones.workspaceId, workspaceId),
+        ),
+      )
       .orderBy(asc(milestones.position), asc(milestones.createdAt)),
     db
       .select({
@@ -213,6 +220,7 @@ async function getProjectSupportMaps(projectIds: string[]) {
       .where(
         and(
           inArray(payments.projectId, projectIds),
+          eq(payments.workspaceId, workspaceId),
           isNull(payments.deletedAt),
         ),
       ),
@@ -296,13 +304,14 @@ async function getProjectSupportMaps(projectIds: string[]) {
 
 async function getProjectCards(
   rows: ProjectSummaryRow[],
+  workspaceId: string,
 ): Promise<DashboardProject[]> {
   const projectIds = rows.map((row) => row.id);
   const {
     clientByProjectId,
     currentMilestoneByProjectId,
     paymentInfoByProjectId,
-  } = await getProjectSupportMaps(projectIds);
+  } = await getProjectSupportMaps(projectIds, workspaceId);
 
   return rows.map((row) => {
     const paymentInfo = paymentInfoByProjectId.get(row.id) ?? {
@@ -361,7 +370,7 @@ function getMetrics(input: {
 }
 
 export async function getAdminDashboardData(): Promise<AdminDashboardData> {
-  await requireRole("admin");
+  const { workspaceId } = await requireAdminWorkspace();
 
   const [
     [activeProjectsResult],
@@ -384,6 +393,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       .where(
         and(
           inArray(projects.status, activeProjectStatuses),
+          eq(projects.workspaceId, workspaceId),
           isNull(projects.archivedAt),
           isNull(projects.deletedAt),
         ),
@@ -395,6 +405,8 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       .where(
         and(
           eq(milestones.status, "waiting_approval"),
+          eq(milestones.workspaceId, workspaceId),
+          eq(projects.workspaceId, workspaceId),
           isNull(projects.archivedAt),
           isNull(projects.deletedAt),
         ),
@@ -406,6 +418,8 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       .where(
         and(
           inArray(milestones.status, completedMilestoneStatuses),
+          eq(milestones.workspaceId, workspaceId),
+          eq(projects.workspaceId, workspaceId),
           isNull(projects.archivedAt),
           isNull(projects.deletedAt),
         ),
@@ -417,6 +431,8 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       .where(
         and(
           inArray(payments.status, outstandingPaymentStatuses),
+          eq(payments.workspaceId, workspaceId),
+          eq(projects.workspaceId, workspaceId),
           isNull(payments.deletedAt),
           isNull(projects.archivedAt),
           isNull(projects.deletedAt),
@@ -435,6 +451,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       .where(
         and(
           inArray(projects.status, activeProjectStatuses),
+          eq(projects.workspaceId, workspaceId),
           isNull(projects.archivedAt),
           isNull(projects.deletedAt),
         ),
@@ -456,6 +473,9 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       .where(
         and(
           isNull(projects.archivedAt),
+          eq(feedback.workspaceId, workspaceId),
+          eq(clients.workspaceId, workspaceId),
+          eq(projects.workspaceId, workspaceId),
           isNull(projects.deletedAt),
           isNull(clients.deletedAt),
           isNull(feedback.archivedAt),
@@ -479,6 +499,8 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       .where(
         and(
           isNull(approvals.deletedAt),
+          eq(approvals.workspaceId, workspaceId),
+          eq(projects.workspaceId, workspaceId),
           isNull(projects.archivedAt),
           isNull(projects.deletedAt),
         ),
@@ -496,7 +518,14 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       })
       .from(projectUpdates)
       .innerJoin(projects, eq(projectUpdates.projectId, projects.id))
-      .where(and(isNull(projects.archivedAt), isNull(projects.deletedAt)))
+      .where(
+        and(
+          eq(projectUpdates.workspaceId, workspaceId),
+          eq(projects.workspaceId, workspaceId),
+          isNull(projects.archivedAt),
+          isNull(projects.deletedAt),
+        ),
+      )
       .orderBy(desc(projectUpdates.createdAt))
       .limit(4),
     db
@@ -514,6 +543,8 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       .where(
         and(
           isNull(payments.deletedAt),
+          eq(payments.workspaceId, workspaceId),
+          eq(projects.workspaceId, workspaceId),
           isNull(projects.archivedAt),
           isNull(projects.deletedAt),
         ),
@@ -535,6 +566,8 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       .where(
         and(
           inArray(payments.status, outstandingPaymentStatuses),
+          eq(payments.workspaceId, workspaceId),
+          eq(projects.workspaceId, workspaceId),
           isNull(payments.deletedAt),
           isNull(projects.archivedAt),
           isNull(projects.deletedAt),
@@ -556,6 +589,8 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       .where(
         and(
           eq(milestones.status, "waiting_approval"),
+          eq(milestones.workspaceId, workspaceId),
+          eq(projects.workspaceId, workspaceId),
           isNull(projects.archivedAt),
           isNull(projects.deletedAt),
         ),
@@ -578,6 +613,8 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       .where(
         and(
           eq(approvals.status, "changes_requested"),
+          eq(approvals.workspaceId, workspaceId),
+          eq(projects.workspaceId, workspaceId),
           isNull(approvals.deletedAt),
           isNull(projects.archivedAt),
           isNull(projects.deletedAt),
@@ -600,6 +637,9 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       .where(
         and(
           eq(feedback.status, "open"),
+          eq(feedback.workspaceId, workspaceId),
+          eq(projects.workspaceId, workspaceId),
+          eq(clients.workspaceId, workspaceId),
           isNull(projects.archivedAt),
           isNull(projects.deletedAt),
           isNull(clients.deletedAt),
@@ -611,7 +651,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       .limit(4),
   ]);
 
-  const projectProgress = await getProjectCards(progressProjectRows);
+  const projectProgress = await getProjectCards(progressProjectRows, workspaceId);
   const supportProjectIds = Array.from(
     new Set([
       ...recentApprovalRows.map((row) => row.projectId),
@@ -630,7 +670,10 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
         .map((project) => project.id),
     ]),
   );
-  const { clientByProjectId } = await getProjectSupportMaps(supportProjectIds);
+  const { clientByProjectId } = await getProjectSupportMaps(
+    supportProjectIds,
+    workspaceId,
+  );
 
   const attentionItems: DashboardAttentionItem[] = (
     [

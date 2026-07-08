@@ -117,10 +117,33 @@ export const projectViewTargetTypeEnum = pgEnum("project_view_target_type", [
   "payment",
 ]);
 
+export const workspaces = pgTable(
+  "workspaces",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    name: text("name").notNull(),
+    slug: text("slug").notNull().unique(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    slugIdx: index("workspaces_slug_idx").on(table.slug),
+  }),
+);
+
 export const profiles = pgTable("profiles", {
   id: uuid("id")
     .primaryKey()
     .references(() => authUsers.id, { onDelete: "cascade" }),
+  workspaceId: uuid("workspace_id")
+    .notNull()
+    .references(() => workspaces.id, { onDelete: "restrict" }),
   email: text("email").notNull().unique(),
   fullName: text("full_name"),
   avatarUrl: text("avatar_url"),
@@ -139,12 +162,15 @@ export const clients = pgTable(
     id: uuid("id")
       .primaryKey()
       .default(sql`gen_random_uuid()`),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
     profileId: uuid("profile_id")
       .unique()
       .references(() => profiles.id, { onDelete: "set null" }),
     companyName: text("company_name").notNull(),
     contactName: text("contact_name").notNull(),
-    email: text("email").notNull().unique(),
+    email: text("email").notNull(),
     phone: text("phone"),
     status: clientStatusEnum("status").notNull().default("active"),
     notes: text("notes"),
@@ -161,8 +187,13 @@ export const clients = pgTable(
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
   },
   (table) => ({
+    workspaceIdIdx: index("clients_workspace_id_idx").on(table.workspaceId),
     profileIdIdx: index("clients_profile_id_idx").on(table.profileId),
     createdByIdx: index("clients_created_by_idx").on(table.createdBy),
+    workspaceEmailUnique: unique("clients_workspace_email_unique").on(
+      table.workspaceId,
+      table.email,
+    ),
     statusIdx: index("clients_status_idx").on(table.status),
     archivedAtIdx: index("clients_archived_at_idx").on(table.archivedAt),
     deletedAtIdx: index("clients_deleted_at_idx").on(table.deletedAt),
@@ -176,6 +207,9 @@ export const clientInvitations = pgTable(
     id: uuid("id")
       .primaryKey()
       .default(sql`gen_random_uuid()`),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
     email: text("email").notNull(),
     clientId: uuid("client_id").references(() => clients.id, {
       onDelete: "set null",
@@ -200,6 +234,9 @@ export const clientInvitations = pgTable(
       .defaultNow(),
   },
   (table) => ({
+    workspaceIdIdx: index("client_invitations_workspace_id_idx").on(
+      table.workspaceId,
+    ),
     emailStatusIdx: index("client_invitations_email_status_idx").on(
       table.email,
       table.status,
@@ -218,6 +255,9 @@ export const projects = pgTable(
     id: uuid("id")
       .primaryKey()
       .default(sql`gen_random_uuid()`),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     slug: text("slug").notNull().unique(),
     description: text("description"),
@@ -244,6 +284,7 @@ export const projects = pgTable(
       sql`${table.progress} >= 0 AND ${table.progress} <= 100`,
     ),
     createdByIdx: index("projects_created_by_idx").on(table.createdBy),
+    workspaceIdIdx: index("projects_workspace_id_idx").on(table.workspaceId),
     statusIdx: index("projects_status_idx").on(table.status),
     archivedAtIdx: index("projects_archived_at_idx").on(table.archivedAt),
     deletedAtIdx: index("projects_deleted_at_idx").on(table.deletedAt),
@@ -260,6 +301,9 @@ export const projectAssignments = pgTable(
     id: uuid("id")
       .primaryKey()
       .default(sql`gen_random_uuid()`),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
     projectId: uuid("project_id")
       .notNull()
       .references(() => projects.id, { onDelete: "cascade" }),
@@ -274,6 +318,9 @@ export const projectAssignments = pgTable(
       .defaultNow(),
   },
   (table) => ({
+    workspaceIdIdx: index("project_assignments_workspace_id_idx").on(
+      table.workspaceId,
+    ),
     uniqueProjectClient: unique("project_assignments_project_client_unique").on(
       table.projectId,
       table.clientId,
@@ -295,6 +342,9 @@ export const projectActivity = pgTable(
     id: uuid("id")
       .primaryKey()
       .default(sql`gen_random_uuid()`),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
     projectId: uuid("project_id")
       .notNull()
       .references(() => projects.id, { onDelete: "cascade" }),
@@ -313,6 +363,9 @@ export const projectActivity = pgTable(
       .defaultNow(),
   },
   (table) => ({
+    workspaceIdIdx: index("project_activity_workspace_id_idx").on(
+      table.workspaceId,
+    ),
     projectCreatedAtIdx: index("project_activity_project_created_at_idx").on(
       table.projectId,
       table.createdAt,
@@ -328,6 +381,9 @@ export const projectViewEvents = pgTable(
     id: uuid("id")
       .primaryKey()
       .default(sql`gen_random_uuid()`),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
     projectId: uuid("project_id")
       .notNull()
       .references(() => projects.id, { onDelete: "cascade" }),
@@ -344,6 +400,9 @@ export const projectViewEvents = pgTable(
       .defaultNow(),
   },
   (table) => ({
+    workspaceIdIdx: index("project_view_events_workspace_id_idx").on(
+      table.workspaceId,
+    ),
     uniqueClientTarget: unique("project_view_events_client_target_unique").on(
       table.projectId,
       table.clientId,
@@ -371,6 +430,9 @@ export const milestones = pgTable(
     id: uuid("id")
       .primaryKey()
       .default(sql`gen_random_uuid()`),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
     projectId: uuid("project_id")
       .notNull()
       .references(() => projects.id, { onDelete: "cascade" }),
@@ -391,6 +453,7 @@ export const milestones = pgTable(
       .defaultNow(),
   },
   (table) => ({
+    workspaceIdIdx: index("milestones_workspace_id_idx").on(table.workspaceId),
     projectIdIdx: index("milestones_project_id_idx").on(table.projectId),
     projectVisiblePositionIdx: index("milestones_project_visible_pos_idx").on(
       table.projectId,
@@ -410,6 +473,9 @@ export const tasks = pgTable(
     id: uuid("id")
       .primaryKey()
       .default(sql`gen_random_uuid()`),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
     projectId: uuid("project_id")
       .notNull()
       .references(() => projects.id, { onDelete: "cascade" }),
@@ -435,6 +501,7 @@ export const tasks = pgTable(
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
   },
   (table) => ({
+    workspaceIdIdx: index("tasks_workspace_id_idx").on(table.workspaceId),
     projectIdIdx: index("tasks_project_id_idx").on(table.projectId),
     milestoneIdIdx: index("tasks_milestone_id_idx").on(table.milestoneId),
     deletedAtIdx: index("tasks_deleted_at_idx").on(table.deletedAt),
@@ -456,6 +523,9 @@ export const projectUpdates = pgTable(
     id: uuid("id")
       .primaryKey()
       .default(sql`gen_random_uuid()`),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
     projectId: uuid("project_id")
       .notNull()
       .references(() => projects.id, { onDelete: "cascade" }),
@@ -476,6 +546,9 @@ export const projectUpdates = pgTable(
       .defaultNow(),
   },
   (table) => ({
+    workspaceIdIdx: index("project_updates_workspace_id_idx").on(
+      table.workspaceId,
+    ),
     projectIdIdx: index("project_updates_project_id_idx").on(table.projectId),
     projectVisibleCreatedAtIdx: index(
       "project_updates_project_visible_created_at_idx",
@@ -489,6 +562,9 @@ export const feedback = pgTable(
     id: uuid("id")
       .primaryKey()
       .default(sql`gen_random_uuid()`),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
     projectId: uuid("project_id")
       .notNull()
       .references(() => projects.id, { onDelete: "cascade" }),
@@ -513,6 +589,7 @@ export const feedback = pgTable(
       .defaultNow(),
   },
   (table) => ({
+    workspaceIdIdx: index("feedback_workspace_id_idx").on(table.workspaceId),
     projectIdIdx: index("feedback_project_id_idx").on(table.projectId),
     clientIdIdx: index("feedback_client_id_idx").on(table.clientId),
     archivedAtIdx: index("feedback_archived_at_idx").on(table.archivedAt),
@@ -536,6 +613,9 @@ export const approvals = pgTable(
     id: uuid("id")
       .primaryKey()
       .default(sql`gen_random_uuid()`),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
     projectId: uuid("project_id")
       .notNull()
       .references(() => projects.id, { onDelete: "cascade" }),
@@ -567,6 +647,7 @@ export const approvals = pgTable(
       .defaultNow(),
   },
   (table) => ({
+    workspaceIdIdx: index("approvals_workspace_id_idx").on(table.workspaceId),
     projectIdIdx: index("approvals_project_id_idx").on(table.projectId),
     milestoneIdIdx: index("approvals_milestone_id_idx").on(table.milestoneId),
     cancelledAtIdx: index("approvals_cancelled_at_idx").on(table.cancelledAt),
@@ -585,6 +666,9 @@ export const adminNotes = pgTable("admin_notes", {
   id: uuid("id")
     .primaryKey()
     .default(sql`gen_random_uuid()`),
+  workspaceId: uuid("workspace_id")
+    .notNull()
+    .references(() => workspaces.id, { onDelete: "cascade" }),
   content: text("content").notNull(),
   createdBy: uuid("created_by").references(() => profiles.id, {
     onDelete: "set null",
@@ -603,6 +687,9 @@ export const payments = pgTable(
     id: uuid("id")
       .primaryKey()
       .default(sql`gen_random_uuid()`),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
     projectId: uuid("project_id")
       .notNull()
       .references(() => projects.id, { onDelete: "cascade" }),
@@ -628,6 +715,7 @@ export const payments = pgTable(
       sql`${table.amountCents} > 0`,
     ),
     projectIdIdx: index("payments_project_id_idx").on(table.projectId),
+    workspaceIdIdx: index("payments_workspace_id_idx").on(table.workspaceId),
     voidedAtIdx: index("payments_voided_at_idx").on(table.voidedAt),
     deletedAtIdx: index("payments_deleted_at_idx").on(table.deletedAt),
     projectStatusDueDateIdx: index("payments_project_status_due_date_idx").on(
@@ -648,6 +736,9 @@ export const projectFiles = pgTable(
     id: uuid("id")
       .primaryKey()
       .default(sql`gen_random_uuid()`),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
     projectId: uuid("project_id")
       .notNull()
       .references(() => projects.id, { onDelete: "cascade" }),
@@ -675,6 +766,9 @@ export const projectFiles = pgTable(
       sql`${table.fileSize} IS NULL OR ${table.fileSize} >= 0`,
     ),
     projectIdIdx: index("project_files_project_id_idx").on(table.projectId),
+    workspaceIdIdx: index("project_files_workspace_id_idx").on(
+      table.workspaceId,
+    ),
     deletedAtIdx: index("project_files_deleted_at_idx").on(table.deletedAt),
     projectVisibleCreatedAtIdx: index(
       "project_files_project_visible_created_at_idx",
@@ -689,6 +783,9 @@ export const projectFiles = pgTable(
 
 export type Profile = typeof profiles.$inferSelect;
 export type NewProfile = typeof profiles.$inferInsert;
+
+export type Workspace = typeof workspaces.$inferSelect;
+export type NewWorkspace = typeof workspaces.$inferInsert;
 
 export type Client = typeof clients.$inferSelect;
 export type NewClient = typeof clients.$inferInsert;

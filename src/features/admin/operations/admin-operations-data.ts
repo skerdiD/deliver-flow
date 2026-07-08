@@ -14,7 +14,7 @@ import {
   projects,
   tasks,
 } from "@/db/schema";
-import { requireRole } from "@/lib/supabase/auth";
+import { requireAdminWorkspace } from "@/lib/supabase/auth";
 import type {
   AdminApprovalRecord,
   AdminApprovalsPageData,
@@ -39,7 +39,7 @@ function toIsoString(value: Date | string): string {
   return new Date(value).toISOString();
 }
 
-async function getProjectClientMap(projectIds: string[]) {
+async function getProjectClientMap(projectIds: string[], workspaceId: string) {
   const projectClientMap = new Map<
     string,
     { clientName: string; clientEmail: string | null }
@@ -60,6 +60,8 @@ async function getProjectClientMap(projectIds: string[]) {
     .where(
       and(
         inArray(projectAssignments.projectId, projectIds),
+        eq(projectAssignments.workspaceId, workspaceId),
+        eq(clients.workspaceId, workspaceId),
         isNull(clients.deletedAt),
       ),
     )
@@ -78,7 +80,7 @@ async function getProjectClientMap(projectIds: string[]) {
 }
 
 export async function getAdminMilestonesPageData(): Promise<AdminMilestonesPageData> {
-  await requireRole("admin");
+  const { workspaceId } = await requireAdminWorkspace();
 
   const milestoneRows = await db
     .select({
@@ -94,11 +96,19 @@ export async function getAdminMilestonesPageData(): Promise<AdminMilestonesPageD
     })
     .from(milestones)
     .innerJoin(projects, eq(milestones.projectId, projects.id))
-    .where(and(isNull(projects.archivedAt), isNull(projects.deletedAt)))
+    .where(
+      and(
+        eq(milestones.workspaceId, workspaceId),
+        eq(projects.workspaceId, workspaceId),
+        isNull(projects.archivedAt),
+        isNull(projects.deletedAt),
+      ),
+    )
     .orderBy(asc(milestones.dueDate), asc(milestones.position), desc(milestones.createdAt));
 
   const projectClientMap = await getProjectClientMap(
     Array.from(new Set(milestoneRows.map((row) => row.projectId))),
+    workspaceId,
   );
 
   const milestoneIds = milestoneRows.map((row) => row.id);
@@ -117,6 +127,7 @@ export async function getAdminMilestonesPageData(): Promise<AdminMilestonesPageD
           .where(
             and(
               inArray(approvals.milestoneId, milestoneIds),
+              eq(approvals.workspaceId, workspaceId),
               isNull(approvals.deletedAt),
             ),
           )
@@ -188,7 +199,7 @@ export async function getAdminMilestonesPageData(): Promise<AdminMilestonesPageD
 }
 
 export async function getAdminTasksPageData(): Promise<AdminTasksPageData> {
-  await requireRole("admin");
+  const { workspaceId } = await requireAdminWorkspace();
 
   const taskRows = await db
     .select({
@@ -210,6 +221,8 @@ export async function getAdminTasksPageData(): Promise<AdminTasksPageData> {
     .where(
       and(
         isNull(tasks.deletedAt),
+        eq(tasks.workspaceId, workspaceId),
+        eq(projects.workspaceId, workspaceId),
         isNull(projects.archivedAt),
         isNull(projects.deletedAt),
       ),
@@ -218,6 +231,7 @@ export async function getAdminTasksPageData(): Promise<AdminTasksPageData> {
 
   const projectClientMap = await getProjectClientMap(
     Array.from(new Set(taskRows.map((row) => row.projectId))),
+    workspaceId,
   );
 
   const normalizedTasks: AdminTaskRecord[] = taskRows.map((row) => ({
@@ -260,7 +274,7 @@ export async function getAdminTasksPageData(): Promise<AdminTasksPageData> {
 }
 
 export async function getAdminFeedbackPageData(): Promise<AdminFeedbackPageData> {
-  await requireRole("admin");
+  const { workspaceId } = await requireAdminWorkspace();
 
   const feedbackRows = await db
     .select({
@@ -281,6 +295,9 @@ export async function getAdminFeedbackPageData(): Promise<AdminFeedbackPageData>
     .where(
       and(
         isNull(projects.archivedAt),
+        eq(feedback.workspaceId, workspaceId),
+        eq(projects.workspaceId, workspaceId),
+        eq(clients.workspaceId, workspaceId),
         isNull(projects.deletedAt),
         isNull(clients.deletedAt),
         isNull(feedback.archivedAt),
@@ -315,7 +332,7 @@ export async function getAdminFeedbackPageData(): Promise<AdminFeedbackPageData>
 }
 
 export async function getAdminPaymentsPageData(): Promise<AdminPaymentsPageData> {
-  await requireRole("admin");
+  const { workspaceId } = await requireAdminWorkspace();
 
   const paymentRows = await db
     .select({
@@ -337,6 +354,8 @@ export async function getAdminPaymentsPageData(): Promise<AdminPaymentsPageData>
     .where(
       and(
         isNull(payments.deletedAt),
+        eq(payments.workspaceId, workspaceId),
+        eq(projects.workspaceId, workspaceId),
         isNull(projects.archivedAt),
         isNull(projects.deletedAt),
       ),
@@ -345,6 +364,7 @@ export async function getAdminPaymentsPageData(): Promise<AdminPaymentsPageData>
 
   const projectClientMap = await getProjectClientMap(
     Array.from(new Set(paymentRows.map((row) => row.projectId))),
+    workspaceId,
   );
 
   const normalizedPayments: AdminPaymentRecord[] = paymentRows.map((row) => ({
@@ -382,7 +402,7 @@ export async function getAdminPaymentsPageData(): Promise<AdminPaymentsPageData>
 }
 
 export async function getAdminFilesPageData(): Promise<AdminFilesPageData> {
-  await requireRole("admin");
+  const { workspaceId } = await requireAdminWorkspace();
 
   const fileRows = await db
     .select({
@@ -403,6 +423,8 @@ export async function getAdminFilesPageData(): Promise<AdminFilesPageData> {
     .where(
       and(
         isNull(projectFiles.deletedAt),
+        eq(projectFiles.workspaceId, workspaceId),
+        eq(projects.workspaceId, workspaceId),
         isNull(projects.archivedAt),
         isNull(projects.deletedAt),
       ),
@@ -411,6 +433,7 @@ export async function getAdminFilesPageData(): Promise<AdminFilesPageData> {
 
   const projectClientMap = await getProjectClientMap(
     Array.from(new Set(fileRows.map((row) => row.projectId))),
+    workspaceId,
   );
 
   const normalizedFiles: AdminFileRecord[] = fileRows.map((row) => ({
@@ -446,7 +469,7 @@ export async function getAdminFilesPageData(): Promise<AdminFilesPageData> {
 }
 
 export async function getAdminApprovalsPageData(): Promise<AdminApprovalsPageData> {
-  await requireRole("admin");
+  const { workspaceId } = await requireAdminWorkspace();
 
   const approvalRows = await db
     .select({
@@ -467,6 +490,8 @@ export async function getAdminApprovalsPageData(): Promise<AdminApprovalsPageDat
     .where(
       and(
         isNull(approvals.deletedAt),
+        eq(approvals.workspaceId, workspaceId),
+        eq(projects.workspaceId, workspaceId),
         isNull(projects.archivedAt),
         isNull(projects.deletedAt),
       ),
@@ -475,6 +500,7 @@ export async function getAdminApprovalsPageData(): Promise<AdminApprovalsPageDat
 
   const projectClientMap = await getProjectClientMap(
     Array.from(new Set(approvalRows.map((row) => row.projectId))),
+    workspaceId,
   );
 
   const normalizedApprovals: AdminApprovalRecord[] = approvalRows.map((row) => ({
@@ -506,7 +532,7 @@ export async function getAdminApprovalsPageData(): Promise<AdminApprovalsPageDat
 }
 
 export async function getAdminSettingsData(): Promise<AdminSettingsData> {
-  const profile = await requireRole("admin");
+  const { profile } = await requireAdminWorkspace();
 
   return {
     fullName: profile.full_name,

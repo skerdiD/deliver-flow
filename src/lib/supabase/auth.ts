@@ -1,12 +1,12 @@
 import "server-only";
 
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 
 import { routes } from "@/config/routes";
 import { db } from "@/db";
-import { clients, profiles } from "@/db/schema";
+import { clients, profiles, workspaces } from "@/db/schema";
 import {
   getDashboardPathForRole,
   isSupportedRole,
@@ -31,6 +31,7 @@ function toIsoString(value: Date | string) {
 
 function toProfile(row: {
   id: string;
+  workspaceId: string;
   email: string;
   fullName: string | null;
   avatarUrl: string | null;
@@ -40,6 +41,7 @@ function toProfile(row: {
 }): Profile {
   return {
     id: row.id,
+    workspace_id: row.workspaceId,
     email: row.email,
     full_name: row.fullName,
     avatar_url: row.avatarUrl,
@@ -86,6 +88,7 @@ export const getAuthState = cache(async (): Promise<AuthState> => {
   const [profileRow] = await db
     .select({
       id: profiles.id,
+      workspaceId: profiles.workspaceId,
       email: profiles.email,
       fullName: profiles.fullName,
       avatarUrl: profiles.avatarUrl,
@@ -118,6 +121,7 @@ export const getAuthState = cache(async (): Promise<AuthState> => {
       .where(
         and(
           eq(clients.profileId, user.id),
+          eq(clients.workspaceId, profileRow.workspaceId),
           eq(clients.status, "active"),
           isNull(clients.archivedAt),
           isNull(clients.deletedAt),
@@ -180,6 +184,64 @@ export async function requireRole(role: UserRole): Promise<Profile> {
   }
 
   return profile;
+}
+
+export type AdminWorkspace = {
+  profile: Profile;
+  workspaceId: string;
+};
+
+function slugifyWorkspaceName(value: string) {
+  const slug = value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return slug || "workspace";
+}
+
+export async function requireAdminWorkspace(): Promise<AdminWorkspace> {
+  const profile = await requireRole("admin");
+
+  if (profile.workspace_id) {
+    return {
+      profile,
+      workspaceId: profile.workspace_id,
+    };
+  }
+
+  const workspaceName =
+    profile.full_name?.trim() || `${profile.email.split("@")[0]} Workspace`;
+  const [workspace] = await db
+    .insert(workspaces)
+    .values({
+      name: workspaceName,
+      slug: `${slugifyWorkspaceName(workspaceName)}-${profile.id.slice(0, 8)}`,
+    })
+    .onConflictDoUpdate({
+      target: workspaces.slug,
+      set: {
+        updatedAt: sql`now()`,
+      },
+    })
+    .returning({ id: workspaces.id });
+
+  await db
+    .update(profiles)
+    .set({
+      workspaceId: workspace.id,
+      updatedAt: new Date(),
+    })
+    .where(eq(profiles.id, profile.id));
+
+  return {
+    profile: {
+      ...profile,
+      workspace_id: workspace.id,
+    },
+    workspaceId: workspace.id,
+  };
 }
 
 export async function redirectIfAuthenticated() {

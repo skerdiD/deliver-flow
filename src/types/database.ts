@@ -60,9 +60,34 @@ export type ProjectFileCategory =
 export type Database = {
   public: {
     Tables: {
+      workspaces: {
+        Row: {
+          id: string;
+          name: string;
+          slug: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          slug: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          slug?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+
       profiles: {
         Row: {
           id: string;
+          workspace_id: string;
           email: string;
           full_name: string | null;
           avatar_url: string | null;
@@ -72,6 +97,7 @@ export type Database = {
         };
         Insert: {
           id: string;
+          workspace_id: string;
           email: string;
           full_name?: string | null;
           avatar_url?: string | null;
@@ -81,6 +107,7 @@ export type Database = {
         };
         Update: {
           id?: string;
+          workspace_id?: string;
           email?: string;
           full_name?: string | null;
           avatar_url?: string | null;
@@ -93,6 +120,7 @@ export type Database = {
       clients: {
         Row: {
           id: string;
+          workspace_id: string;
           profile_id: string | null;
           company_name: string;
           contact_name: string;
@@ -108,6 +136,7 @@ export type Database = {
         };
         Insert: {
           id?: string;
+          workspace_id: string;
           profile_id?: string | null;
           company_name: string;
           contact_name: string;
@@ -123,6 +152,7 @@ export type Database = {
         };
         Update: {
           id?: string;
+          workspace_id?: string;
           profile_id?: string | null;
           company_name?: string;
           contact_name?: string;
@@ -141,6 +171,7 @@ export type Database = {
       client_invitations: {
         Row: {
           id: string;
+          workspace_id: string;
           email: string;
           client_id: string | null;
           token_hash: string;
@@ -154,6 +185,7 @@ export type Database = {
         };
         Insert: {
           id?: string;
+          workspace_id: string;
           email: string;
           client_id?: string | null;
           token_hash: string;
@@ -167,6 +199,7 @@ export type Database = {
         };
         Update: {
           id?: string;
+          workspace_id?: string;
           email?: string;
           client_id?: string | null;
           token_hash?: string;
@@ -183,6 +216,7 @@ export type Database = {
       projects: {
         Row: {
           id: string;
+          workspace_id: string;
           name: string;
           slug: string;
           description: string | null;
@@ -199,6 +233,7 @@ export type Database = {
         };
         Insert: {
           id?: string;
+          workspace_id: string;
           name: string;
           slug: string;
           description?: string | null;
@@ -215,6 +250,7 @@ export type Database = {
         };
         Update: {
           id?: string;
+          workspace_id?: string;
           name?: string;
           slug?: string;
           description?: string | null;
@@ -234,6 +270,7 @@ export type Database = {
       project_assignments: {
         Row: {
           id: string;
+          workspace_id: string;
           project_id: string;
           client_id: string;
           assigned_by: string | null;
@@ -241,6 +278,7 @@ export type Database = {
         };
         Insert: {
           id?: string;
+          workspace_id: string;
           project_id: string;
           client_id: string;
           assigned_by?: string | null;
@@ -248,6 +286,7 @@ export type Database = {
         };
         Update: {
           id?: string;
+          workspace_id?: string;
           project_id?: string;
           client_id?: string;
           assigned_by?: string | null;
@@ -258,6 +297,7 @@ export type Database = {
       milestones: {
         Row: {
           id: string;
+          workspace_id: string;
           project_id: string;
           title: string;
           description: string | null;
@@ -272,6 +312,7 @@ export type Database = {
         };
         Insert: {
           id?: string;
+          workspace_id: string;
           project_id: string;
           title: string;
           description?: string | null;
@@ -286,6 +327,7 @@ export type Database = {
         };
         Update: {
           id?: string;
+          workspace_id?: string;
           project_id?: string;
           title?: string;
           description?: string | null;
@@ -303,6 +345,7 @@ export type Database = {
       tasks: {
         Row: {
           id: string;
+          workspace_id: string;
           project_id: string;
           milestone_id: string | null;
           title: string;
@@ -318,6 +361,7 @@ export type Database = {
         };
         Insert: {
           id?: string;
+          workspace_id: string;
           project_id: string;
           milestone_id?: string | null;
           title: string;
@@ -333,6 +377,7 @@ export type Database = {
         };
         Update: {
           id?: string;
+          workspace_id?: string;
           project_id?: string;
           milestone_id?: string | null;
           title?: string;
@@ -351,6 +396,7 @@ export type Database = {
       project_updates: {
         Row: {
           id: string;
+          workspace_id: string;
           project_id: string;
           title: string;
           body: string;
@@ -362,6 +408,7 @@ export type Database = {
         };
         Insert: {
           id?: string;
+          workspace_id: string;
           project_id: string;
           title: string;
           body: string;
@@ -373,6 +420,7 @@ export type Database = {
         };
         Update: {
           id?: string;
+          workspace_id?: string;
           project_id?: string;
           title?: string;
           body?: string;
@@ -387,6 +435,7 @@ export type Database = {
       feedback: {
         Row: {
           id: string;
+          workspace_id: string;
           project_id: string;
           client_id: string;
           created_by: string | null;
@@ -402,6 +451,7 @@ export type Database = {
         };
         Insert: {
           id?: string;
+          workspace_id: string;
           project_id: string;
           client_id: string;
           created_by?: string | null;
@@ -417,6 +467,7 @@ export type Database = {
         };
         Update: {
           id?: string;
+          workspace_id?: string;
           project_id?: string;
           client_id?: string;
           created_by?: string | null;
@@ -435,6 +486,7 @@ export type Database = {
       approvals: {
         Row: {
           id: string;
+          workspace_id: string;
           project_id: string;
           milestone_id: string | null;
           title: string;
@@ -453,6 +505,7 @@ export type Database = {
         };
         Insert: {
           id?: string;
+          workspace_id: string;
           project_id: string;
           milestone_id?: string | null;
           title: string;
@@ -471,6 +524,7 @@ export type Database = {
         };
         Update: {
           id?: string;
+          workspace_id?: string;
           project_id?: string;
           milestone_id?: string | null;
           title?: string;
@@ -492,6 +546,7 @@ export type Database = {
       payments: {
         Row: {
           id: string;
+          workspace_id: string;
           project_id: string;
           amount_cents: number;
           currency: string;
@@ -507,6 +562,7 @@ export type Database = {
         };
         Insert: {
           id?: string;
+          workspace_id: string;
           project_id: string;
           amount_cents: number;
           currency?: string;
@@ -522,6 +578,7 @@ export type Database = {
         };
         Update: {
           id?: string;
+          workspace_id?: string;
           project_id?: string;
           amount_cents?: number;
           currency?: string;
@@ -540,6 +597,7 @@ export type Database = {
       project_files: {
         Row: {
           id: string;
+          workspace_id: string;
           project_id: string;
           uploaded_by: string | null;
           file_name: string;
@@ -555,6 +613,7 @@ export type Database = {
         };
         Insert: {
           id?: string;
+          workspace_id: string;
           project_id: string;
           uploaded_by?: string | null;
           file_name: string;
@@ -570,6 +629,7 @@ export type Database = {
         };
         Update: {
           id?: string;
+          workspace_id?: string;
           project_id?: string;
           uploaded_by?: string | null;
           file_name?: string;
@@ -642,6 +702,7 @@ export type Updates<T extends keyof Database["public"]["Tables"]> =
   Database["public"]["Tables"][T]["Update"];
 
 export type Profile = Tables<"profiles">;
+export type Workspace = Tables<"workspaces">;
 export type Client = Tables<"clients">;
 export type ClientInvitation = Tables<"client_invitations">;
 export type Project = Tables<"projects">;

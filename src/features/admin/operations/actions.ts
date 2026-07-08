@@ -14,7 +14,7 @@ import {
   tasks,
 } from "@/db/schema";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { requireRole } from "@/lib/supabase/auth";
+import { requireAdminWorkspace } from "@/lib/supabase/auth";
 
 export type AdminOperationActionResult = {
   success: boolean;
@@ -104,7 +104,7 @@ export async function markAdminTaskCompleteAction(input: {
   taskId: string;
   projectId: string;
 }): Promise<AdminOperationActionResult> {
-  await requireRole("admin");
+  const { workspaceId } = await requireAdminWorkspace();
 
   const parsed = markAdminTaskCompleteSchema.safeParse(input);
   if (!parsed.success) {
@@ -125,6 +125,7 @@ export async function markAdminTaskCompleteAction(input: {
         and(
           eq(tasks.id, parsed.data.taskId),
           eq(tasks.projectId, parsed.data.projectId),
+          eq(tasks.workspaceId, workspaceId),
           isNull(tasks.deletedAt),
         ),
       )
@@ -156,7 +157,7 @@ export async function markAdminTaskCompleteAction(input: {
 export async function deleteTaskAction(input: {
   taskId: string;
 }): Promise<AdminOperationActionResult> {
-  await requireRole("admin");
+  const { workspaceId } = await requireAdminWorkspace();
 
   const parsed = taskIdSchema.safeParse(input);
   if (!parsed.success) {
@@ -173,7 +174,13 @@ export async function deleteTaskAction(input: {
       deletedAt,
       updatedAt: deletedAt,
     })
-    .where(and(eq(tasks.id, parsed.data.taskId), isNull(tasks.deletedAt)))
+    .where(
+      and(
+        eq(tasks.id, parsed.data.taskId),
+        eq(tasks.workspaceId, workspaceId),
+        isNull(tasks.deletedAt),
+      ),
+    )
     .returning({ id: tasks.id, projectId: tasks.projectId });
 
   if (!deletedTask) {
@@ -197,7 +204,7 @@ export async function updateTaskAction(input: {
   description: string;
   dueDate: string;
 }): Promise<AdminOperationActionResult> {
-  await requireRole("admin");
+  const { workspaceId } = await requireAdminWorkspace();
 
   const parsed = taskUpdateSchema.safeParse(input);
   if (!parsed.success) {
@@ -215,7 +222,13 @@ export async function updateTaskAction(input: {
       dueDate: parsed.data.dueDate,
       updatedAt: new Date(),
     })
-    .where(and(eq(tasks.id, parsed.data.taskId), isNull(tasks.deletedAt)))
+    .where(
+      and(
+        eq(tasks.id, parsed.data.taskId),
+        eq(tasks.workspaceId, workspaceId),
+        isNull(tasks.deletedAt),
+      ),
+    )
     .returning({ id: tasks.id, projectId: tasks.projectId });
 
   if (!task) {
@@ -236,7 +249,7 @@ export async function updateTaskAction(input: {
 export async function deleteFileAction(input: {
   fileId: string;
 }): Promise<AdminOperationActionResult> {
-  await requireRole("admin");
+  const { workspaceId } = await requireAdminWorkspace();
 
   const parsed = fileIdSchema.safeParse(input);
   if (!parsed.success) {
@@ -254,7 +267,13 @@ export async function deleteFileAction(input: {
       storagePath: projectFiles.storagePath,
     })
     .from(projectFiles)
-    .where(and(eq(projectFiles.id, parsed.data.fileId), isNull(projectFiles.deletedAt)))
+    .where(
+      and(
+        eq(projectFiles.id, parsed.data.fileId),
+        eq(projectFiles.workspaceId, workspaceId),
+        isNull(projectFiles.deletedAt),
+      ),
+    )
     .limit(1);
 
   if (!file) {
@@ -285,7 +304,9 @@ export async function deleteFileAction(input: {
       deletedAt,
       updatedAt: deletedAt,
     })
-    .where(eq(projectFiles.id, file.id));
+    .where(
+      and(eq(projectFiles.id, file.id), eq(projectFiles.workspaceId, workspaceId)),
+    );
 
   revalidateProjectOperations(file.projectId);
 
@@ -299,7 +320,7 @@ export async function renameFileAction(input: {
   fileId: string;
   fileName: string;
 }): Promise<AdminOperationActionResult> {
-  await requireRole("admin");
+  const { workspaceId } = await requireAdminWorkspace();
 
   const parsed = fileRenameSchema.safeParse(input);
   if (!parsed.success) {
@@ -315,7 +336,13 @@ export async function renameFileAction(input: {
       fileName: parsed.data.fileName,
       updatedAt: new Date(),
     })
-    .where(and(eq(projectFiles.id, parsed.data.fileId), isNull(projectFiles.deletedAt)))
+    .where(
+      and(
+        eq(projectFiles.id, parsed.data.fileId),
+        eq(projectFiles.workspaceId, workspaceId),
+        isNull(projectFiles.deletedAt),
+      ),
+    )
     .returning({ id: projectFiles.id, projectId: projectFiles.projectId });
 
   if (!file) {
@@ -337,7 +364,7 @@ export async function voidPaymentAction(input: {
   paymentId: string;
   reason?: string;
 }): Promise<AdminOperationActionResult> {
-  await requireRole("admin");
+  const { workspaceId } = await requireAdminWorkspace();
 
   const parsed = paymentVoidSchema.safeParse(input);
   if (!parsed.success) {
@@ -356,7 +383,13 @@ export async function voidPaymentAction(input: {
       voidReason: parsed.data.reason?.trim() || null,
       updatedAt: voidedAt,
     })
-    .where(and(eq(payments.id, parsed.data.paymentId), isNull(payments.deletedAt)))
+    .where(
+      and(
+        eq(payments.id, parsed.data.paymentId),
+        eq(payments.workspaceId, workspaceId),
+        isNull(payments.deletedAt),
+      ),
+    )
     .returning({ id: payments.id, projectId: payments.projectId });
 
   if (!payment) {
@@ -377,7 +410,7 @@ export async function voidPaymentAction(input: {
 export async function deletePaymentAction(input: {
   paymentId: string;
 }): Promise<AdminOperationActionResult> {
-  await requireRole("admin");
+  const { workspaceId } = await requireAdminWorkspace();
 
   const parsed = paymentIdSchema.safeParse(input);
   if (!parsed.success) {
@@ -394,7 +427,13 @@ export async function deletePaymentAction(input: {
       deletedAt,
       updatedAt: deletedAt,
     })
-    .where(and(eq(payments.id, parsed.data.paymentId), isNull(payments.deletedAt)))
+    .where(
+      and(
+        eq(payments.id, parsed.data.paymentId),
+        eq(payments.workspaceId, workspaceId),
+        isNull(payments.deletedAt),
+      ),
+    )
     .returning({ id: payments.id, projectId: payments.projectId });
 
   if (!payment) {
@@ -416,7 +455,7 @@ export async function updateAdminFeedbackStatusAction(input: {
   feedbackId: string;
   status: "reviewed" | "resolved";
 }): Promise<AdminOperationActionResult> {
-  await requireRole("admin");
+  const { workspaceId } = await requireAdminWorkspace();
 
   const parsed = updateAdminFeedbackStatusSchema.safeParse(input);
   if (!parsed.success) {
@@ -434,7 +473,13 @@ export async function updateAdminFeedbackStatusAction(input: {
         resolvedAt: parsed.data.status === "resolved" ? new Date() : null,
         updatedAt: new Date(),
       })
-      .where(and(eq(feedback.id, parsed.data.feedbackId), isNull(feedback.deletedAt)))
+      .where(
+        and(
+          eq(feedback.id, parsed.data.feedbackId),
+          eq(feedback.workspaceId, workspaceId),
+          isNull(feedback.deletedAt),
+        ),
+      )
       .returning({ id: feedback.id, projectId: feedback.projectId });
 
     if (!updatedFeedback) {
@@ -462,7 +507,7 @@ export async function respondToFeedbackAction(input: {
   feedbackId: string;
   adminResponse: string;
 }): Promise<AdminOperationActionResult> {
-  await requireRole("admin");
+  const { workspaceId } = await requireAdminWorkspace();
 
   const parsed = respondToFeedbackSchema.safeParse(input);
   if (!parsed.success) {
@@ -480,7 +525,13 @@ export async function respondToFeedbackAction(input: {
         status: feedback.status,
       })
       .from(feedback)
-      .where(and(eq(feedback.id, parsed.data.feedbackId), isNull(feedback.deletedAt)))
+      .where(
+        and(
+          eq(feedback.id, parsed.data.feedbackId),
+          eq(feedback.workspaceId, workspaceId),
+          isNull(feedback.deletedAt),
+        ),
+      )
       .limit(1);
 
     if (!existingFeedback) {
@@ -498,7 +549,12 @@ export async function respondToFeedbackAction(input: {
           existingFeedback.status === "resolved" ? "resolved" : "reviewed",
         updatedAt: new Date(),
       })
-      .where(eq(feedback.id, existingFeedback.id));
+      .where(
+        and(
+          eq(feedback.id, existingFeedback.id),
+          eq(feedback.workspaceId, workspaceId),
+        ),
+      );
 
     revalidateProjectOperations(existingFeedback.projectId);
 
@@ -517,7 +573,7 @@ export async function respondToFeedbackAction(input: {
 export async function archiveFeedbackAction(input: {
   feedbackId: string;
 }): Promise<AdminOperationActionResult> {
-  await requireRole("admin");
+  const { workspaceId } = await requireAdminWorkspace();
 
   const parsed = feedbackIdSchema.safeParse(input);
   if (!parsed.success) {
@@ -534,7 +590,13 @@ export async function archiveFeedbackAction(input: {
       archivedAt,
       updatedAt: archivedAt,
     })
-    .where(and(eq(feedback.id, parsed.data.feedbackId), isNull(feedback.deletedAt)))
+    .where(
+      and(
+        eq(feedback.id, parsed.data.feedbackId),
+        eq(feedback.workspaceId, workspaceId),
+        isNull(feedback.deletedAt),
+      ),
+    )
     .returning({ id: feedback.id, projectId: feedback.projectId });
 
   if (!archivedFeedback) {
@@ -564,7 +626,7 @@ export async function resolveFeedbackAction(input: {
 export async function deleteFeedbackAction(input: {
   feedbackId: string;
 }): Promise<AdminOperationActionResult> {
-  await requireRole("admin");
+  const { workspaceId } = await requireAdminWorkspace();
 
   const parsed = feedbackIdSchema.safeParse(input);
   if (!parsed.success) {
@@ -581,7 +643,13 @@ export async function deleteFeedbackAction(input: {
       deletedAt,
       updatedAt: deletedAt,
     })
-    .where(and(eq(feedback.id, parsed.data.feedbackId), isNull(feedback.deletedAt)))
+    .where(
+      and(
+        eq(feedback.id, parsed.data.feedbackId),
+        eq(feedback.workspaceId, workspaceId),
+        isNull(feedback.deletedAt),
+      ),
+    )
     .returning({ id: feedback.id, projectId: feedback.projectId });
 
   if (!deletedFeedback) {
@@ -603,7 +671,7 @@ export async function cancelApprovalAction(input: {
   approvalId: string;
   reason?: string;
 }): Promise<AdminOperationActionResult> {
-  await requireRole("admin");
+  const { workspaceId } = await requireAdminWorkspace();
 
   const parsed = approvalCancelSchema.safeParse(input);
   if (!parsed.success) {
@@ -622,7 +690,13 @@ export async function cancelApprovalAction(input: {
       cancelledAt,
       updatedAt: cancelledAt,
     })
-    .where(and(eq(approvals.id, parsed.data.approvalId), isNull(approvals.deletedAt)))
+    .where(
+      and(
+        eq(approvals.id, parsed.data.approvalId),
+        eq(approvals.workspaceId, workspaceId),
+        isNull(approvals.deletedAt),
+      ),
+    )
     .returning({ id: approvals.id, projectId: approvals.projectId });
 
   if (!approval) {
@@ -644,7 +718,7 @@ export async function updateApprovalStatusAction(input: {
   approvalId: string;
   status: "approved" | "changes_requested";
 }): Promise<AdminOperationActionResult> {
-  await requireRole("admin");
+  const { workspaceId } = await requireAdminWorkspace();
 
   const parsed = approvalStatusSchema.safeParse(input);
   if (!parsed.success) {
@@ -662,7 +736,13 @@ export async function updateApprovalStatusAction(input: {
       respondedAt,
       updatedAt: respondedAt,
     })
-    .where(and(eq(approvals.id, parsed.data.approvalId), isNull(approvals.deletedAt)))
+    .where(
+      and(
+        eq(approvals.id, parsed.data.approvalId),
+        eq(approvals.workspaceId, workspaceId),
+        isNull(approvals.deletedAt),
+      ),
+    )
     .returning({ id: approvals.id, projectId: approvals.projectId });
 
   if (!approval) {
@@ -704,7 +784,7 @@ export async function rejectApprovalAction(input: {
 export async function deleteApprovalAction(input: {
   approvalId: string;
 }): Promise<AdminOperationActionResult> {
-  await requireRole("admin");
+  const { workspaceId } = await requireAdminWorkspace();
 
   const parsed = approvalIdSchema.safeParse(input);
   if (!parsed.success) {
@@ -721,7 +801,13 @@ export async function deleteApprovalAction(input: {
       deletedAt,
       updatedAt: deletedAt,
     })
-    .where(and(eq(approvals.id, parsed.data.approvalId), isNull(approvals.deletedAt)))
+    .where(
+      and(
+        eq(approvals.id, parsed.data.approvalId),
+        eq(approvals.workspaceId, workspaceId),
+        isNull(approvals.deletedAt),
+      ),
+    )
     .returning({ id: approvals.id, projectId: approvals.projectId });
 
   if (!approval) {

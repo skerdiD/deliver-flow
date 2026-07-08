@@ -8,6 +8,7 @@ import {
   projectAssignments,
   projects,
 } from "@/db/schema";
+import { requireAdminWorkspace } from "@/lib/supabase/auth";
 import type {
   AdminClient,
   AdminClientProject,
@@ -60,6 +61,7 @@ function mapProjectStatus(status: string): AdminClientProjectStatus {
 
 async function getClientProjects(
   clientId: string,
+  workspaceId: string,
 ): Promise<AdminClientProject[]> {
   const projectRows = await db
     .select({
@@ -74,6 +76,8 @@ async function getClientProjects(
     .where(
       and(
         eq(projectAssignments.clientId, clientId),
+        eq(projectAssignments.workspaceId, workspaceId),
+        eq(projects.workspaceId, workspaceId),
         isNull(projects.archivedAt),
         isNull(projects.deletedAt),
       ),
@@ -94,7 +98,12 @@ async function getClientProjects(
         status: payments.status,
       })
       .from(payments)
-      .where(inArray(payments.projectId, projectIds)),
+      .where(
+        and(
+          inArray(payments.projectId, projectIds),
+          eq(payments.workspaceId, workspaceId),
+        ),
+      ),
     db
       .select({
         projectId: milestones.projectId,
@@ -103,7 +112,12 @@ async function getClientProjects(
         createdAt: milestones.createdAt,
       })
       .from(milestones)
-      .where(inArray(milestones.projectId, projectIds))
+      .where(
+        and(
+          inArray(milestones.projectId, projectIds),
+          eq(milestones.workspaceId, workspaceId),
+        ),
+      )
       .orderBy(milestones.position, milestones.createdAt),
   ]);
 
@@ -141,8 +155,9 @@ async function mapClient(row: {
   status: "active" | "inactive" | "archived";
   createdAt: Date | string;
   archivedAt: Date | string | null;
+  workspaceId: string;
 }): Promise<AdminClient> {
-  const clientProjects = await getClientProjects(row.id);
+  const clientProjects = await getClientProjects(row.id, row.workspaceId);
   const totalPaidCents = clientProjects.reduce(
     (sum, project) => sum + project.paidCents,
     0,
@@ -169,6 +184,8 @@ async function mapClient(row: {
 }
 
 export async function getAdminClients() {
+  const { workspaceId } = await requireAdminWorkspace();
+
   const rows = await db
     .select({
       id: clients.id,
@@ -178,9 +195,10 @@ export async function getAdminClients() {
       status: clients.status,
       createdAt: clients.createdAt,
       archivedAt: clients.archivedAt,
+      workspaceId: clients.workspaceId,
     })
     .from(clients)
-    .where(isNull(clients.deletedAt))
+    .where(and(eq(clients.workspaceId, workspaceId), isNull(clients.deletedAt)))
     .orderBy(desc(clients.createdAt));
 
   if (rows.length === 0) {
@@ -204,6 +222,8 @@ export async function getAdminClients() {
     .where(
       and(
         inArray(projectAssignments.clientId, clientIds),
+        eq(projectAssignments.workspaceId, workspaceId),
+        eq(projects.workspaceId, workspaceId),
         isNull(projects.archivedAt),
         isNull(projects.deletedAt),
       ),
@@ -225,6 +245,7 @@ export async function getAdminClients() {
             .where(
               and(
                 inArray(payments.projectId, projectIds),
+                eq(payments.workspaceId, workspaceId),
                 isNull(payments.deletedAt),
               ),
             ),
@@ -236,7 +257,12 @@ export async function getAdminClients() {
               createdAt: milestones.createdAt,
             })
             .from(milestones)
-            .where(inArray(milestones.projectId, projectIds))
+            .where(
+              and(
+                inArray(milestones.projectId, projectIds),
+                eq(milestones.workspaceId, workspaceId),
+              ),
+            )
             .orderBy(milestones.position, milestones.createdAt),
         ])
       : [[], []];
@@ -308,6 +334,8 @@ export async function getAdminClients() {
 }
 
 export async function getAdminClientById(id: string) {
+  const { workspaceId } = await requireAdminWorkspace();
+
   const [row] = await db
     .select({
       id: clients.id,
@@ -317,9 +345,16 @@ export async function getAdminClientById(id: string) {
       status: clients.status,
       createdAt: clients.createdAt,
       archivedAt: clients.archivedAt,
+      workspaceId: clients.workspaceId,
     })
     .from(clients)
-    .where(and(eq(clients.id, id), isNull(clients.deletedAt)))
+    .where(
+      and(
+        eq(clients.id, id),
+        eq(clients.workspaceId, workspaceId),
+        isNull(clients.deletedAt),
+      ),
+    )
     .limit(1);
 
   return row ? mapClient(row) : null;
@@ -331,13 +366,17 @@ export async function createAdminClient(input: {
   company?: string;
   status: AdminClientStatus;
 }): Promise<AdminClient> {
+  const { profile, workspaceId } = await requireAdminWorkspace();
+
   const [client] = await db
     .insert(clients)
     .values({
+      workspaceId,
       contactName: input.name,
       email: normalizeEmail(input.email),
       companyName: input.company?.trim() || "Independent client",
       status: mapClientStatusForDb(input.status),
+      createdBy: profile.id,
       archivedAt: input.status === "archived" ? new Date() : null,
       deletedAt: null,
     })
@@ -349,6 +388,7 @@ export async function createAdminClient(input: {
       status: clients.status,
       createdAt: clients.createdAt,
       archivedAt: clients.archivedAt,
+      workspaceId: clients.workspaceId,
     });
 
   return mapClient(client);
@@ -363,6 +403,8 @@ export async function updateAdminClient(
     status: AdminClientStatus;
   },
 ): Promise<AdminClient | null> {
+  const { workspaceId } = await requireAdminWorkspace();
+
   const [client] = await db
     .update(clients)
     .set({
@@ -373,7 +415,13 @@ export async function updateAdminClient(
       archivedAt: input.status === "archived" ? new Date() : null,
       updatedAt: new Date(),
     })
-    .where(and(eq(clients.id, id), isNull(clients.deletedAt)))
+    .where(
+      and(
+        eq(clients.id, id),
+        eq(clients.workspaceId, workspaceId),
+        isNull(clients.deletedAt),
+      ),
+    )
     .returning({
       id: clients.id,
       companyName: clients.companyName,
@@ -382,6 +430,7 @@ export async function updateAdminClient(
       status: clients.status,
       createdAt: clients.createdAt,
       archivedAt: clients.archivedAt,
+      workspaceId: clients.workspaceId,
     });
 
   return client ? mapClient(client) : null;
@@ -390,6 +439,7 @@ export async function updateAdminClient(
 export async function archiveAdminClient(
   id: string,
 ): Promise<AdminClient | null> {
+  const { workspaceId } = await requireAdminWorkspace();
   const archivedAt = new Date();
   const [client] = await db
     .update(clients)
@@ -398,7 +448,13 @@ export async function archiveAdminClient(
       archivedAt,
       updatedAt: archivedAt,
     })
-    .where(and(eq(clients.id, id), isNull(clients.deletedAt)))
+    .where(
+      and(
+        eq(clients.id, id),
+        eq(clients.workspaceId, workspaceId),
+        isNull(clients.deletedAt),
+      ),
+    )
     .returning({
       id: clients.id,
       companyName: clients.companyName,
@@ -407,6 +463,7 @@ export async function archiveAdminClient(
       status: clients.status,
       createdAt: clients.createdAt,
       archivedAt: clients.archivedAt,
+      workspaceId: clients.workspaceId,
     });
 
   return client ? mapClient(client) : null;
@@ -415,6 +472,7 @@ export async function archiveAdminClient(
 export async function deleteAdminClient(
   id: string,
 ): Promise<AdminClient | null> {
+  const { workspaceId } = await requireAdminWorkspace();
   const deletedAt = new Date();
   const [client] = await db
     .update(clients)
@@ -422,7 +480,13 @@ export async function deleteAdminClient(
       deletedAt,
       updatedAt: deletedAt,
     })
-    .where(and(eq(clients.id, id), isNull(clients.deletedAt)))
+    .where(
+      and(
+        eq(clients.id, id),
+        eq(clients.workspaceId, workspaceId),
+        isNull(clients.deletedAt),
+      ),
+    )
     .returning({
       id: clients.id,
       companyName: clients.companyName,
@@ -431,6 +495,7 @@ export async function deleteAdminClient(
       status: clients.status,
       createdAt: clients.createdAt,
       archivedAt: clients.archivedAt,
+      workspaceId: clients.workspaceId,
     });
 
   return client ? mapClient(client) : null;

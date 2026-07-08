@@ -38,6 +38,7 @@ import { requireRole } from "@/lib/supabase/auth";
 import type { Profile, ProjectStatus } from "@/types/database";
 
 type ClientPortalAssignment = {
+  workspaceId: string;
   clientId: string;
   clientName: string;
   companyName: string;
@@ -314,10 +315,12 @@ const getClientPortalAccess = cache(async (): Promise<ClientPortalAccess> => {
 
 async function getClientPortalAssignments(
   profileId: string,
+  workspaceId: string,
 ): Promise<ClientPortalAssignment[]> {
   return db
     .select({
       clientId: clients.id,
+      workspaceId: clients.workspaceId,
       clientName: clients.contactName,
       companyName: clients.companyName,
       projectId: projects.id,
@@ -335,6 +338,10 @@ async function getClientPortalAssignments(
     .where(
       and(
         eq(clients.profileId, profileId),
+        eq(clients.workspaceId, workspaceId),
+        eq(projects.workspaceId, workspaceId),
+        eq(projectAssignments.workspaceId, workspaceId),
+        eq(clients.workspaceId, projects.workspaceId),
         ne(projects.status, "archived"),
         isNull(clients.archivedAt),
         isNull(clients.deletedAt),
@@ -373,13 +380,19 @@ function mapAssignmentToSwitcherProject(
 export const getClientAssignedProjects = cache(
   async (): Promise<ClientProjectSwitcherProject[]> => {
     const access = await getClientPortalAccess();
-    const assignments = await getClientPortalAssignments(access.profile.id);
+    const assignments = await getClientPortalAssignments(
+      access.profile.id,
+      access.profile.workspace_id,
+    );
 
     if (assignments.length === 0) {
       return [];
     }
 
     const projectIds = assignments.map((assignment) => assignment.projectId);
+    const workspaceIds = Array.from(
+      new Set(assignments.map((assignment) => assignment.workspaceId)),
+    );
     const projectPayments = await db
       .select({
         projectId: payments.projectId,
@@ -389,6 +402,7 @@ export const getClientAssignedProjects = cache(
       .where(
         and(
           inArray(payments.projectId, projectIds),
+          inArray(payments.workspaceId, workspaceIds),
           isNull(payments.deletedAt),
           isNull(payments.voidedAt),
         ),
@@ -446,6 +460,7 @@ export async function requireClientProjectAccess(
   const access = await getClientPortalAccess();
   const assignment = await getClientPortalAssignmentById(
     access.profile.id,
+    access.profile.workspace_id,
     projectId,
   );
 
@@ -454,6 +469,7 @@ export async function requireClientProjectAccess(
 
 async function getClientPortalAssignmentById(
   profileId: string,
+  workspaceId: string,
   projectId: string,
 ): Promise<ClientPortalAssignment | null> {
   const parsedProjectId = clientProjectIdSchema.safeParse(projectId);
@@ -465,6 +481,7 @@ async function getClientPortalAssignmentById(
   const [assignment] = await db
     .select({
       clientId: clients.id,
+      workspaceId: clients.workspaceId,
       clientName: clients.contactName,
       companyName: clients.companyName,
       projectId: projects.id,
@@ -482,7 +499,11 @@ async function getClientPortalAssignmentById(
     .where(
       and(
         eq(clients.profileId, profileId),
+        eq(clients.workspaceId, workspaceId),
+        eq(projects.workspaceId, workspaceId),
+        eq(projectAssignments.workspaceId, workspaceId),
         eq(projects.id, parsedProjectId.data),
+        eq(clients.workspaceId, projects.workspaceId),
         ne(projects.status, "archived"),
         isNull(clients.archivedAt),
         isNull(clients.deletedAt),
@@ -520,6 +541,7 @@ async function buildClientPortalProject(
       .where(
         and(
           eq(milestones.projectId, assignment.projectId),
+          eq(milestones.workspaceId, assignment.workspaceId),
           eq(milestones.isVisibleToClient, true),
         ),
       )
@@ -535,6 +557,7 @@ async function buildClientPortalProject(
       .where(
         and(
           eq(tasks.projectId, assignment.projectId),
+          eq(tasks.workspaceId, assignment.workspaceId),
           eq(tasks.isVisibleToClient, true),
           isNull(tasks.deletedAt),
         ),
@@ -551,6 +574,7 @@ async function buildClientPortalProject(
       .where(
         and(
           eq(projectUpdates.projectId, assignment.projectId),
+          eq(projectUpdates.workspaceId, assignment.workspaceId),
           eq(projectUpdates.isVisibleToClient, true),
         ),
       )
@@ -568,6 +592,7 @@ async function buildClientPortalProject(
       .where(
         and(
           eq(payments.projectId, assignment.projectId),
+          eq(payments.workspaceId, assignment.workspaceId),
           isNull(payments.deletedAt),
           isNull(payments.voidedAt),
         ),
@@ -586,6 +611,7 @@ async function buildClientPortalProject(
       .where(
         and(
           eq(projectFiles.projectId, assignment.projectId),
+          eq(projectFiles.workspaceId, assignment.workspaceId),
           eq(projectFiles.isVisibleToClient, true),
           isNull(projectFiles.deletedAt),
         ),
@@ -603,6 +629,7 @@ async function buildClientPortalProject(
       .where(
         and(
           eq(feedback.projectId, assignment.projectId),
+          eq(feedback.workspaceId, assignment.workspaceId),
           eq(feedback.clientId, assignment.clientId),
           eq(feedback.isVisibleToClient, true),
           isNull(feedback.archivedAt),
@@ -629,6 +656,7 @@ async function buildClientPortalProject(
       .where(
         and(
           eq(approvals.projectId, assignment.projectId),
+          eq(approvals.workspaceId, assignment.workspaceId),
           isNull(approvals.deletedAt),
         ),
       )
@@ -645,6 +673,7 @@ async function buildClientPortalProject(
       .where(
         and(
           eq(projectActivity.projectId, assignment.projectId),
+          eq(projectActivity.workspaceId, assignment.workspaceId),
           inArray(projectActivity.type, [
             "project_created",
             "project_update_added",
@@ -832,6 +861,9 @@ async function buildClientPortalDashboardProjects(
 
   const projectIds = assignments.map((assignment) => assignment.projectId);
   const clientIds = assignments.map((assignment) => assignment.clientId);
+  const workspaceIds = Array.from(
+    new Set(assignments.map((assignment) => assignment.workspaceId)),
+  );
   const assignmentByProjectId = new Map(
     assignments.map((assignment) => [assignment.projectId, assignment]),
   );
@@ -857,6 +889,7 @@ async function buildClientPortalDashboardProjects(
       .where(
         and(
           inArray(milestones.projectId, projectIds),
+          inArray(milestones.workspaceId, workspaceIds),
           eq(milestones.isVisibleToClient, true),
         ),
       )
@@ -873,6 +906,7 @@ async function buildClientPortalDashboardProjects(
       .where(
         and(
           inArray(tasks.projectId, projectIds),
+          inArray(tasks.workspaceId, workspaceIds),
           eq(tasks.isVisibleToClient, true),
           isNull(tasks.deletedAt),
         ),
@@ -890,6 +924,7 @@ async function buildClientPortalDashboardProjects(
       .where(
         and(
           inArray(projectUpdates.projectId, projectIds),
+          inArray(projectUpdates.workspaceId, workspaceIds),
           eq(projectUpdates.isVisibleToClient, true),
         ),
       )
@@ -908,6 +943,7 @@ async function buildClientPortalDashboardProjects(
       .where(
         and(
           inArray(payments.projectId, projectIds),
+          inArray(payments.workspaceId, workspaceIds),
           isNull(payments.deletedAt),
           isNull(payments.voidedAt),
         ),
@@ -927,6 +963,7 @@ async function buildClientPortalDashboardProjects(
       .where(
         and(
           inArray(projectFiles.projectId, projectIds),
+          inArray(projectFiles.workspaceId, workspaceIds),
           eq(projectFiles.isVisibleToClient, true),
           isNull(projectFiles.deletedAt),
         ),
@@ -946,6 +983,7 @@ async function buildClientPortalDashboardProjects(
       .where(
         and(
           inArray(feedback.projectId, projectIds),
+          inArray(feedback.workspaceId, workspaceIds),
           inArray(feedback.clientId, clientIds),
           eq(feedback.isVisibleToClient, true),
           isNull(feedback.archivedAt),
@@ -971,6 +1009,7 @@ async function buildClientPortalDashboardProjects(
       .where(
         and(
           inArray(approvals.projectId, projectIds),
+          inArray(approvals.workspaceId, workspaceIds),
           isNull(approvals.deletedAt),
         ),
       )
@@ -1142,7 +1181,10 @@ async function buildClientPortalDashboardProjects(
 export const getClientPortalDashboardState = cache(
   async (): Promise<ClientPortalState> => {
     const access = await getClientPortalAccess();
-    const assignments = await getClientPortalAssignments(access.profile.id);
+    const assignments = await getClientPortalAssignments(
+      access.profile.id,
+      access.profile.workspace_id,
+    );
     const projectsList = await buildClientPortalDashboardProjects(assignments);
 
     return {
@@ -1155,7 +1197,10 @@ export const getClientPortalDashboardState = cache(
 export const getClientPortalState = cache(
   async (): Promise<ClientPortalState> => {
     const access = await getClientPortalAccess();
-    const assignments = await getClientPortalAssignments(access.profile.id);
+    const assignments = await getClientPortalAssignments(
+      access.profile.id,
+      access.profile.workspace_id,
+    );
 
     const projectsList = await Promise.all(
       assignments.map((assignment) => buildClientPortalProject(assignment)),
@@ -1189,6 +1234,9 @@ export async function getLatestClientPortalProjectId() {
     .where(
       and(
         eq(clients.profileId, access.profile.id),
+        eq(clients.workspaceId, access.profile.workspace_id),
+        eq(projects.workspaceId, access.profile.workspace_id),
+        eq(projectAssignments.workspaceId, access.profile.workspace_id),
         ne(projects.status, "archived"),
         isNull(clients.archivedAt),
         isNull(clients.deletedAt),
@@ -1207,6 +1255,7 @@ export const getClientPortalProjectById = cache(
     const access = await getClientPortalAccess();
     const assignment = await getClientPortalAssignmentById(
       access.profile.id,
+      access.profile.workspace_id,
       projectId,
     );
 
@@ -1223,6 +1272,7 @@ export const getClientPortalProjectFilesById = cache(
     const access = await getClientPortalAccess();
     const assignment = await getClientPortalAssignmentById(
       access.profile.id,
+      access.profile.workspace_id,
       projectId,
     );
 
@@ -1243,6 +1293,7 @@ export const getClientPortalProjectFilesById = cache(
       .where(
         and(
           eq(projectFiles.projectId, assignment.projectId),
+          eq(projectFiles.workspaceId, assignment.workspaceId),
           eq(projectFiles.isVisibleToClient, true),
           isNull(projectFiles.deletedAt),
         ),
@@ -1267,6 +1318,7 @@ export const getClientPortalProjectFeedbackById = cache(
     const access = await getClientPortalAccess();
     const assignment = await getClientPortalAssignmentById(
       access.profile.id,
+      access.profile.workspace_id,
       projectId,
     );
 
@@ -1286,6 +1338,7 @@ export const getClientPortalProjectFeedbackById = cache(
       .where(
         and(
           eq(feedback.projectId, assignment.projectId),
+          eq(feedback.workspaceId, assignment.workspaceId),
           eq(feedback.clientId, assignment.clientId),
           eq(feedback.isVisibleToClient, true),
           isNull(feedback.archivedAt),
@@ -1311,6 +1364,7 @@ export const getClientPortalProjectApprovalsById = cache(
     const access = await getClientPortalAccess();
     const assignment = await getClientPortalAssignmentById(
       access.profile.id,
+      access.profile.workspace_id,
       projectId,
     );
 
@@ -1334,6 +1388,7 @@ export const getClientPortalProjectApprovalsById = cache(
       .where(
         and(
           eq(approvals.projectId, assignment.projectId),
+          eq(approvals.workspaceId, assignment.workspaceId),
           isNull(approvals.deletedAt),
         ),
       )
@@ -1360,6 +1415,7 @@ export const getClientPortalProjectPaymentsById = cache(
     const access = await getClientPortalAccess();
     const assignment = await getClientPortalAssignmentById(
       access.profile.id,
+      access.profile.workspace_id,
       projectId,
     );
 
@@ -1380,6 +1436,7 @@ export const getClientPortalProjectPaymentsById = cache(
       .where(
         and(
           eq(payments.projectId, assignment.projectId),
+          eq(payments.workspaceId, assignment.workspaceId),
           isNull(payments.deletedAt),
           isNull(payments.voidedAt),
         ),
@@ -1427,6 +1484,7 @@ export async function addClientFeedback(projectId: string, message: string) {
   const access = await getClientPortalAccess();
   const assignment = await getClientPortalAssignmentById(
     access.profile.id,
+    access.profile.workspace_id,
     projectId,
   );
 
@@ -1437,6 +1495,7 @@ export async function addClientFeedback(projectId: string, message: string) {
   const [createdFeedback] = await db
     .insert(feedback)
     .values({
+      workspaceId: assignment.workspaceId,
       projectId: assignment.projectId,
       clientId: assignment.clientId,
       createdBy: access.profile.id,
@@ -1470,6 +1529,7 @@ export async function respondToClientApproval(input: {
   const access = await getClientPortalAccess();
   const assignment = await getClientPortalAssignmentById(
     access.profile.id,
+    access.profile.workspace_id,
     input.projectId,
   );
 
@@ -1489,6 +1549,7 @@ export async function respondToClientApproval(input: {
       and(
         eq(approvals.id, input.approvalId),
         eq(approvals.projectId, assignment.projectId),
+        eq(approvals.workspaceId, assignment.workspaceId),
         eq(approvals.status, "pending"),
         isNull(approvals.deletedAt),
       ),
@@ -1513,6 +1574,7 @@ export async function respondToClientApproval(input: {
         and(
           eq(approvals.id, pendingApproval.id),
           eq(approvals.projectId, assignment.projectId),
+          eq(approvals.workspaceId, assignment.workspaceId),
           eq(approvals.status, "pending"),
           isNull(approvals.deletedAt),
         ),
@@ -1542,6 +1604,7 @@ export async function respondToClientApproval(input: {
           and(
             eq(milestones.id, pendingApproval.milestoneId),
             eq(milestones.projectId, assignment.projectId),
+            eq(milestones.workspaceId, assignment.workspaceId),
           ),
         );
     }
@@ -1583,6 +1646,7 @@ async function recordClientProjectTargets(
   const access = await getClientPortalAccess();
   const assignment = await getClientPortalAssignmentById(
     access.profile.id,
+    access.profile.workspace_id,
     projectId,
   );
 
@@ -1595,6 +1659,7 @@ async function recordClientProjectTargets(
   await Promise.all(
     targets.map((target) =>
       recordClientViewEvent({
+        workspaceId: assignment.workspaceId,
         projectId: assignment.projectId,
         clientId: assignment.clientId,
         userId: access.profile.id,

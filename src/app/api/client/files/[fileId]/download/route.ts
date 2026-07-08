@@ -105,6 +105,10 @@ export async function GET(
         eq(projectFiles.isVisibleToClient, true),
         isNull(projectFiles.deletedAt),
         ne(projects.status, "archived"),
+        eq(projectFiles.workspaceId, profile.workspace_id),
+        eq(projects.workspaceId, profile.workspace_id),
+        eq(projectAssignments.workspaceId, profile.workspace_id),
+        eq(clients.workspaceId, profile.workspace_id),
         isNull(projects.archivedAt),
         isNull(projects.deletedAt),
         eq(clients.profileId, profile.id),
@@ -151,6 +155,7 @@ export async function GET(
   }
 
   await recordClientViewEvent({
+    workspaceId: profile.workspace_id,
     projectId: file.projectId,
     clientId: file.clientId,
     userId: profile.id,

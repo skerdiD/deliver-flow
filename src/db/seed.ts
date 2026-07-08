@@ -21,6 +21,7 @@ import {
   projectUpdates,
   projectViewEvents,
   tasks,
+  workspaces,
 } from "@/db/schema";
 
 const connectionString = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
@@ -42,6 +43,9 @@ const demoEmails = {
 } as const;
 
 const ids = {
+  workspaces: {
+    demo: "00000000-0000-4000-8000-000000000001",
+  },
   clients: {
     acmeStudio: "11111111-1111-4111-8111-111111111111",
     northwindDigital: "22222222-2222-4222-8222-222222222222",
@@ -139,6 +143,15 @@ function getRequiredUserId(
   return value;
 }
 
+function withDemoWorkspace<const T extends Record<string, unknown>>(
+  rows: readonly T[],
+) {
+  return rows.map((row) => ({
+    workspaceId: ids.workspaces.demo,
+    ...row,
+  }));
+}
+
 async function assertAuthUsersExist(adminId: string, clientId: string) {
   const authRows = await db
     .select({
@@ -204,16 +217,34 @@ async function main() {
   await assertAuthUsersExist(adminId, clientId);
 
   await db
+    .insert(workspaces)
+    .values({
+      id: ids.workspaces.demo,
+      name: "DeliverFlow Demo Workspace",
+      slug: "deliverflow-demo",
+    })
+    .onConflictDoUpdate({
+      target: workspaces.id,
+      set: {
+        name: sql`excluded.name`,
+        slug: sql`excluded.slug`,
+        updatedAt: sql`now()`,
+      },
+    });
+
+  await db
     .insert(profiles)
     .values([
       {
         id: adminId,
+        workspaceId: ids.workspaces.demo,
         email: demoEmails.admin,
         fullName: "Jordan Ellis",
         role: "admin",
       },
       {
         id: clientId,
+        workspaceId: ids.workspaces.demo,
         email: demoEmails.client,
         fullName: "Maya Chen",
         role: "client",
@@ -223,6 +254,7 @@ async function main() {
       target: profiles.id,
       set: {
         email: sql`excluded.email`,
+        workspaceId: sql`excluded.workspace_id`,
         fullName: sql`excluded.full_name`,
         role: sql`excluded.role`,
         updatedAt: sql`now()`,
@@ -231,7 +263,7 @@ async function main() {
 
   await db
     .insert(clients)
-    .values([
+    .values(withDemoWorkspace([
       {
         id: ids.clients.acmeStudio,
         profileId: clientId,
@@ -260,7 +292,7 @@ async function main() {
         archivedAt: null,
         deletedAt: null,
       },
-    ])
+    ]))
     .onConflictDoUpdate({
       target: clients.id,
       set: {
@@ -280,7 +312,7 @@ async function main() {
 
   await db
     .insert(projects)
-    .values([
+    .values(withDemoWorkspace([
       {
         id: ids.projects.websiteRedesign,
         name: "Website Redesign",
@@ -327,7 +359,7 @@ async function main() {
         archivedAt: null,
         deletedAt: null,
       },
-    ])
+    ]))
     .onConflictDoUpdate({
       target: projects.id,
       set: {
@@ -348,7 +380,7 @@ async function main() {
 
   await db
     .insert(projectAssignments)
-    .values([
+    .values(withDemoWorkspace([
       {
         projectId: ids.projects.websiteRedesign,
         clientId: ids.clients.acmeStudio,
@@ -364,7 +396,7 @@ async function main() {
         clientId: ids.clients.northwindDigital,
         assignedBy: adminId,
       },
-    ])
+    ]))
     .onConflictDoUpdate({
       target: [projectAssignments.projectId, projectAssignments.clientId],
       set: {
@@ -375,7 +407,7 @@ async function main() {
 
   await db
     .insert(milestones)
-    .values([
+    .values(withDemoWorkspace([
       {
         id: ids.milestones.discovery,
         projectId: ids.projects.websiteRedesign,
@@ -448,7 +480,7 @@ async function main() {
         isVisibleToClient: true,
         createdBy: adminId,
       },
-    ])
+    ]))
     .onConflictDoUpdate({
       target: milestones.id,
       set: {
@@ -466,7 +498,7 @@ async function main() {
 
   await db
     .insert(tasks)
-    .values([
+    .values(withDemoWorkspace([
       {
         id: ids.tasks.sitemap,
         projectId: ids.projects.websiteRedesign,
@@ -587,7 +619,7 @@ async function main() {
         createdBy: adminId,
         deletedAt: null,
       },
-    ])
+    ]))
     .onConflictDoUpdate({
       target: tasks.id,
       set: {
@@ -608,7 +640,7 @@ async function main() {
 
   await db
     .insert(projectUpdates)
-    .values([
+    .values(withDemoWorkspace([
       {
         id: ids.updates.designDirection,
         projectId: ids.projects.websiteRedesign,
@@ -645,7 +677,7 @@ async function main() {
         isVisibleToClient: true,
         createdBy: adminId,
       },
-    ])
+    ]))
     .onConflictDoUpdate({
       target: projectUpdates.id,
       set: {
@@ -661,7 +693,7 @@ async function main() {
 
   await db
     .insert(feedback)
-    .values([
+    .values(withDemoWorkspace([
       {
         id: ids.feedback.acmeHero,
         projectId: ids.projects.websiteRedesign,
@@ -720,7 +752,7 @@ async function main() {
         resolvedAt: null,
         deletedAt: null,
       },
-    ])
+    ]))
     .onConflictDoUpdate({
       target: feedback.id,
       set: {
@@ -740,7 +772,7 @@ async function main() {
 
   await db
     .insert(approvals)
-    .values([
+    .values(withDemoWorkspace([
       {
         id: ids.approvals.acmeDesign,
         projectId: ids.projects.websiteRedesign,
@@ -794,7 +826,7 @@ async function main() {
         cancelledAt: null,
         deletedAt: null,
       },
-    ])
+    ]))
     .onConflictDoUpdate({
       target: approvals.id,
       set: {
@@ -817,7 +849,7 @@ async function main() {
 
   await db
     .insert(payments)
-    .values([
+    .values(withDemoWorkspace([
       {
         id: ids.payments.websiteDeposit,
         projectId: ids.projects.websiteRedesign,
@@ -883,7 +915,7 @@ async function main() {
         deletedAt: null,
         notes: "AI support workflow pilot invoice.",
       },
-    ])
+    ]))
     .onConflictDoUpdate({
       target: payments.id,
       set: {
@@ -903,7 +935,7 @@ async function main() {
 
   await db
     .insert(projectFiles)
-    .values([
+    .values(withDemoWorkspace([
       {
         id: ids.files.websiteBrief,
         projectId: ids.projects.websiteRedesign,
@@ -969,7 +1001,7 @@ async function main() {
         isVisibleToClient: true,
         deletedAt: null,
       },
-    ])
+    ]))
     .onConflictDoUpdate({
       target: projectFiles.id,
       set: {
@@ -989,7 +1021,7 @@ async function main() {
 
   await db
     .insert(projectActivity)
-    .values([
+    .values(withDemoWorkspace([
       {
         id: ids.activity.websiteCreated,
         projectId: ids.projects.websiteRedesign,
@@ -1051,7 +1083,7 @@ async function main() {
         metadata: { source: "demo-seed", updateId: ids.updates.workflowPilot },
         createdAt: new Date("2026-06-29T13:10:00.000Z"),
       },
-    ])
+    ]))
     .onConflictDoUpdate({
       target: projectActivity.id,
       set: {
@@ -1068,7 +1100,7 @@ async function main() {
 
   await db
     .insert(projectViewEvents)
-    .values([
+    .values(withDemoWorkspace([
       {
         id: ids.views.acmeProject,
         projectId: ids.projects.websiteRedesign,
@@ -1096,7 +1128,7 @@ async function main() {
         targetId: ids.projects.aiSupportWorkflow,
         viewedAt: new Date("2026-06-28T18:30:00.000Z"),
       },
-    ])
+    ]))
     .onConflictDoUpdate({
       target: projectViewEvents.id,
       set: {

@@ -3,7 +3,7 @@ import "server-only";
 import { and, eq } from "drizzle-orm";
 
 import { db, type Db } from "@/db";
-import { projectActivity, projectViewEvents } from "@/db/schema";
+import { projectActivity, projectViewEvents, projects } from "@/db/schema";
 
 export type ProjectActivityActorRole = "admin" | "client" | "system";
 
@@ -20,6 +20,7 @@ export type ProjectActivityMetadata = Record<
 >;
 
 type LogProjectActivityInput = {
+  workspaceId?: string;
   projectId: string;
   actorId?: string | null;
   actorName?: string | null;
@@ -30,6 +31,7 @@ type LogProjectActivityInput = {
 };
 
 type RecordClientViewInput = {
+  workspaceId?: string;
   projectId: string;
   clientId: string;
   userId: string;
@@ -69,17 +71,38 @@ export function getDefaultViewActivityMessage(targetType: ProjectViewTargetType)
   return labels[targetType];
 }
 
+async function getProjectWorkspaceId(
+  projectId: string,
+  database: Pick<Db, "select"> = db,
+) {
+  const [project] = await database
+    .select({ workspaceId: projects.workspaceId })
+    .from(projects)
+    .where(eq(projects.id, projectId))
+    .limit(1);
+
+  return project?.workspaceId ?? null;
+}
+
 function normalizeTargetId(input: Pick<RecordClientViewInput, "projectId" | "targetId">) {
   return input.targetId ?? input.projectId;
 }
 
 export async function logProjectActivity(
   input: LogProjectActivityInput,
-  database: Pick<Db, "insert"> = db,
+  database: Pick<Db, "select" | "insert"> = db,
 ) {
+  const workspaceId =
+    input.workspaceId ?? (await getProjectWorkspaceId(input.projectId, database));
+
+  if (!workspaceId) {
+    throw new Error("Project workspace could not be found.");
+  }
+
   const [activity] = await database
     .insert(projectActivity)
     .values({
+      workspaceId,
       projectId: input.projectId,
       actorId: input.actorId ?? null,
       actorName: input.actorName?.trim() || null,
@@ -102,6 +125,12 @@ export async function recordClientViewEvent(
 ) {
   const targetId = normalizeTargetId(input);
   const viewedAt = new Date();
+  const workspaceId =
+    input.workspaceId ?? (await getProjectWorkspaceId(input.projectId, database));
+
+  if (!workspaceId) {
+    throw new Error("Project workspace could not be found.");
+  }
 
   const [existingView] = await database
     .select({ viewedAt: projectViewEvents.viewedAt })
@@ -119,6 +148,7 @@ export async function recordClientViewEvent(
   await database
     .insert(projectViewEvents)
     .values({
+      workspaceId,
       projectId: input.projectId,
       clientId: input.clientId,
       userId: input.userId,
@@ -147,6 +177,7 @@ export async function recordClientViewEvent(
     await logProjectActivity(
       {
         projectId: input.projectId,
+        workspaceId,
         actorId: input.userId,
         actorName: input.actorName,
         actorRole: "client",

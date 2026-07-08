@@ -19,6 +19,7 @@ import {
   projectUpdates,
   projectViewEvents,
   tasks,
+  workspaces,
 } from "@/db/schema";
 
 const connectionString = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
@@ -110,6 +111,8 @@ async function main() {
       await db.delete(profiles).where(inArray(profiles.id, profileIds));
     }
   }
+
+  await db.delete(workspaces).where(like(workspaces.slug, "deliverflow-demo"));
 
   console.log(
     `Removed ${projectIds.length} demo projects, ${clientIds.length} demo clients, and ${profileIds.length} demo profiles.`,

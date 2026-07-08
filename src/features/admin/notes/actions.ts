@@ -7,7 +7,7 @@ import { z } from "zod";
 import { routes } from "@/config/routes";
 import { db } from "@/db";
 import { adminNotes } from "@/db/schema";
-import { requireRole } from "@/lib/supabase/auth";
+import { requireAdminWorkspace } from "@/lib/supabase/auth";
 
 import {
   toAdminNoteRecord,
@@ -36,7 +36,7 @@ const deleteAdminNoteSchema = z.object({
 export async function createAdminNoteAction(input: {
   content: string;
 }): Promise<AdminNotesActionResult> {
-  const profile = await requireRole("admin");
+  const { profile, workspaceId } = await requireAdminWorkspace();
 
   const parsed = createAdminNoteSchema.safeParse(input);
   if (!parsed.success) {
@@ -50,6 +50,7 @@ export async function createAdminNoteAction(input: {
     const [note] = await db
       .insert(adminNotes)
       .values({
+        workspaceId,
         content: parsed.data.content,
         createdBy: profile.id,
       })
@@ -85,7 +86,7 @@ export async function createAdminNoteAction(input: {
 export async function deleteAdminNoteAction(input: {
   noteId: string;
 }): Promise<AdminNotesActionResult> {
-  const profile = await requireRole("admin");
+  const { profile, workspaceId } = await requireAdminWorkspace();
 
   const parsed = deleteAdminNoteSchema.safeParse(input);
   if (!parsed.success) {
@@ -102,6 +103,7 @@ export async function deleteAdminNoteAction(input: {
         and(
           eq(adminNotes.id, parsed.data.noteId),
           eq(adminNotes.createdBy, profile.id),
+          eq(adminNotes.workspaceId, workspaceId),
         ),
       )
       .returning({ id: adminNotes.id });

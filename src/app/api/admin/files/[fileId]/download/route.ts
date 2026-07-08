@@ -38,6 +38,8 @@ export async function GET(
     return jsonError("Admin access required.", 403);
   }
 
+  const workspaceId = profile.workspace_id;
+
   const { fileId } = await params;
   const parsed = fileDownloadParamsSchema.safeParse({ fileId });
 
@@ -56,6 +58,8 @@ export async function GET(
     .where(
       and(
         eq(projectFiles.id, parsed.data.fileId),
+        eq(projectFiles.workspaceId, workspaceId),
+        eq(projects.workspaceId, workspaceId),
         isNull(projectFiles.deletedAt),
         ne(projects.status, "archived"),
         isNull(projects.archivedAt),

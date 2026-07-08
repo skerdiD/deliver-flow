@@ -16,9 +16,32 @@ import {
   projectUpdates,
   projectViewEvents,
   tasks,
+  workspaces,
 } from "@/db/schema";
 
-export const profilesRelations = relations(profiles, ({ many }) => ({
+export const workspacesRelations = relations(workspaces, ({ many }) => ({
+  profiles: many(profiles),
+  clients: many(clients),
+  projects: many(projects),
+  clientInvitations: many(clientInvitations),
+  projectAssignments: many(projectAssignments),
+  projectActivity: many(projectActivity),
+  projectViewEvents: many(projectViewEvents),
+  milestones: many(milestones),
+  tasks: many(tasks),
+  projectUpdates: many(projectUpdates),
+  feedback: many(feedback),
+  approvals: many(approvals),
+  payments: many(payments),
+  projectFiles: many(projectFiles),
+  adminNotes: many(adminNotes),
+}));
+
+export const profilesRelations = relations(profiles, ({ one, many }) => ({
+  workspace: one(workspaces, {
+    fields: [profiles.workspaceId],
+    references: [workspaces.id],
+  }),
   ownedClients: many(clients, {
     relationName: "clientCreator",
   }),
@@ -67,6 +90,10 @@ export const profilesRelations = relations(profiles, ({ many }) => ({
 }));
 
 export const clientsRelations = relations(clients, ({ one, many }) => ({
+  workspace: one(workspaces, {
+    fields: [clients.workspaceId],
+    references: [workspaces.id],
+  }),
   profile: one(profiles, {
     fields: [clients.profileId],
     references: [profiles.id],
@@ -90,6 +117,10 @@ export const clientInvitationsRelations = relations(
       fields: [clientInvitations.clientId],
       references: [clients.id],
     }),
+    workspace: one(workspaces, {
+      fields: [clientInvitations.workspaceId],
+      references: [workspaces.id],
+    }),
     inviter: one(profiles, {
       fields: [clientInvitations.invitedBy],
       references: [profiles.id],
@@ -104,6 +135,10 @@ export const clientInvitationsRelations = relations(
 );
 
 export const projectsRelations = relations(projects, ({ one, many }) => ({
+  workspace: one(workspaces, {
+    fields: [projects.workspaceId],
+    references: [workspaces.id],
+  }),
   creator: one(profiles, {
     fields: [projects.createdBy],
     references: [profiles.id],
@@ -128,6 +163,10 @@ export const projectActivityRelations = relations(
       fields: [projectActivity.projectId],
       references: [projects.id],
     }),
+    workspace: one(workspaces, {
+      fields: [projectActivity.workspaceId],
+      references: [workspaces.id],
+    }),
     actor: one(profiles, {
       fields: [projectActivity.actorId],
       references: [profiles.id],
@@ -142,6 +181,10 @@ export const projectViewEventsRelations = relations(
     project: one(projects, {
       fields: [projectViewEvents.projectId],
       references: [projects.id],
+    }),
+    workspace: one(workspaces, {
+      fields: [projectViewEvents.workspaceId],
+      references: [workspaces.id],
     }),
     client: one(clients, {
       fields: [projectViewEvents.clientId],
@@ -162,6 +205,10 @@ export const projectAssignmentsRelations = relations(
       fields: [projectAssignments.projectId],
       references: [projects.id],
     }),
+    workspace: one(workspaces, {
+      fields: [projectAssignments.workspaceId],
+      references: [workspaces.id],
+    }),
     client: one(clients, {
       fields: [projectAssignments.clientId],
       references: [clients.id],
@@ -175,6 +222,10 @@ export const projectAssignmentsRelations = relations(
 );
 
 export const milestonesRelations = relations(milestones, ({ one, many }) => ({
+  workspace: one(workspaces, {
+    fields: [milestones.workspaceId],
+    references: [workspaces.id],
+  }),
   project: one(projects, {
     fields: [milestones.projectId],
     references: [projects.id],
@@ -189,6 +240,10 @@ export const milestonesRelations = relations(milestones, ({ one, many }) => ({
 }));
 
 export const tasksRelations = relations(tasks, ({ one }) => ({
+  workspace: one(workspaces, {
+    fields: [tasks.workspaceId],
+    references: [workspaces.id],
+  }),
   project: one(projects, {
     fields: [tasks.projectId],
     references: [projects.id],
@@ -205,6 +260,10 @@ export const tasksRelations = relations(tasks, ({ one }) => ({
 }));
 
 export const projectUpdatesRelations = relations(projectUpdates, ({ one }) => ({
+  workspace: one(workspaces, {
+    fields: [projectUpdates.workspaceId],
+    references: [workspaces.id],
+  }),
   project: one(projects, {
     fields: [projectUpdates.projectId],
     references: [projects.id],
@@ -217,6 +276,10 @@ export const projectUpdatesRelations = relations(projectUpdates, ({ one }) => ({
 }));
 
 export const feedbackRelations = relations(feedback, ({ one }) => ({
+  workspace: one(workspaces, {
+    fields: [feedback.workspaceId],
+    references: [workspaces.id],
+  }),
   project: one(projects, {
     fields: [feedback.projectId],
     references: [projects.id],
@@ -233,6 +296,10 @@ export const feedbackRelations = relations(feedback, ({ one }) => ({
 }));
 
 export const approvalsRelations = relations(approvals, ({ one }) => ({
+  workspace: one(workspaces, {
+    fields: [approvals.workspaceId],
+    references: [workspaces.id],
+  }),
   project: one(projects, {
     fields: [approvals.projectId],
     references: [projects.id],
@@ -254,6 +321,10 @@ export const approvalsRelations = relations(approvals, ({ one }) => ({
 }));
 
 export const adminNotesRelations = relations(adminNotes, ({ one }) => ({
+  workspace: one(workspaces, {
+    fields: [adminNotes.workspaceId],
+    references: [workspaces.id],
+  }),
   creator: one(profiles, {
     fields: [adminNotes.createdBy],
     references: [profiles.id],
@@ -262,6 +333,10 @@ export const adminNotesRelations = relations(adminNotes, ({ one }) => ({
 }));
 
 export const paymentsRelations = relations(payments, ({ one }) => ({
+  workspace: one(workspaces, {
+    fields: [payments.workspaceId],
+    references: [workspaces.id],
+  }),
   project: one(projects, {
     fields: [payments.projectId],
     references: [projects.id],
@@ -269,6 +344,10 @@ export const paymentsRelations = relations(payments, ({ one }) => ({
 }));
 
 export const projectFilesRelations = relations(projectFiles, ({ one }) => ({
+  workspace: one(workspaces, {
+    fields: [projectFiles.workspaceId],
+    references: [workspaces.id],
+  }),
   project: one(projects, {
     fields: [projectFiles.projectId],
     references: [projects.id],

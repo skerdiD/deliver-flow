@@ -39,6 +39,7 @@ describe("project activity helpers", () => {
 
     const activity = await logProjectActivity(
       {
+        workspaceId: "00000000-0000-4000-8000-000000000001",
         projectId: "11111111-1111-4111-8111-111111111111",
         actorRole: "system",
         actorName: "  ",
@@ -81,6 +82,7 @@ describe("project activity helpers", () => {
 
     const result = await recordClientViewEvent(
       {
+        workspaceId: "00000000-0000-4000-8000-000000000001",
         projectId: "11111111-1111-4111-8111-111111111111",
         clientId: "22222222-2222-4222-8222-222222222222",
         userId: "33333333-3333-4333-8333-333333333333",

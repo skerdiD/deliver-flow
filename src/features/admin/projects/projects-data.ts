@@ -33,6 +33,7 @@ import type {
   AdminProjectUpdate,
   AdminTaskStatus,
 } from "@/features/admin/projects/types";
+import { requireAdminWorkspace } from "@/lib/supabase/auth";
 
 function toIsoString(value: Date | string): string {
   if (value instanceof Date) {
@@ -130,6 +131,7 @@ function mapApproval(row: {
 
 async function getProjectClient(
   projectId: string,
+  workspaceId: string,
 ): Promise<AdminProjectClient | null> {
   const [assignment] = await db
     .select({
@@ -143,6 +145,8 @@ async function getProjectClient(
     .where(
       and(
         eq(projectAssignments.projectId, projectId),
+        eq(projectAssignments.workspaceId, workspaceId),
+        eq(clients.workspaceId, workspaceId),
         isNull(clients.deletedAt),
       ),
     )
@@ -152,7 +156,7 @@ async function getProjectClient(
   return assignment ?? null;
 }
 
-async function getProjectParts(projectId: string) {
+async function getProjectParts(projectId: string, workspaceId: string) {
   const [
     projectMilestones,
     projectTasks,
@@ -174,7 +178,12 @@ async function getProjectParts(projectId: string) {
         position: milestones.position,
       })
       .from(milestones)
-      .where(eq(milestones.projectId, projectId))
+      .where(
+        and(
+          eq(milestones.projectId, projectId),
+          eq(milestones.workspaceId, workspaceId),
+        ),
+      )
       .orderBy(asc(milestones.position), asc(milestones.createdAt)),
     db
       .select({
@@ -187,7 +196,13 @@ async function getProjectParts(projectId: string) {
         isVisibleToClient: tasks.isVisibleToClient,
       })
       .from(tasks)
-      .where(and(eq(tasks.projectId, projectId), isNull(tasks.deletedAt)))
+      .where(
+        and(
+          eq(tasks.projectId, projectId),
+          eq(tasks.workspaceId, workspaceId),
+          isNull(tasks.deletedAt),
+        ),
+      )
       .orderBy(asc(tasks.position), asc(tasks.createdAt)),
     db
       .select({
@@ -198,7 +213,12 @@ async function getProjectParts(projectId: string) {
         isVisibleToClient: projectUpdates.isVisibleToClient,
       })
       .from(projectUpdates)
-      .where(eq(projectUpdates.projectId, projectId))
+      .where(
+        and(
+          eq(projectUpdates.projectId, projectId),
+          eq(projectUpdates.workspaceId, workspaceId),
+        ),
+      )
       .orderBy(desc(projectUpdates.createdAt)),
     db
       .select({
@@ -216,6 +236,7 @@ async function getProjectParts(projectId: string) {
       .where(
         and(
           eq(projectFiles.projectId, projectId),
+          eq(projectFiles.workspaceId, workspaceId),
           isNull(projectFiles.deletedAt),
         ),
       )
@@ -233,7 +254,13 @@ async function getProjectParts(projectId: string) {
         notes: payments.notes,
       })
       .from(payments)
-      .where(and(eq(payments.projectId, projectId), isNull(payments.deletedAt)))
+      .where(
+        and(
+          eq(payments.projectId, projectId),
+          eq(payments.workspaceId, workspaceId),
+          isNull(payments.deletedAt),
+        ),
+      )
       .orderBy(asc(payments.dueDate), asc(payments.createdAt)),
     db
       .select({
@@ -249,6 +276,8 @@ async function getProjectParts(projectId: string) {
       .where(
         and(
           eq(feedback.projectId, projectId),
+          eq(feedback.workspaceId, workspaceId),
+          eq(clients.workspaceId, workspaceId),
           isNull(feedback.archivedAt),
           isNull(feedback.deletedAt),
         ),
@@ -268,7 +297,11 @@ async function getProjectParts(projectId: string) {
       .from(approvals)
       .leftJoin(milestones, eq(approvals.milestoneId, milestones.id))
       .where(
-        and(eq(approvals.projectId, projectId), isNull(approvals.deletedAt)),
+        and(
+          eq(approvals.projectId, projectId),
+          eq(approvals.workspaceId, workspaceId),
+          isNull(approvals.deletedAt),
+        ),
       )
       .orderBy(desc(approvals.requestedAt)),
     db
@@ -281,7 +314,12 @@ async function getProjectParts(projectId: string) {
         createdAt: projectActivity.createdAt,
       })
       .from(projectActivity)
-      .where(eq(projectActivity.projectId, projectId))
+      .where(
+        and(
+          eq(projectActivity.projectId, projectId),
+          eq(projectActivity.workspaceId, workspaceId),
+        ),
+      )
       .orderBy(desc(projectActivity.createdAt))
       .limit(30),
     db
@@ -291,7 +329,12 @@ async function getProjectParts(projectId: string) {
         viewedAt: projectViewEvents.viewedAt,
       })
       .from(projectViewEvents)
-      .where(eq(projectViewEvents.projectId, projectId))
+      .where(
+        and(
+          eq(projectViewEvents.projectId, projectId),
+          eq(projectViewEvents.workspaceId, workspaceId),
+        ),
+      )
       .orderBy(desc(projectViewEvents.viewedAt)),
   ]);
 
@@ -414,14 +457,15 @@ async function mapProject(row: {
   repositoryUrl: string | null;
   createdAt: Date | string;
   archivedAt: Date | string | null;
+  workspaceId: string;
 }): Promise<AdminProject | null> {
-  const client = await getProjectClient(row.id);
+  const client = await getProjectClient(row.id, row.workspaceId);
 
   if (!client) {
     return null;
   }
 
-  const parts = await getProjectParts(row.id);
+  const parts = await getProjectParts(row.id, row.workspaceId);
   const activePayments = parts.payments.filter(
     (payment) => payment.status !== "void",
   );
@@ -470,6 +514,8 @@ async function mapProject(row: {
 }
 
 export async function getAdminProjects() {
+  const { workspaceId } = await requireAdminWorkspace();
+
   const rows = await db
     .select({
       id: projects.id,
@@ -482,9 +528,10 @@ export async function getAdminProjects() {
       repositoryUrl: projects.repositoryUrl,
       createdAt: projects.createdAt,
       archivedAt: projects.archivedAt,
+      workspaceId: projects.workspaceId,
     })
     .from(projects)
-    .where(isNull(projects.deletedAt))
+    .where(and(eq(projects.workspaceId, workspaceId), isNull(projects.deletedAt)))
     .orderBy(desc(projects.createdAt));
 
   if (rows.length === 0) {
@@ -507,6 +554,8 @@ export async function getAdminProjects() {
       .where(
         and(
           inArray(projectAssignments.projectId, projectIds),
+          eq(projectAssignments.workspaceId, workspaceId),
+          eq(clients.workspaceId, workspaceId),
           isNull(clients.deletedAt),
         ),
       )
@@ -521,6 +570,7 @@ export async function getAdminProjects() {
       .where(
         and(
           inArray(payments.projectId, projectIds),
+          eq(payments.workspaceId, workspaceId),
           isNull(payments.deletedAt),
         ),
       ),
@@ -609,6 +659,8 @@ export async function getAdminProjects() {
 }
 
 export async function getAdminProjectById(id: string) {
+  const { workspaceId } = await requireAdminWorkspace();
+
   const [row] = await db
     .select({
       id: projects.id,
@@ -621,15 +673,24 @@ export async function getAdminProjectById(id: string) {
       repositoryUrl: projects.repositoryUrl,
       createdAt: projects.createdAt,
       archivedAt: projects.archivedAt,
+      workspaceId: projects.workspaceId,
     })
     .from(projects)
-    .where(and(eq(projects.id, id), isNull(projects.deletedAt)))
+    .where(
+      and(
+        eq(projects.id, id),
+        eq(projects.workspaceId, workspaceId),
+        isNull(projects.deletedAt),
+      ),
+    )
     .limit(1);
 
   return row ? mapProject(row) : null;
 }
 
 export async function getProjectClientOptions() {
+  const { workspaceId } = await requireAdminWorkspace();
+
   const rows = await db
     .select({
       id: clients.id,
@@ -641,6 +702,7 @@ export async function getProjectClientOptions() {
     .where(
       and(
         inArray(clients.status, ["active", "inactive"]),
+        eq(clients.workspaceId, workspaceId),
         isNull(clients.archivedAt),
         isNull(clients.deletedAt),
       ),
@@ -651,6 +713,8 @@ export async function getProjectClientOptions() {
 }
 
 export const getAdminQuickActionProjects = cache(async () => {
+  const { workspaceId } = await requireAdminWorkspace();
+
   const projectRows = await db
     .select({
       id: projects.id,
@@ -670,6 +734,9 @@ export const getAdminQuickActionProjects = cache(async () => {
           "in_progress",
           "waiting_feedback",
         ]),
+        eq(projects.workspaceId, workspaceId),
+        eq(projectAssignments.workspaceId, workspaceId),
+        eq(clients.workspaceId, workspaceId),
         isNull(projects.archivedAt),
         isNull(projects.deletedAt),
         isNull(clients.deletedAt),
@@ -690,6 +757,7 @@ export const getAdminQuickActionProjects = cache(async () => {
           .where(
             and(
               inArray(milestones.projectId, projectIds),
+              eq(milestones.workspaceId, workspaceId),
               inArray(milestones.status, [
                 "not_started",
                 "in_progress",
@@ -715,6 +783,7 @@ export const getAdminQuickActionProjects = cache(async () => {
 
 async function replaceProjectPaymentSummary(
   projectId: string,
+  workspaceId: string,
   input: {
     paymentStatus: AdminPaymentStatus;
     budgetDollars: number;
@@ -731,7 +800,13 @@ async function replaceProjectPaymentSummary(
       deletedAt: new Date(),
       updatedAt: new Date(),
     })
-    .where(and(eq(payments.projectId, projectId), isNull(payments.deletedAt)));
+    .where(
+      and(
+        eq(payments.projectId, projectId),
+        eq(payments.workspaceId, workspaceId),
+        isNull(payments.deletedAt),
+      ),
+    );
 
   if (budgetCents <= 0) {
     return;
@@ -744,6 +819,7 @@ async function replaceProjectPaymentSummary(
   ) {
     await db.insert(payments).values([
       {
+        workspaceId,
         projectId,
         amountCents: paidCents,
         status: "paid",
@@ -752,6 +828,7 @@ async function replaceProjectPaymentSummary(
         notes: "Paid portion",
       },
       {
+        workspaceId,
         projectId,
         amountCents: budgetCents - paidCents,
         status: "unpaid",
@@ -763,6 +840,7 @@ async function replaceProjectPaymentSummary(
   }
 
   await db.insert(payments).values({
+    workspaceId,
     projectId,
     amountCents: budgetCents,
     status: input.paymentStatus,
@@ -785,12 +863,15 @@ export async function createAdminProject(input: {
   budgetDollars: number;
   paidDollars: number;
 }): Promise<AdminProject> {
+  const { profile, workspaceId } = await requireAdminWorkspace();
+
   const [client] = await db
     .select({ id: clients.id })
     .from(clients)
     .where(
       and(
         eq(clients.id, input.clientId),
+        eq(clients.workspaceId, workspaceId),
         isNull(clients.archivedAt),
         isNull(clients.deletedAt),
       ),
@@ -805,6 +886,7 @@ export async function createAdminProject(input: {
     const [project] = await tx
       .insert(projects)
       .values({
+        workspaceId,
         name: input.name,
         slug: `${slugify(input.name)}-${Date.now()}`,
         description: input.description,
@@ -813,28 +895,33 @@ export async function createAdminProject(input: {
         deadline: input.deadline,
         liveDemoUrl: input.liveDemoUrl?.trim() || null,
         repositoryUrl: input.repositoryUrl?.trim() || null,
+        createdBy: profile.id,
         archivedAt: input.status === "archived" ? new Date() : null,
         deletedAt: null,
       })
       .returning({ id: projects.id });
 
     await tx.insert(projectAssignments).values({
+      workspaceId,
       projectId: project.id,
       clientId: input.clientId,
+      assignedBy: profile.id,
     });
 
     await tx.insert(projectUpdates).values({
+      workspaceId,
       projectId: project.id,
       title: "Project created",
       body: "The project workspace is ready. Add milestones, files, approvals, and payments as delivery moves forward.",
       updateType: "general",
       isVisibleToClient: true,
+      createdBy: profile.id,
     });
 
     return project;
   });
 
-  await replaceProjectPaymentSummary(created.id, input);
+  await replaceProjectPaymentSummary(created.id, workspaceId, input);
 
   const project = await getAdminProjectById(created.id);
 
@@ -861,12 +948,15 @@ export async function updateAdminProject(
     paidDollars: number;
   },
 ): Promise<AdminProject | null> {
+  const { profile, workspaceId } = await requireAdminWorkspace();
+
   const [client] = await db
     .select({ id: clients.id })
     .from(clients)
     .where(
       and(
         eq(clients.id, input.clientId),
+        eq(clients.workspaceId, workspaceId),
         isNull(clients.archivedAt),
         isNull(clients.deletedAt),
       ),
@@ -890,7 +980,13 @@ export async function updateAdminProject(
       archivedAt: input.status === "archived" ? new Date() : null,
       updatedAt: new Date(),
     })
-    .where(and(eq(projects.id, id), isNull(projects.deletedAt)))
+    .where(
+      and(
+        eq(projects.id, id),
+        eq(projects.workspaceId, workspaceId),
+        isNull(projects.deletedAt),
+      ),
+    )
     .returning({ id: projects.id });
 
   if (!updatedProject) {
@@ -900,14 +996,21 @@ export async function updateAdminProject(
   await db.transaction(async (tx) => {
     await tx
       .delete(projectAssignments)
-      .where(eq(projectAssignments.projectId, id));
+      .where(
+        and(
+          eq(projectAssignments.projectId, id),
+          eq(projectAssignments.workspaceId, workspaceId),
+        ),
+      );
     await tx.insert(projectAssignments).values({
+      workspaceId,
       projectId: id,
       clientId: input.clientId,
+      assignedBy: profile.id,
     });
   });
 
-  await replaceProjectPaymentSummary(id, input);
+  await replaceProjectPaymentSummary(id, workspaceId, input);
 
   return getAdminProjectById(id);
 }
@@ -919,6 +1022,8 @@ export async function updateProjectProgress(
     status: AdminProjectStatus;
   },
 ): Promise<AdminProject | null> {
+  const { workspaceId } = await requireAdminWorkspace();
+
   const [updatedProject] = await db
     .update(projects)
     .set({
@@ -927,7 +1032,13 @@ export async function updateProjectProgress(
       archivedAt: input.status === "archived" ? new Date() : null,
       updatedAt: new Date(),
     })
-    .where(and(eq(projects.id, id), isNull(projects.deletedAt)))
+    .where(
+      and(
+        eq(projects.id, id),
+        eq(projects.workspaceId, workspaceId),
+        isNull(projects.deletedAt),
+      ),
+    )
     .returning({ id: projects.id });
 
   return updatedProject ? getAdminProjectById(id) : null;
@@ -941,10 +1052,18 @@ export async function addProjectTask(
     dueDate: string;
   },
 ): Promise<AdminProject | null> {
+  const { profile, workspaceId } = await requireAdminWorkspace();
+
   const [project] = await db
     .select({ id: projects.id })
     .from(projects)
-    .where(and(eq(projects.id, projectId), isNull(projects.deletedAt)))
+    .where(
+      and(
+        eq(projects.id, projectId),
+        eq(projects.workspaceId, workspaceId),
+        isNull(projects.deletedAt),
+      ),
+    )
     .limit(1);
 
   if (!project) {
@@ -952,12 +1071,14 @@ export async function addProjectTask(
   }
 
   await db.insert(tasks).values({
+    workspaceId,
     projectId,
     title: input.title,
     description: input.description,
     dueDate: input.dueDate,
     status: "todo",
     isVisibleToClient: true,
+    createdBy: profile.id,
   });
 
   return getAdminProjectById(projectId);
@@ -967,6 +1088,8 @@ export async function markProjectTaskComplete(
   projectId: string,
   taskId: string,
 ) {
+  const { workspaceId } = await requireAdminWorkspace();
+
   await db
     .update(tasks)
     .set({
@@ -977,6 +1100,7 @@ export async function markProjectTaskComplete(
       and(
         eq(tasks.id, taskId),
         eq(tasks.projectId, projectId),
+        eq(tasks.workspaceId, workspaceId),
         isNull(tasks.deletedAt),
       ),
     );
@@ -990,10 +1114,18 @@ export async function addProjectMilestone(
     dueDate: string;
   },
 ): Promise<AdminProject | null> {
+  const { profile, workspaceId } = await requireAdminWorkspace();
+
   const [project] = await db
     .select({ id: projects.id })
     .from(projects)
-    .where(and(eq(projects.id, projectId), isNull(projects.deletedAt)))
+    .where(
+      and(
+        eq(projects.id, projectId),
+        eq(projects.workspaceId, workspaceId),
+        isNull(projects.deletedAt),
+      ),
+    )
     .limit(1);
 
   if (!project) {
@@ -1001,12 +1133,14 @@ export async function addProjectMilestone(
   }
 
   await db.insert(milestones).values({
+    workspaceId,
     projectId,
     title: input.title,
     description: input.description,
     dueDate: input.dueDate,
     status: "not_started",
     isVisibleToClient: true,
+    createdBy: profile.id,
   });
 
   return getAdminProjectById(projectId);
@@ -1016,6 +1150,8 @@ export async function markProjectMilestoneComplete(
   projectId: string,
   milestoneId: string,
 ) {
+  const { workspaceId } = await requireAdminWorkspace();
+
   const [milestone] = await db
     .update(milestones)
     .set({
@@ -1023,7 +1159,11 @@ export async function markProjectMilestoneComplete(
       updatedAt: new Date(),
     })
     .where(
-      and(eq(milestones.id, milestoneId), eq(milestones.projectId, projectId)),
+      and(
+        eq(milestones.id, milestoneId),
+        eq(milestones.projectId, projectId),
+        eq(milestones.workspaceId, workspaceId),
+      ),
     )
     .returning({
       id: milestones.id,
@@ -1040,10 +1180,18 @@ export async function addProjectUpdate(
     body: string;
   },
 ): Promise<AdminProject | null> {
+  const { profile, workspaceId } = await requireAdminWorkspace();
+
   const [project] = await db
     .select({ id: projects.id })
     .from(projects)
-    .where(and(eq(projects.id, projectId), isNull(projects.deletedAt)))
+    .where(
+      and(
+        eq(projects.id, projectId),
+        eq(projects.workspaceId, workspaceId),
+        isNull(projects.deletedAt),
+      ),
+    )
     .limit(1);
 
   if (!project) {
@@ -1051,11 +1199,13 @@ export async function addProjectUpdate(
   }
 
   await db.insert(projectUpdates).values({
+    workspaceId,
     projectId,
     title: input.title,
     body: input.body,
     updateType: "general",
     isVisibleToClient: true,
+    createdBy: profile.id,
   });
 
   return getAdminProjectById(projectId);
@@ -1064,6 +1214,7 @@ export async function addProjectUpdate(
 export async function archiveAdminProject(
   id: string,
 ): Promise<AdminProject | null> {
+  const { workspaceId } = await requireAdminWorkspace();
   const archivedAt = new Date();
   const [project] = await db
     .update(projects)
@@ -1072,7 +1223,13 @@ export async function archiveAdminProject(
       archivedAt,
       updatedAt: archivedAt,
     })
-    .where(and(eq(projects.id, id), isNull(projects.deletedAt)))
+    .where(
+      and(
+        eq(projects.id, id),
+        eq(projects.workspaceId, workspaceId),
+        isNull(projects.deletedAt),
+      ),
+    )
     .returning({ id: projects.id });
 
   return project ? getAdminProjectById(project.id) : null;
@@ -1081,6 +1238,7 @@ export async function archiveAdminProject(
 export async function deleteAdminProject(
   id: string,
 ): Promise<AdminProject | null> {
+  const { workspaceId } = await requireAdminWorkspace();
   const deletedAt = new Date();
   const [project] = await db
     .update(projects)
@@ -1088,7 +1246,13 @@ export async function deleteAdminProject(
       deletedAt,
       updatedAt: deletedAt,
     })
-    .where(and(eq(projects.id, id), isNull(projects.deletedAt)))
+    .where(
+      and(
+        eq(projects.id, id),
+        eq(projects.workspaceId, workspaceId),
+        isNull(projects.deletedAt),
+      ),
+    )
     .returning({
       id: projects.id,
       name: projects.name,
@@ -1100,6 +1264,7 @@ export async function deleteAdminProject(
       repositoryUrl: projects.repositoryUrl,
       createdAt: projects.createdAt,
       archivedAt: projects.archivedAt,
+      workspaceId: projects.workspaceId,
     });
 
   return project ? mapProject(project) : null;

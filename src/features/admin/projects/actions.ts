@@ -46,7 +46,7 @@ import {
 } from "@/features/projects/file-storage";
 import { logProjectActivity } from "@/features/projects/activity";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { requireRole } from "@/lib/supabase/auth";
+import { requireAdminWorkspace, requireRole } from "@/lib/supabase/auth";
 
 export type ProjectActionResult = {
   success: boolean;
@@ -104,12 +104,15 @@ const projectFileCategorySchema = z.enum([
 const MAX_PROJECT_FILE_SIZE_BYTES = 25 * 1024 * 1024;
 
 async function getMutableProject(projectId: string) {
+  const { workspaceId } = await requireAdminWorkspace();
+
   const [project] = await db
-    .select({ id: projects.id })
+    .select({ id: projects.id, workspaceId: projects.workspaceId })
     .from(projects)
     .where(
       and(
         eq(projects.id, projectId),
+        eq(projects.workspaceId, workspaceId),
         ne(projects.status, "archived"),
         isNull(projects.archivedAt),
         isNull(projects.deletedAt),
@@ -644,7 +647,7 @@ export async function requestProjectApprovalAction(
   projectId: string,
   values: ProjectApprovalRequestValues,
 ): Promise<ProjectActionResult> {
-  const adminProfile = await requireRole("admin");
+  const { profile: adminProfile, workspaceId } = await requireAdminWorkspace();
   const projectIdParsed = uuidSchema.safeParse(projectId);
 
   if (!projectIdParsed.success) {
@@ -680,6 +683,7 @@ export async function requestProjectApprovalAction(
         and(
           eq(milestones.id, parsed.data.milestoneId),
           eq(milestones.projectId, projectIdParsed.data),
+          eq(milestones.workspaceId, workspaceId),
         ),
       )
       .limit(1);
@@ -696,6 +700,7 @@ export async function requestProjectApprovalAction(
     const [approval] = await tx
       .insert(approvals)
       .values({
+        workspaceId,
         projectId: projectIdParsed.data,
         milestoneId: parsed.data.milestoneId || null,
         title: parsed.data.title,
@@ -719,6 +724,7 @@ export async function requestProjectApprovalAction(
           and(
             eq(milestones.id, parsed.data.milestoneId),
             eq(milestones.projectId, projectIdParsed.data),
+            eq(milestones.workspaceId, workspaceId),
           ),
         );
     }
@@ -753,7 +759,7 @@ export async function addProjectPaymentAction(
   projectId: string,
   values: ProjectPaymentValues,
 ): Promise<ProjectActionResult> {
-  const adminProfile = await requireRole("admin");
+  const { profile: adminProfile, workspaceId } = await requireAdminWorkspace();
   const projectIdParsed = uuidSchema.safeParse(projectId);
 
   if (!projectIdParsed.success) {
@@ -786,6 +792,7 @@ export async function addProjectPaymentAction(
   const [payment] = await db
     .insert(payments)
     .values({
+      workspaceId,
       projectId: projectIdParsed.data,
       amountCents,
       status: parsed.data.status,
@@ -826,7 +833,7 @@ export async function updateProjectPaymentStatusAction(input: {
   paymentId: string;
   status: "unpaid" | "partial" | "paid" | "overdue" | "void";
 }): Promise<ProjectActionResult> {
-  const adminProfile = await requireRole("admin");
+  const { profile: adminProfile, workspaceId } = await requireAdminWorkspace();
 
   const parsed = paymentStatusSchema.safeParse(input);
 
@@ -845,6 +852,8 @@ export async function updateProjectPaymentStatusAction(input: {
       and(
         eq(payments.id, parsed.data.paymentId),
         eq(payments.projectId, parsed.data.projectId),
+        eq(payments.workspaceId, workspaceId),
+        eq(projects.workspaceId, workspaceId),
         ne(projects.status, "archived"),
         isNull(projects.archivedAt),
         isNull(projects.deletedAt),
@@ -873,6 +882,7 @@ export async function updateProjectPaymentStatusAction(input: {
       and(
         eq(payments.id, parsed.data.paymentId),
         eq(payments.projectId, parsed.data.projectId),
+        eq(payments.workspaceId, workspaceId),
       ),
     )
     .returning({ id: payments.id });
@@ -913,7 +923,7 @@ export async function uploadProjectFileAction(
   _previousState: ProjectActionResult,
   formData: FormData,
 ): Promise<ProjectActionResult> {
-  const adminProfile = await requireRole("admin");
+  const { profile: adminProfile, workspaceId } = await requireAdminWorkspace();
   const projectIdParsed = uuidSchema.safeParse(formData.get("projectId"));
   const categoryParsed = projectFileCategorySchema.safeParse(
     formData.get("category") || "deliverable",
@@ -983,6 +993,7 @@ export async function uploadProjectFileAction(
   const [createdFile] = await db
     .insert(projectFiles)
     .values({
+      workspaceId,
       projectId: projectIdParsed.data,
       uploadedBy: adminProfile.id,
       fileName: displayFileName,

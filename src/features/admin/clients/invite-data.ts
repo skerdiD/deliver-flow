@@ -7,6 +7,7 @@ import { clientInvitations, clients } from "@/db/schema";
 import { createInviteToken, hashInviteToken } from "@/features/invitations/token";
 import { routes } from "@/config/routes";
 import { getAppBaseUrl } from "@/lib/app-url";
+import { requireAdminWorkspace } from "@/lib/supabase/auth";
 import type { Profile } from "@/types/database";
 
 export type AdminClientInvite = {
@@ -46,7 +47,8 @@ function normalizeEmail(email: string) {
 }
 
 export async function getAdminClientInvites(): Promise<AdminClientInvite[]> {
-  await expirePendingClientInvites();
+  const { workspaceId } = await requireAdminWorkspace();
+  await expirePendingClientInvites(workspaceId);
 
   const rows = await db
     .select({
@@ -62,8 +64,13 @@ export async function getAdminClientInvites(): Promise<AdminClientInvite[]> {
     .from(clientInvitations)
     .leftJoin(
       clients,
-      and(eq(clientInvitations.clientId, clients.id), isNull(clients.deletedAt)),
+      and(
+        eq(clientInvitations.clientId, clients.id),
+        eq(clients.workspaceId, workspaceId),
+        isNull(clients.deletedAt),
+      ),
     )
+    .where(eq(clientInvitations.workspaceId, workspaceId))
     .orderBy(desc(clientInvitations.createdAt))
     .limit(25);
 
@@ -84,12 +91,13 @@ export async function createClientInvite(
   inviter: Profile,
 ): Promise<CreatedClientInvite> {
   const email = normalizeEmail(input.email);
+  const workspaceId = inviter.workspace_id;
   const now = new Date();
   const expiresAt = new Date(
     now.getTime() + input.expiresInDays * 24 * 60 * 60 * 1000,
   );
 
-  await expirePendingClientInvites();
+  await expirePendingClientInvites(workspaceId);
 
   const [pendingInvite] = await db
     .select({ id: clientInvitations.id })
@@ -97,6 +105,7 @@ export async function createClientInvite(
     .where(
       and(
         eq(clientInvitations.email, email),
+        eq(clientInvitations.workspaceId, workspaceId),
         eq(clientInvitations.status, "pending"),
         gt(clientInvitations.expiresAt, now),
       ),
@@ -117,7 +126,7 @@ export async function createClientInvite(
       deletedAt: clients.deletedAt,
     })
     .from(clients)
-    .where(eq(clients.email, email))
+    .where(and(eq(clients.email, email), eq(clients.workspaceId, workspaceId)))
     .limit(1);
 
   if (existingClient?.deletedAt) {
@@ -139,14 +148,15 @@ export async function createClientInvite(
         await tx
           .insert(clients)
           .values({
+            workspaceId,
             email,
-          contactName: input.name,
-          companyName: input.company?.trim() || "Independent client",
-          status: "inactive",
-          archivedAt: null,
-          deletedAt: null,
-          createdBy: inviter.id,
-        })
+            contactName: input.name,
+            companyName: input.company?.trim() || "Independent client",
+            status: "inactive",
+            archivedAt: null,
+            deletedAt: null,
+            createdBy: inviter.id,
+          })
           .returning({ id: clients.id })
       )[0]?.id;
 
@@ -164,7 +174,12 @@ export async function createClientInvite(
           archivedAt: null,
           updatedAt: now,
         })
-        .where(eq(clients.id, preparedClientId));
+        .where(
+          and(
+            eq(clients.id, preparedClientId),
+            eq(clients.workspaceId, workspaceId),
+          ),
+        );
     }
 
     await tx
@@ -176,6 +191,7 @@ export async function createClientInvite(
       .where(
         and(
           eq(clientInvitations.email, email),
+          eq(clientInvitations.workspaceId, workspaceId),
           eq(clientInvitations.status, "pending"),
         ),
       );
@@ -184,6 +200,7 @@ export async function createClientInvite(
     const tokenHash = hashInviteToken(token);
 
     await tx.insert(clientInvitations).values({
+      workspaceId,
       email,
       clientId: preparedClientId,
       tokenHash,
@@ -208,7 +225,7 @@ export async function createClientInvite(
   };
 }
 
-async function expirePendingClientInvites() {
+async function expirePendingClientInvites(workspaceId: string) {
   await db
     .update(clientInvitations)
     .set({
@@ -218,6 +235,7 @@ async function expirePendingClientInvites() {
     .where(
       and(
         eq(clientInvitations.status, "pending"),
+        eq(clientInvitations.workspaceId, workspaceId),
         lte(clientInvitations.expiresAt, new Date()),
       ),
     );

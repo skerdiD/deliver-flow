@@ -1,10 +1,10 @@
 import "server-only";
 
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 
 import { db } from "@/db";
 import { adminNotes } from "@/db/schema";
-import { requireRole } from "@/lib/supabase/auth";
+import { requireAdminWorkspace } from "@/lib/supabase/auth";
 
 import type { AdminNoteRecord } from "@/features/admin/notes/types";
 
@@ -31,7 +31,7 @@ function toAdminNoteRecord(row: {
 }
 
 export async function getAdminNotes() {
-  const profile = await requireRole("admin");
+  const { profile, workspaceId } = await requireAdminWorkspace();
 
   const rows = await db
     .select({
@@ -41,7 +41,12 @@ export async function getAdminNotes() {
       updatedAt: adminNotes.updatedAt,
     })
     .from(adminNotes)
-    .where(eq(adminNotes.createdBy, profile.id))
+    .where(
+      and(
+        eq(adminNotes.createdBy, profile.id),
+        eq(adminNotes.workspaceId, workspaceId),
+      ),
+    )
     .orderBy(desc(adminNotes.createdAt));
 
   return rows.map(toAdminNoteRecord);
