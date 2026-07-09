@@ -8,7 +8,6 @@ import postgres from "postgres";
 
 import {
   approvals,
-  authUsers,
   clients,
   feedback,
   milestones,
@@ -23,6 +22,7 @@ import {
   tasks,
   workspaces,
 } from "@/db/schema";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 const connectionString = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
 
@@ -36,10 +36,25 @@ const client = postgres(connectionString, {
 
 const db = drizzle(client);
 
+function getRequiredSeedEnv(name: string) {
+  const value = process.env[name]?.trim();
+
+  if (!value) {
+    throw new Error(`Missing ${name}. Add it to .env.local before seeding.`);
+  }
+
+  return value;
+}
+
 const demoEmails = {
-  owner: "owner@deliverflow.demo",
-  client: "client@deliverflow.demo",
+  owner: getRequiredSeedEnv("DEMO_OWNER_EMAIL").toLowerCase(),
+  client: getRequiredSeedEnv("DEMO_CLIENT_EMAIL").toLowerCase(),
   northwind: "northwind@deliverflow.demo",
+} as const;
+
+const demoPasswords = {
+  owner: getRequiredSeedEnv("DEMO_OWNER_PASSWORD"),
+  client: getRequiredSeedEnv("DEMO_CLIENT_PASSWORD"),
 } as const;
 
 const ids = {
@@ -118,31 +133,6 @@ const ids = {
   },
 } as const;
 
-const uuidPattern =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-function getRequiredUserId(
-  envName: "DEMO_OWNER_USER_ID" | "DEMO_CLIENT_USER_ID",
-) {
-  const value = process.env[envName]?.trim();
-
-  if (!value) {
-    throw new Error(
-      [
-        `Missing ${envName}.`,
-        "Create the demo user in Supabase Auth first, then add the user's UUID to your environment.",
-        `Expected demo auth emails: ${demoEmails.owner} and ${demoEmails.client}.`,
-      ].join("\n"),
-    );
-  }
-
-  if (!uuidPattern.test(value)) {
-    throw new Error(`${envName} must be a Supabase Auth user UUID.`);
-  }
-
-  return value;
-}
-
 function withDemoWorkspace<const T extends Record<string, unknown>>(
   rows: readonly T[],
 ) {
@@ -152,69 +142,112 @@ function withDemoWorkspace<const T extends Record<string, unknown>>(
   }));
 }
 
-async function assertAuthUsersExist(ownerId: string, clientId: string) {
-  const authRows = await db
-    .select({
-      id: authUsers.id,
-      email: authUsers.email,
-    })
-    .from(authUsers)
-    .where(inArray(authUsers.id, [ownerId, clientId]));
+type SupabaseAdminClient = ReturnType<typeof createSupabaseAdminClient>;
 
-  const authUserIds = new Set(authRows.map((row) => row.id));
-  const missingUserIds = [ownerId, clientId].filter(
-    (id) => !authUserIds.has(id),
-  );
+async function findAuthUserByEmail(
+  supabase: SupabaseAdminClient,
+  email: string,
+) {
+  for (let page = 1; page <= 10; page += 1) {
+    const { data, error } = await supabase.auth.admin.listUsers({
+      page,
+      perPage: 1000,
+    });
 
-  if (missingUserIds.length > 0) {
-    throw new Error(
-      [
-        "The demo Supabase Auth users were not found.",
-        "Create these users in Supabase Authentication, then set:",
-        `DEMO_OWNER_USER_ID=<UUID for ${demoEmails.owner}>`,
-        `DEMO_CLIENT_USER_ID=<UUID for ${demoEmails.client}>`,
-        `Missing UUIDs: ${missingUserIds.join(", ")}`,
-      ].join("\n"),
+    if (error) {
+      throw error;
+    }
+
+    const user = data.users.find(
+      (candidate) => candidate.email?.toLowerCase() === email,
     );
+
+    if (user) {
+      return user;
+    }
+
+    if (data.users.length < 1000) {
+      return null;
+    }
   }
 
-  const emailById = new Map(
-    authRows.map((row) => [row.id, row.email?.toLowerCase()]),
-  );
-  const expectedEmailById = new Map([
-    [ownerId, demoEmails.owner],
-    [clientId, demoEmails.client],
-  ]);
-  const mismatchedEmails = Array.from(expectedEmailById.entries()).filter(
-    ([id, email]) => emailById.get(id) !== email,
-  );
+  return null;
+}
 
-  if (mismatchedEmails.length > 0) {
-    throw new Error(
-      [
-        "The demo UUIDs must belong to the requested Supabase Auth emails.",
-        ...mismatchedEmails.map(([id, expectedEmail]) => {
-          const actualEmail = emailById.get(id) ?? "unknown";
-          return `${id}: expected ${expectedEmail}, found ${actualEmail}`;
-        }),
-      ].join("\n"),
+async function ensureDemoAuthUser(input: {
+  role: "owner" | "client";
+  email: string;
+  password: string;
+  fullName: string;
+}) {
+  const supabase = createSupabaseAdminClient();
+  const metadata =
+    input.role === "client"
+      ? {
+          full_name: input.fullName,
+          invited_via: "deliverflow",
+          demo_workspace: "deliverflow-demo",
+        }
+      : {
+          full_name: input.fullName,
+          workspace_name: "DeliverFlow Demo Workspace",
+          demo_workspace: "deliverflow-demo",
+        };
+  const existingUser = await findAuthUserByEmail(supabase, input.email);
+
+  if (existingUser) {
+    const { data, error } = await supabase.auth.admin.updateUserById(
+      existingUser.id,
+      {
+        email: input.email,
+        password: input.password,
+        email_confirm: true,
+        user_metadata: metadata,
+      },
     );
+
+    if (error || !data.user) {
+      throw error ?? new Error(`Could not update demo ${input.role} user.`);
+    }
+
+    return data.user.id;
   }
+
+  const { data, error } = await supabase.auth.admin.createUser({
+    email: input.email,
+    password: input.password,
+    email_confirm: true,
+    user_metadata: metadata,
+  });
+
+  if (error || !data.user) {
+    throw error ?? new Error(`Could not create demo ${input.role} user.`);
+  }
+
+  return data.user.id;
 }
 
 async function main() {
   console.log("Starting DeliverFlow demo seed...");
 
-  const ownerId = getRequiredUserId("DEMO_OWNER_USER_ID");
-  const clientId = getRequiredUserId("DEMO_CLIENT_USER_ID");
+  const ownerId = await ensureDemoAuthUser({
+    role: "owner",
+    email: demoEmails.owner,
+    password: demoPasswords.owner,
+    fullName: "Demo Owner",
+  });
+  const clientId = await ensureDemoAuthUser({
+    role: "client",
+    email: demoEmails.client,
+    password: demoPasswords.client,
+    fullName: "Demo Client",
+  });
 
   if (ownerId === clientId) {
     throw new Error(
-      "DEMO_OWNER_USER_ID and DEMO_CLIENT_USER_ID must be different users.",
+      "Demo owner and demo client must be different Supabase Auth users.",
     );
   }
-
-  await assertAuthUsersExist(ownerId, clientId);
 
   await db
     .insert(workspaces)
@@ -239,14 +272,14 @@ async function main() {
         id: ownerId,
         workspaceId: ids.workspaces.demo,
         email: demoEmails.owner,
-        fullName: "Jordan Ellis",
+        fullName: "Demo Owner",
         role: "owner",
       },
       {
         id: clientId,
         workspaceId: ids.workspaces.demo,
         email: demoEmails.client,
-        fullName: "Maya Chen",
+        fullName: "Demo Client",
         role: "client",
       },
     ])
@@ -261,6 +294,13 @@ async function main() {
       },
     });
 
+  await db.delete(workspaces).where(
+    inArray(workspaces.slug, [
+      `workspace-${ownerId.replaceAll("-", "")}`,
+      `workspace-${clientId.replaceAll("-", "")}`,
+    ]),
+  );
+
   await db
     .insert(clients)
     .values(withDemoWorkspace([
@@ -268,7 +308,7 @@ async function main() {
         id: ids.clients.acmeStudio,
         profileId: clientId,
         companyName: "Acme Studio",
-        contactName: "Maya Chen",
+        contactName: "Demo Client",
         email: demoEmails.client,
         phone: "+1 555 019 1042",
         status: "active",
@@ -1026,7 +1066,7 @@ async function main() {
         id: ids.activity.websiteCreated,
         projectId: ids.projects.websiteRedesign,
         actorId: ownerId,
-        actorName: "Jordan Ellis",
+        actorName: "Demo Owner",
         actorRole: "owner",
         type: "project_created",
         message: "Created the Website Redesign project workspace.",
@@ -1037,7 +1077,7 @@ async function main() {
         id: ids.activity.websiteFile,
         projectId: ids.projects.websiteRedesign,
         actorId: ownerId,
-        actorName: "Jordan Ellis",
+        actorName: "Demo Owner",
         actorRole: "owner",
         type: "file_uploaded",
         message: "Uploaded the homepage design preview.",
@@ -1048,7 +1088,7 @@ async function main() {
         id: ids.activity.dashboardApproval,
         projectId: ids.projects.saasDashboardMvp,
         actorId: ownerId,
-        actorName: "Jordan Ellis",
+        actorName: "Demo Owner",
         actorRole: "owner",
         type: "approval_requested",
         message: "Requested approval for the dashboard prototype.",
@@ -1062,7 +1102,7 @@ async function main() {
         id: ids.activity.dashboardPayment,
         projectId: ids.projects.saasDashboardMvp,
         actorId: ownerId,
-        actorName: "Jordan Ellis",
+        actorName: "Demo Owner",
         actorRole: "owner",
         type: "payment_created",
         message: "Added the reporting integration milestone payment.",
@@ -1076,7 +1116,7 @@ async function main() {
         id: ids.activity.workflowUpdate,
         projectId: ids.projects.aiSupportWorkflow,
         actorId: ownerId,
-        actorName: "Jordan Ellis",
+        actorName: "Demo Owner",
         actorRole: "owner",
         type: "project_update_added",
         message: "Posted the first AI support workflow pilot update.",

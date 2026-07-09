@@ -78,7 +78,7 @@ const adminDashboardQuickActions: DashboardQuickAction[] = [
   {
     title: "Add client",
     description: "Save client details and prepare account access.",
-    href: "/owner/clients/new",
+    href: "/admin/clients/new",
     icon: Users,
   },
   {

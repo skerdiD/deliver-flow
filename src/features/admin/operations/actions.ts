@@ -16,6 +16,7 @@ import {
 } from "@/db/schema";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireAdminWorkspace } from "@/lib/supabase/auth";
+import { isDemoWorkspaceId } from "@/lib/demo";
 
 export type AdminOperationActionResult = {
   success: boolean;
@@ -78,6 +79,13 @@ const workspaceNameSchema = z.object({
     .min(2, "Workspace name must be at least 2 characters.")
     .max(80, "Workspace name must be 80 characters or less."),
 });
+
+function getDemoDestructiveActionResult(): AdminOperationActionResult {
+  return {
+    success: false,
+    message: "Demo workspace data is protected and can be reset from the seed.",
+  };
+}
 
 export async function updateWorkspaceNameAction(input: {
   name: string;
@@ -199,6 +207,10 @@ export async function deleteTaskAction(input: {
 }): Promise<AdminOperationActionResult> {
   const { workspaceId } = await requireAdminWorkspace();
 
+  if (isDemoWorkspaceId(workspaceId)) {
+    return getDemoDestructiveActionResult();
+  }
+
   const parsed = taskIdSchema.safeParse(input);
   if (!parsed.success) {
     return {
@@ -290,6 +302,10 @@ export async function deleteFileAction(input: {
   fileId: string;
 }): Promise<AdminOperationActionResult> {
   const { workspaceId } = await requireAdminWorkspace();
+
+  if (isDemoWorkspaceId(workspaceId)) {
+    return getDemoDestructiveActionResult();
+  }
 
   const parsed = fileIdSchema.safeParse(input);
   if (!parsed.success) {
@@ -406,6 +422,10 @@ export async function voidPaymentAction(input: {
 }): Promise<AdminOperationActionResult> {
   const { workspaceId } = await requireAdminWorkspace();
 
+  if (isDemoWorkspaceId(workspaceId)) {
+    return getDemoDestructiveActionResult();
+  }
+
   const parsed = paymentVoidSchema.safeParse(input);
   if (!parsed.success) {
     return {
@@ -451,6 +471,10 @@ export async function deletePaymentAction(input: {
   paymentId: string;
 }): Promise<AdminOperationActionResult> {
   const { workspaceId } = await requireAdminWorkspace();
+
+  if (isDemoWorkspaceId(workspaceId)) {
+    return getDemoDestructiveActionResult();
+  }
 
   const parsed = paymentIdSchema.safeParse(input);
   if (!parsed.success) {
@@ -615,6 +639,10 @@ export async function archiveFeedbackAction(input: {
 }): Promise<AdminOperationActionResult> {
   const { workspaceId } = await requireAdminWorkspace();
 
+  if (isDemoWorkspaceId(workspaceId)) {
+    return getDemoDestructiveActionResult();
+  }
+
   const parsed = feedbackIdSchema.safeParse(input);
   if (!parsed.success) {
     return {
@@ -668,6 +696,10 @@ export async function deleteFeedbackAction(input: {
 }): Promise<AdminOperationActionResult> {
   const { workspaceId } = await requireAdminWorkspace();
 
+  if (isDemoWorkspaceId(workspaceId)) {
+    return getDemoDestructiveActionResult();
+  }
+
   const parsed = feedbackIdSchema.safeParse(input);
   if (!parsed.success) {
     return {
@@ -712,6 +744,10 @@ export async function cancelApprovalAction(input: {
   reason?: string;
 }): Promise<AdminOperationActionResult> {
   const { workspaceId } = await requireAdminWorkspace();
+
+  if (isDemoWorkspaceId(workspaceId)) {
+    return getDemoDestructiveActionResult();
+  }
 
   const parsed = approvalCancelSchema.safeParse(input);
   if (!parsed.success) {
@@ -825,6 +861,10 @@ export async function deleteApprovalAction(input: {
   approvalId: string;
 }): Promise<AdminOperationActionResult> {
   const { workspaceId } = await requireAdminWorkspace();
+
+  if (isDemoWorkspaceId(workspaceId)) {
+    return getDemoDestructiveActionResult();
+  }
 
   const parsed = approvalIdSchema.safeParse(input);
   if (!parsed.success) {

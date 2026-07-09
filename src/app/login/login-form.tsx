@@ -1,13 +1,14 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, BriefcaseBusiness, Loader2, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { routes } from "@/config/routes";
+import { demoLoginAction } from "@/features/auth/actions";
 import {
   loginSchema,
   type LoginValues,
@@ -55,6 +56,14 @@ export function LoginForm() {
 
     if (error === "client_missing") {
       return "Your account is not linked to an active client yet. Open your invite link or ask for a new one.";
+    }
+
+    if (error === "demo_unavailable") {
+      return "Demo login is not configured yet. Add the demo credentials to the server environment.";
+    }
+
+    if (error === "demo_signin_failed") {
+      return "We could not open the demo account right now. Please try again in a moment.";
     }
 
     return "";
@@ -203,6 +212,40 @@ export function LoginForm() {
             </Button>
           </form>
         </Form>
+
+        <div className="mt-6 border-t border-slate-200 pt-5">
+          <div className="space-y-1">
+            <h2 className="text-sm font-semibold text-slate-950">
+              Try the demo
+            </h2>
+            <p className="text-sm leading-6 text-slate-600">
+              Explore DeliverFlow as a workspace owner or as a client.
+            </p>
+          </div>
+
+          <form action={demoLoginAction} className="mt-4 grid gap-3 sm:grid-cols-2">
+            <Button
+              type="submit"
+              name="role"
+              value="owner"
+              variant="outline"
+              className="h-11 border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800"
+            >
+              <BriefcaseBusiness className="size-4" />
+              View owner demo
+            </Button>
+            <Button
+              type="submit"
+              name="role"
+              value="client"
+              variant="outline"
+              className="h-11 border-slate-200 text-slate-700 hover:bg-slate-50"
+            >
+              <UserRound className="size-4" />
+              View client demo
+            </Button>
+          </form>
+        </div>
       </CardContent>
 
       <CardFooter className="border-t border-slate-200 px-5 py-4 sm:px-6">

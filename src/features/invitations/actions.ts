@@ -51,7 +51,7 @@ export async function acceptInviteAction(
 
   if (result.success) {
     revalidatePath("/client/overview");
-    revalidatePath("/owner/clients");
+    revalidatePath("/admin/clients");
   }
 
   return result;
@@ -76,7 +76,7 @@ export async function acceptSignedInInviteAction(
 
   if (result.success) {
     revalidatePath("/client/overview");
-    revalidatePath("/owner/clients");
+    revalidatePath("/admin/clients");
   }
 
   return result;

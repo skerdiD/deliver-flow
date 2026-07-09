@@ -13,7 +13,8 @@ import {
   clientFormSchema,
   type ClientFormValues,
 } from "@/features/admin/clients/client-validation";
-import { requireOwnerRole } from "@/lib/supabase/auth";
+import { isDemoWorkspaceId } from "@/lib/demo";
+import { requireAdminWorkspace, requireOwnerRole } from "@/lib/supabase/auth";
 
 export type ClientActionResult = {
   success: boolean;
@@ -66,7 +67,7 @@ export async function createClientAction(
   try {
     const client = await createAdminClient(parsed.data);
 
-    revalidatePath("/owner/clients");
+    revalidatePath("/admin/clients");
 
     return {
       success: true,
@@ -115,8 +116,8 @@ export async function updateClientAction(
       };
     }
 
-    revalidatePath("/owner/clients");
-    revalidatePath(`/owner/clients/${idParsed.data.clientId}`);
+    revalidatePath("/admin/clients");
+    revalidatePath(`/admin/clients/${idParsed.data.clientId}`);
 
     return {
       success: true,
@@ -134,7 +135,14 @@ export async function updateClientAction(
 export async function archiveClientAction(
   id: string,
 ): Promise<ClientActionResult> {
-  await requireOwnerRole();
+  const { workspaceId } = await requireAdminWorkspace();
+
+  if (isDemoWorkspaceId(workspaceId)) {
+    return {
+      success: false,
+      message: "Demo workspace data is protected and can be reset from the seed.",
+    };
+  }
 
   const idParsed = clientIdActionSchema.safeParse({ clientId: id });
   if (!idParsed.success) {
@@ -153,8 +161,8 @@ export async function archiveClientAction(
     };
   }
 
-  revalidatePath("/owner/clients");
-  revalidatePath(`/owner/clients/${idParsed.data.clientId}`);
+  revalidatePath("/admin/clients");
+  revalidatePath(`/admin/clients/${idParsed.data.clientId}`);
   revalidatePath("/client/overview");
   revalidatePath("/client/project");
 
@@ -168,7 +176,14 @@ export async function archiveClientAction(
 export async function deleteClientAction(
   id: string,
 ): Promise<ClientActionResult> {
-  await requireOwnerRole();
+  const { workspaceId } = await requireAdminWorkspace();
+
+  if (isDemoWorkspaceId(workspaceId)) {
+    return {
+      success: false,
+      message: "Demo workspace data is protected and can be reset from the seed.",
+    };
+  }
 
   const idParsed = clientIdActionSchema.safeParse({ clientId: id });
   if (!idParsed.success) {
@@ -187,8 +202,8 @@ export async function deleteClientAction(
     };
   }
 
-  revalidatePath("/owner/clients");
-  revalidatePath(`/owner/clients/${idParsed.data.clientId}`);
+  revalidatePath("/admin/clients");
+  revalidatePath(`/admin/clients/${idParsed.data.clientId}`);
   revalidatePath("/client/overview");
   revalidatePath("/client/project");
 

@@ -14,7 +14,7 @@ export default async function SignupPage() {
   return (
     <AuthShell
       title="Create your DeliverFlow workspace"
-      description="Set up your workspace and start managing client delivery."
+      description="Start a workspace to manage clients, projects, files, payments, feedback, and approvals."
     >
       <SignupForm />
     </AuthShell>

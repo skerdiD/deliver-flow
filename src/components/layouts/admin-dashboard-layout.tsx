@@ -1,17 +1,20 @@
 import { AdminSidebar } from "@/components/layouts/admin-sidebar";
 import { AppTopbar } from "@/components/layouts/app-topbar";
 import type { AdminQuickActionProject } from "@/components/layouts/admin-quick-actions";
+import { DemoWorkspaceBanner } from "@/components/layouts/demo-workspace-banner";
 import type { Profile } from "@/types/database";
 
 type AdminDashboardLayoutProps = {
   profile: Profile;
   quickActionProjects: AdminQuickActionProject[];
+  isDemoWorkspace?: boolean;
   children: React.ReactNode;
 };
 
 export function AdminDashboardLayout({
   profile,
   quickActionProjects,
+  isDemoWorkspace = false,
   children,
 }: AdminDashboardLayoutProps) {
   return (
@@ -28,6 +31,8 @@ export function AdminDashboardLayout({
             quickActionProjects={quickActionProjects}
             mobileNavigationType="admin"
           />
+
+          {isDemoWorkspace ? <DemoWorkspaceBanner /> : null}
 
           <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
             <div className="mx-auto w-full max-w-none px-4 py-5 sm:px-6 sm:py-6 lg:px-7 lg:py-8 xl:px-8">

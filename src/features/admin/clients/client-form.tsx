@@ -82,12 +82,12 @@ export function ClientForm({
       }
 
       if (mode === "edit" && result.clientId) {
-        router.push(`/owner/clients/${result.clientId}`);
+        router.push(`/admin/clients/${result.clientId}`);
         router.refresh();
         return;
       }
 
-      router.push("/owner/clients");
+      router.push("/admin/clients");
       router.refresh();
     });
   }

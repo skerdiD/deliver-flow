@@ -181,6 +181,16 @@ export function SignupForm() {
       </CardContent>
 
       <CardFooter className="flex-col gap-2 border-t border-slate-200 px-5 py-4 text-center text-sm leading-6 text-slate-600 sm:px-6">
+        <p>Client? Ask your project owner for an invite.</p>
+        <p>
+          Just want to explore?{" "}
+          <Link
+            href={routes.auth.login}
+            className="font-medium text-blue-700 hover:text-blue-800"
+          >
+            Try the demo on the login page.
+          </Link>
+        </p>
         <p>
           Already have an account?{" "}
           <Link
@@ -190,7 +200,6 @@ export function SignupForm() {
             Sign in
           </Link>
         </p>
-        <p>Clients are invited by their project owner.</p>
       </CardFooter>
     </Card>
   );

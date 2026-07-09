@@ -8,7 +8,9 @@ import { db } from "@/db";
 import { profiles, workspaces } from "@/db/schema";
 import { signupSchema, type SignupValues } from "@/features/auth/auth-validation";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { getDashboardPathForRole } from "@/lib/supabase/route-protection";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import type { UserRole } from "@/types/database";
 
 export type SignupActionResult =
   | { success: true; email: string }
@@ -34,6 +36,65 @@ function slugifyWorkspaceName(value: string) {
     .replace(/^-+|-+$/g, "");
 
   return slug || "workspace";
+}
+
+function getDemoCredential(role: UserRole) {
+  const emailKey =
+    role === "owner" ? "DEMO_OWNER_EMAIL" : "DEMO_CLIENT_EMAIL";
+  const passwordKey =
+    role === "owner" ? "DEMO_OWNER_PASSWORD" : "DEMO_CLIENT_PASSWORD";
+  const email = process.env[emailKey]?.trim();
+  const password = process.env[passwordKey]?.trim();
+
+  if (!email || !password) {
+    return null;
+  }
+
+  return { email, password };
+}
+
+function redirectToDemoError(
+  error: "demo_unavailable" | "demo_signin_failed",
+): never {
+  redirect(`${routes.auth.login}?error=${error}`);
+}
+
+export async function demoLoginAction(formData: FormData) {
+  const roleValue = formData.get("role");
+
+  if (roleValue !== "owner" && roleValue !== "client") {
+    redirectToDemoError("demo_signin_failed");
+  }
+
+  const role: UserRole = roleValue;
+  const credentials = getDemoCredential(role);
+
+  if (!credentials) {
+    redirectToDemoError("demo_unavailable");
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.signInWithPassword(credentials);
+
+  if (error || !user) {
+    redirectToDemoError("demo_signin_failed");
+  }
+
+  const [profile] = await db
+    .select({ role: profiles.role })
+    .from(profiles)
+    .where(eq(profiles.id, user.id))
+    .limit(1);
+
+  if (!profile || profile.role !== role) {
+    await supabase.auth.signOut();
+    redirectToDemoError("demo_signin_failed");
+  }
+
+  redirect(getDashboardPathForRole(profile.role));
 }
 
 export async function createOwnerSignupAction(

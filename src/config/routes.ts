@@ -12,7 +12,7 @@ export const routes = {
 
   admin: {
     dashboard: "/admin/dashboard",
-    clients: "/owner/clients",
+    clients: "/admin/clients",
     projects: "/admin/projects",
     notes: "/admin/notes",
     milestones: "/admin/milestones",
@@ -27,8 +27,8 @@ export const routes = {
   },
 
   client: {
-    dashboard: "/client/overview",
-    legacyDashboard: "/client/dashboard",
+    dashboard: "/client/dashboard",
+    overview: "/client/overview",
     project: "/client/project",
     files: "/client/files",
     feedback: "/client/feedback",

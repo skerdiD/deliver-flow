@@ -32,7 +32,7 @@ export default async function EditClientPage({ params }: EditClientPageProps) {
   return (
     <div className="space-y-6">
       <Button variant="outline" asChild>
-        <Link href={`/owner/clients/${client.id}`}>
+        <Link href={`/admin/clients/${client.id}`}>
           <ArrowLeft className="mr-2 size-4" />
           Back to profile
         </Link>

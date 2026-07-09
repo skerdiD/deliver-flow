@@ -305,7 +305,7 @@ export function ClientsTable({ clients }: ClientsTableProps) {
                   valueClassName="space-y-1.5"
                 >
                   <Link
-                    href={`/owner/clients/${client.id}`}
+                    href={`/admin/clients/${client.id}`}
                     className="inline-flex max-w-full rounded-sm font-medium text-slate-950 outline-none transition-colors hover:text-slate-700 focus-visible:ring-2 focus-visible:ring-slate-950/20 focus-visible:ring-offset-2"
                   >
                     <span className="line-clamp-1 break-words">
@@ -361,14 +361,14 @@ export function ClientsTable({ clients }: ClientsTableProps) {
                     className="h-10 w-full px-3 hover:border-slate-400 hover:bg-slate-100 sm:w-auto"
                     asChild
                   >
-                    <Link href={`/owner/clients/${client.id}`}>View</Link>
+                    <Link href={`/admin/clients/${client.id}`}>View</Link>
                   </Button>
                   <Button
                     variant="outline"
                     className="h-10 w-full px-3 hover:border-slate-400 hover:bg-slate-100 sm:w-auto"
                     asChild
                   >
-                    <Link href={`/owner/clients/${client.id}/edit`}>
+                    <Link href={`/admin/clients/${client.id}/edit`}>
                       Edit
                     </Link>
                   </Button>

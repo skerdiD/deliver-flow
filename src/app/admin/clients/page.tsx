@@ -27,7 +27,7 @@ export default async function AdminClientsPage() {
         description="Keep client details, project access, payments, and latest activity organized in one place."
       >
         <Button asChild>
-          <Link href="/owner/clients/new">
+          <Link href="/admin/clients/new">
             <Plus className="mr-2 size-4" />
             Add Client
           </Link>

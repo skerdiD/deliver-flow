@@ -1,4 +1,6 @@
-import "dotenv/config";
+import { config } from "dotenv";
+
+config({ path: ".env.local" });
 
 import { inArray, like } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -40,10 +42,25 @@ const demoProjectSlugs = [
   "demo-ai-support-workflow",
 ];
 
-const demoProfileEmails = ["owner@deliverflow.demo", "client@deliverflow.demo"];
+function getDemoEmail(name: "DEMO_OWNER_EMAIL" | "DEMO_CLIENT_EMAIL") {
+  return process.env[name]?.trim().toLowerCase();
+}
+
+const demoProfileEmails = [
+  getDemoEmail("DEMO_OWNER_EMAIL"),
+  getDemoEmail("DEMO_CLIENT_EMAIL"),
+].filter((email): email is string => Boolean(email));
 
 async function main() {
   console.log("Resetting DeliverFlow demo data...");
+
+  const profileRowsPromise =
+    demoProfileEmails.length === 0
+      ? Promise.resolve([])
+      : db
+          .select({ id: profiles.id })
+          .from(profiles)
+          .where(inArray(profiles.email, demoProfileEmails));
 
   const [projectRows, clientRows, profileRows] = await Promise.all([
     db
@@ -54,10 +71,7 @@ async function main() {
       .select({ id: clients.id })
       .from(clients)
       .where(like(clients.email, "%@deliverflow.demo")),
-    db
-      .select({ id: profiles.id })
-      .from(profiles)
-      .where(inArray(profiles.email, demoProfileEmails)),
+    profileRowsPromise,
   ]);
 
   const projectIds = projectRows.map((row) => row.id);

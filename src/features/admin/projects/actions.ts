@@ -45,6 +45,7 @@ import {
   sanitizeProjectFileName,
 } from "@/features/projects/file-storage";
 import { logProjectActivity } from "@/features/projects/activity";
+import { isDemoWorkspaceId } from "@/lib/demo";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireAdminWorkspace, requireOwnerRole } from "@/lib/supabase/auth";
 
@@ -275,7 +276,14 @@ export async function updateProjectAction(
 export async function archiveProjectAction(
   id: string,
 ): Promise<ProjectActionResult> {
-  const adminProfile = await requireOwnerRole();
+  const { profile: adminProfile, workspaceId } = await requireAdminWorkspace();
+
+  if (isDemoWorkspaceId(workspaceId)) {
+    return {
+      success: false,
+      message: "Demo workspace data is protected and can be reset from the seed.",
+    };
+  }
 
   const idParsed = projectIdActionSchema.safeParse({ projectId: id });
   if (!idParsed.success) {
@@ -318,7 +326,14 @@ export async function archiveProjectAction(
 export async function deleteProjectAction(
   id: string,
 ): Promise<ProjectActionResult> {
-  const adminProfile = await requireOwnerRole();
+  const { profile: adminProfile, workspaceId } = await requireAdminWorkspace();
+
+  if (isDemoWorkspaceId(workspaceId)) {
+    return {
+      success: false,
+      message: "Demo workspace data is protected and can be reset from the seed.",
+    };
+  }
 
   const idParsed = projectIdActionSchema.safeParse({ projectId: id });
   if (!idParsed.success) {

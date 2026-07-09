@@ -19,6 +19,19 @@ DeliverFlow has two main sides:
 
 ---
 
+## Demo Access
+
+Live demo: [https://deliver-flow.vercel.app](https://deliver-flow.vercel.app)
+
+The `/login` page includes two demo modes:
+
+- **Owner demo** opens a populated workspace owner dashboard for managing clients, projects, files, payments, feedback, and approvals.
+- **Client demo** opens the client portal with assigned projects, shared files, payment records, feedback, and approvals.
+
+Public signup is separate from demo access. Creating an account on `/signup` starts a new DeliverFlow workspace and makes that user the workspace owner. Clients do not sign up publicly; they are added or invited by the project owner.
+
+---
+
 ## Screenshots
 
 ### Owner Dashboard
@@ -130,7 +143,7 @@ For service providers, it keeps delivery records organized, protects project sco
 - Track unpaid, partial, paid, and overdue payments
 - Add due dates and payment notes
 - Mark payments as paid when handled elsewhere
-- Show payment status to both admin and assigned client
+- Show payment status to both owner and assigned client
 
 ### Feedback and Approvals
 
@@ -293,6 +306,10 @@ SUPABASE_SERVICE_ROLE_KEY=
 SUPABASE_STORAGE_BUCKET=project-files
 DATABASE_URL=
 DIRECT_URL=
+DEMO_OWNER_EMAIL=
+DEMO_OWNER_PASSWORD=
+DEMO_CLIENT_EMAIL=
+DEMO_CLIENT_PASSWORD=
 ARCJET_KEY=
 NEXT_PUBLIC_SENTRY_DSN=
 SENTRY_AUTH_TOKEN=

@@ -43,7 +43,7 @@ export async function inviteClientAction(
   try {
     const invite = await createClientInvite(parsed.data, adminProfile);
 
-    revalidatePath("/owner/clients");
+    revalidatePath("/admin/clients");
 
     return {
       success: true,
