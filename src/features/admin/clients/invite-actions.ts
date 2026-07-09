@@ -10,7 +10,7 @@ import {
   inviteClientSchema,
   type InviteClientValues,
 } from "@/features/admin/clients/invite-validation";
-import { requireRole } from "@/lib/supabase/auth";
+import { requireOwnerRole } from "@/lib/supabase/auth";
 
 export type InviteClientActionResult = {
   success: boolean;
@@ -22,7 +22,7 @@ export type InviteClientActionResult = {
 export async function inviteClientAction(
   values: InviteClientValues,
 ): Promise<InviteClientActionResult> {
-  const adminProfile = await requireRole("admin");
+  const adminProfile = await requireOwnerRole();
   const parsed = inviteClientSchema.safeParse(values);
 
   if (!parsed.success) {
@@ -43,7 +43,7 @@ export async function inviteClientAction(
   try {
     const invite = await createClientInvite(parsed.data, adminProfile);
 
-    revalidatePath("/admin/clients");
+    revalidatePath("/owner/clients");
 
     return {
       success: true,

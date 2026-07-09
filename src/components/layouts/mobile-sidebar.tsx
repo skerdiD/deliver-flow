@@ -37,7 +37,7 @@ export function MobileSidebar({ type, className }: MobileSidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const navigation = type === "admin" ? adminNavigation : clientNavigation;
-  const subtitle = type === "admin" ? "Admin workspace" : "Client portal";
+  const subtitle = type === "admin" ? "Owner workspace" : "Client portal";
   const projectId = type === "client" ? searchParams.get("projectId") : null;
 
   return (

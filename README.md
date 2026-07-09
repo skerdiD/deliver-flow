@@ -2,7 +2,7 @@
 
 **DeliverFlow** is a full-stack client delivery portal for freelancers and small agencies.
 
-It helps service providers manage clients, projects, notes, milestones, files, payments, feedback, and approvals from one clean admin workspace, while clients get a private portal to follow project progress and respond to delivery requests.
+It helps service providers manage clients, projects, notes, milestones, files, payments, feedback, and approvals from one clean Owner workspace, while clients get a private portal to follow project progress and respond to delivery requests.
 
 Built with **Next.js**, **React**, **TypeScript**, **Supabase Auth**, **Supabase Postgres**, **Supabase Storage**, **Drizzle ORM**, **Tailwind CSS**, and **shadcn/ui**.
 
@@ -14,18 +14,18 @@ Built with **Next.js**, **React**, **TypeScript**, **Supabase Auth**, **Supabase
 
 DeliverFlow has two main sides:
 
-- **Admin workspace** for managing client delivery
+- **Owner workspace** for managing client delivery
 - **Client portal** for project updates, files, feedback, payments, and approvals
 
 ---
 
 ## Screenshots
 
-### Admin dashboard
+### Owner Dashboard
 
 Main workspace overview for tracking delivery progress, approvals, feedback, and open payments.
 
-<img src="./public/screenshots/admin-dashboard.png" alt="DeliverFlow admin dashboard" width="100%" />
+<img src="./public/screenshots/admin-dashboard.png" alt="DeliverFlow Owner Dashboard" width="100%" />
 
 ### Client management
 
@@ -59,7 +59,7 @@ Most freelance and agency delivery workflows are scattered across email, chat, G
 
 DeliverFlow brings the delivery process into one organized system.
 
-Admins can manage clients, create projects, add notes, track milestones, upload files, record payments, collect feedback, and request approvals.
+owners can manage clients, create projects, add notes, track milestones, upload files, record payments, collect feedback, and request approvals.
 
 Clients get one private place to follow project progress, download shared files, check payment status, submit feedback, and respond to approval requests.
 
@@ -82,13 +82,13 @@ For service providers, it keeps delivery records organized, protects project sco
 ### Authentication and Roles
 
 - Supabase email/password authentication
-- Admin and client role support
-- Protected admin and client route groups
+- Owner and client role support
+- Protected Owner and client route groups
 - Role-based redirects after login
 - Server-side role checks in protected layouts
 - Invite-based client access flow
 
-### Admin Workspace
+### Owner workspace
 
 - Delivery overview dashboard
 - Active project tracking
@@ -135,8 +135,8 @@ For service providers, it keeps delivery records organized, protects project sco
 ### Feedback and Approvals
 
 - Clients can submit project feedback
-- Admins can review and resolve feedback
-- Admins can request client approvals
+- owners can review and resolve feedback
+- owners can request client approvals
 - Clients can approve or request changes
 - Approval records stay connected to projects and milestones
 
@@ -212,11 +212,11 @@ For service providers, it keeps delivery records organized, protects project sco
 ```txt
 Client UI
   |-- Next.js App Router / React / Tailwind / shadcn UI
-  |-- Login / Admin Workspace / Client Portal
+  |-- Login / Owner workspace / Client Portal
 
 Auth and Role Layer
   |-- Supabase Authentication
-  |-- Admin and Client Roles
+  |-- Owner and client Roles
   |-- Protected Routes
   |-- Role-Based Redirects
 
@@ -244,7 +244,7 @@ Project files are stored in a private Supabase Storage bucket and downloaded thr
 DeliverFlow uses server-side authorization with Supabase RLS and storage policy hardening.
 
 - Middleware redirects users away from the wrong route group
-- Admin and client layouts check user roles on the server
+- Owner and client layouts check user roles on the server
 - Server Actions and Route Handlers re-check role or project assignment
 - Client-facing queries are scoped to assigned projects
 - Project files use a private Supabase Storage bucket

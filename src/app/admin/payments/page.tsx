@@ -16,7 +16,7 @@ export default async function AdminPaymentsRoute() {
       <PageHeader
         eyebrow="Payments"
         title="Follow invoice status"
-        description="See paid work, open balances, and overdue invoices without leaving the admin workspace."
+        description="See paid work, open balances, and overdue invoices without leaving the Owner workspace."
       />
 
       <AdminPaymentsPage data={data} />

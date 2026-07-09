@@ -32,14 +32,14 @@ export default async function ClientProfilePage({
     <div className="space-y-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <Button variant="outline" asChild>
-          <Link href="/admin/clients">
+          <Link href="/owner/clients">
             <ArrowLeft className="mr-2 size-4" />
             Back to clients
           </Link>
         </Button>
 
         <Button asChild>
-          <Link href={`/admin/clients/${client.id}/edit`}>
+          <Link href={`/owner/clients/${client.id}/edit`}>
             <Pencil className="mr-2 size-4" />
             Edit Client
           </Link>

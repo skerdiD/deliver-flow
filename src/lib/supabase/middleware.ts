@@ -2,6 +2,11 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { routes } from "@/config/routes";
+import {
+  getRouteAccessDecision,
+  isProtectedRoute,
+  isSupportedRole,
+} from "@/lib/supabase/route-protection";
 import type { Database } from "@/types/database";
 
 export async function updateSession(request: NextRequest) {
@@ -45,49 +50,53 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    if (isProtectedRoute(pathname)) {
-      return redirectWithSessionCookies(
-        response,
-        buildLoginUrl(request, `${pathname}${request.nextUrl.search}`),
-      );
+    const decision = getRouteAccessDecision(pathname, request.nextUrl.search, {
+      status: "unauthenticated",
+    });
+
+    if (decision.type === "redirect") {
+      return redirectWithSessionCookies(response, buildUrl(request, decision.destination));
     }
 
     return response;
   }
 
-  if (pathname === routes.auth.login) {
-    return redirectWithSessionCookies(response, buildHomeUrl(request));
+  if (
+    isProtectedRoute(pathname) ||
+    pathname === routes.home ||
+    pathname === routes.auth.login ||
+    pathname === routes.auth.signup
+  ) {
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+    const profile = profileData as { role: unknown } | null;
+
+    const decision = getRouteAccessDecision(
+      pathname,
+      request.nextUrl.search,
+      profile && isSupportedRole(profile.role)
+        ? { status: "authenticated", role: profile.role }
+        : profile
+          ? { status: "invalid_role" }
+          : { status: "missing_profile" },
+    );
+
+    if (decision.type === "redirect") {
+      return redirectWithSessionCookies(response, buildUrl(request, decision.destination));
+    }
   }
 
   return response;
 }
 
-function isProtectedRoute(pathname: string) {
-  return (
-    pathMatchesPrefix(pathname, "/admin") || pathMatchesPrefix(pathname, "/client")
-  );
-}
-
-function pathMatchesPrefix(pathname: string, prefix: string) {
-  return pathname === prefix || pathname.startsWith(`${prefix}/`);
-}
-
-function buildLoginUrl(request: NextRequest, next?: string) {
+function buildUrl(request: NextRequest, destination: string) {
   const url = request.nextUrl.clone();
-  url.pathname = routes.auth.login;
-  url.search = "";
-
-  if (next) {
-    url.searchParams.set("next", next);
-  }
-
-  return url;
-}
-
-function buildHomeUrl(request: NextRequest) {
-  const url = request.nextUrl.clone();
-  url.pathname = routes.home;
-  url.search = "";
+  const [pathname, search = ""] = destination.split("?");
+  url.pathname = pathname;
+  url.search = search ? `?${search}` : "";
 
   return url;
 }

@@ -37,7 +37,7 @@ const client = postgres(connectionString, {
 const db = drizzle(client);
 
 const demoEmails = {
-  admin: "admin@deliverflow.demo",
+  owner: "owner@deliverflow.demo",
   client: "client@deliverflow.demo",
   northwind: "northwind@deliverflow.demo",
 } as const;
@@ -122,7 +122,7 @@ const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function getRequiredUserId(
-  envName: "DEMO_ADMIN_USER_ID" | "DEMO_CLIENT_USER_ID",
+  envName: "DEMO_OWNER_USER_ID" | "DEMO_CLIENT_USER_ID",
 ) {
   const value = process.env[envName]?.trim();
 
@@ -131,7 +131,7 @@ function getRequiredUserId(
       [
         `Missing ${envName}.`,
         "Create the demo user in Supabase Auth first, then add the user's UUID to your environment.",
-        `Expected demo auth emails: ${demoEmails.admin} and ${demoEmails.client}.`,
+        `Expected demo auth emails: ${demoEmails.owner} and ${demoEmails.client}.`,
       ].join("\n"),
     );
   }
@@ -152,17 +152,17 @@ function withDemoWorkspace<const T extends Record<string, unknown>>(
   }));
 }
 
-async function assertAuthUsersExist(adminId: string, clientId: string) {
+async function assertAuthUsersExist(ownerId: string, clientId: string) {
   const authRows = await db
     .select({
       id: authUsers.id,
       email: authUsers.email,
     })
     .from(authUsers)
-    .where(inArray(authUsers.id, [adminId, clientId]));
+    .where(inArray(authUsers.id, [ownerId, clientId]));
 
   const authUserIds = new Set(authRows.map((row) => row.id));
-  const missingUserIds = [adminId, clientId].filter(
+  const missingUserIds = [ownerId, clientId].filter(
     (id) => !authUserIds.has(id),
   );
 
@@ -171,7 +171,7 @@ async function assertAuthUsersExist(adminId: string, clientId: string) {
       [
         "The demo Supabase Auth users were not found.",
         "Create these users in Supabase Authentication, then set:",
-        `DEMO_ADMIN_USER_ID=<UUID for ${demoEmails.admin}>`,
+        `DEMO_OWNER_USER_ID=<UUID for ${demoEmails.owner}>`,
         `DEMO_CLIENT_USER_ID=<UUID for ${demoEmails.client}>`,
         `Missing UUIDs: ${missingUserIds.join(", ")}`,
       ].join("\n"),
@@ -182,7 +182,7 @@ async function assertAuthUsersExist(adminId: string, clientId: string) {
     authRows.map((row) => [row.id, row.email?.toLowerCase()]),
   );
   const expectedEmailById = new Map([
-    [adminId, demoEmails.admin],
+    [ownerId, demoEmails.owner],
     [clientId, demoEmails.client],
   ]);
   const mismatchedEmails = Array.from(expectedEmailById.entries()).filter(
@@ -205,16 +205,16 @@ async function assertAuthUsersExist(adminId: string, clientId: string) {
 async function main() {
   console.log("Starting DeliverFlow demo seed...");
 
-  const adminId = getRequiredUserId("DEMO_ADMIN_USER_ID");
+  const ownerId = getRequiredUserId("DEMO_OWNER_USER_ID");
   const clientId = getRequiredUserId("DEMO_CLIENT_USER_ID");
 
-  if (adminId === clientId) {
+  if (ownerId === clientId) {
     throw new Error(
-      "DEMO_ADMIN_USER_ID and DEMO_CLIENT_USER_ID must be different users.",
+      "DEMO_OWNER_USER_ID and DEMO_CLIENT_USER_ID must be different users.",
     );
   }
 
-  await assertAuthUsersExist(adminId, clientId);
+  await assertAuthUsersExist(ownerId, clientId);
 
   await db
     .insert(workspaces)
@@ -236,11 +236,11 @@ async function main() {
     .insert(profiles)
     .values([
       {
-        id: adminId,
+        id: ownerId,
         workspaceId: ids.workspaces.demo,
-        email: demoEmails.admin,
+        email: demoEmails.owner,
         fullName: "Jordan Ellis",
-        role: "admin",
+        role: "owner",
       },
       {
         id: clientId,
@@ -274,7 +274,7 @@ async function main() {
         status: "active",
         notes:
           "Brand studio testing a polished client portal for active website work.",
-        createdBy: adminId,
+        createdBy: ownerId,
         archivedAt: null,
         deletedAt: null,
       },
@@ -288,7 +288,7 @@ async function main() {
         status: "active",
         notes:
           "Operations team reviewing a dashboard MVP and support automation pilot.",
-        createdBy: adminId,
+        createdBy: ownerId,
         archivedAt: null,
         deletedAt: null,
       },
@@ -324,7 +324,7 @@ async function main() {
         liveDemoUrl: "https://demo.deliverflow.dev/website-redesign",
         repositoryUrl: "https://github.com/deliverflow-demo/website-redesign",
         deadline: "2026-07-18",
-        createdBy: adminId,
+        createdBy: ownerId,
         archivedAt: null,
         deletedAt: null,
       },
@@ -333,13 +333,13 @@ async function main() {
         name: "SaaS Dashboard MVP",
         slug: "demo-saas-dashboard-mvp",
         description:
-          "A product dashboard MVP with role-based reporting, billing visibility, and a focused admin workflow.",
+          "A product dashboard MVP with role-based reporting, billing visibility, and a focused owner workflow.",
         status: "in_progress",
         progress: 58,
         liveDemoUrl: "https://demo.deliverflow.dev/saas-dashboard-mvp",
         repositoryUrl: "https://github.com/deliverflow-demo/saas-dashboard-mvp",
         deadline: "2026-08-06",
-        createdBy: adminId,
+        createdBy: ownerId,
         archivedAt: null,
         deletedAt: null,
       },
@@ -355,7 +355,7 @@ async function main() {
         repositoryUrl:
           "https://github.com/deliverflow-demo/ai-support-workflow",
         deadline: "2026-09-02",
-        createdBy: adminId,
+        createdBy: ownerId,
         archivedAt: null,
         deletedAt: null,
       },
@@ -384,17 +384,17 @@ async function main() {
       {
         projectId: ids.projects.websiteRedesign,
         clientId: ids.clients.acmeStudio,
-        assignedBy: adminId,
+        assignedBy: ownerId,
       },
       {
         projectId: ids.projects.saasDashboardMvp,
         clientId: ids.clients.acmeStudio,
-        assignedBy: adminId,
+        assignedBy: ownerId,
       },
       {
         projectId: ids.projects.aiSupportWorkflow,
         clientId: ids.clients.northwindDigital,
-        assignedBy: adminId,
+        assignedBy: ownerId,
       },
     ]))
     .onConflictDoUpdate({
@@ -418,7 +418,7 @@ async function main() {
         dueDate: "2026-06-26",
         position: 1,
         isVisibleToClient: true,
-        createdBy: adminId,
+        createdBy: ownerId,
       },
       {
         id: ids.milestones.designReview,
@@ -430,7 +430,7 @@ async function main() {
         dueDate: "2026-07-09",
         position: 2,
         isVisibleToClient: true,
-        createdBy: adminId,
+        createdBy: ownerId,
       },
       {
         id: ids.milestones.dashboardFoundation,
@@ -442,7 +442,7 @@ async function main() {
         dueDate: "2026-07-03",
         position: 1,
         isVisibleToClient: true,
-        createdBy: adminId,
+        createdBy: ownerId,
       },
       {
         id: ids.milestones.dataIntegration,
@@ -454,7 +454,7 @@ async function main() {
         dueDate: "2026-07-24",
         position: 2,
         isVisibleToClient: true,
-        createdBy: adminId,
+        createdBy: ownerId,
       },
       {
         id: ids.milestones.workflowPilot,
@@ -466,7 +466,7 @@ async function main() {
         dueDate: "2026-08-14",
         position: 1,
         isVisibleToClient: true,
-        createdBy: adminId,
+        createdBy: ownerId,
       },
       {
         id: ids.milestones.launchPrep,
@@ -478,7 +478,7 @@ async function main() {
         dueDate: "2026-08-28",
         position: 2,
         isVisibleToClient: true,
-        createdBy: adminId,
+        createdBy: ownerId,
       },
     ]))
     .onConflictDoUpdate({
@@ -511,7 +511,7 @@ async function main() {
         dueDate: "2026-06-25",
         position: 1,
         isVisibleToClient: true,
-        createdBy: adminId,
+        createdBy: ownerId,
         deletedAt: null,
       },
       {
@@ -526,7 +526,7 @@ async function main() {
         dueDate: "2026-07-08",
         position: 2,
         isVisibleToClient: true,
-        createdBy: adminId,
+        createdBy: ownerId,
         deletedAt: null,
       },
       {
@@ -541,7 +541,7 @@ async function main() {
         dueDate: "2026-07-15",
         position: 3,
         isVisibleToClient: true,
-        createdBy: adminId,
+        createdBy: ownerId,
         deletedAt: null,
       },
       {
@@ -550,13 +550,13 @@ async function main() {
         milestoneId: ids.milestones.dashboardFoundation,
         title: "Build dashboard shell",
         description:
-          "Create the core admin dashboard layout and project summary cards.",
+          "Create the core owner dashboard layout and project summary cards.",
         status: "completed",
         priority: "high",
         dueDate: "2026-07-02",
         position: 1,
         isVisibleToClient: true,
-        createdBy: adminId,
+        createdBy: ownerId,
         deletedAt: null,
       },
       {
@@ -571,7 +571,7 @@ async function main() {
         dueDate: "2026-07-20",
         position: 2,
         isVisibleToClient: true,
-        createdBy: adminId,
+        createdBy: ownerId,
         deletedAt: null,
       },
       {
@@ -586,7 +586,7 @@ async function main() {
         dueDate: "2026-07-23",
         position: 3,
         isVisibleToClient: true,
-        createdBy: adminId,
+        createdBy: ownerId,
         deletedAt: null,
       },
       {
@@ -601,7 +601,7 @@ async function main() {
         dueDate: "2026-08-05",
         position: 1,
         isVisibleToClient: true,
-        createdBy: adminId,
+        createdBy: ownerId,
         deletedAt: null,
       },
       {
@@ -616,7 +616,7 @@ async function main() {
         dueDate: "2026-08-22",
         position: 2,
         isVisibleToClient: true,
-        createdBy: adminId,
+        createdBy: ownerId,
         deletedAt: null,
       },
     ]))
@@ -648,7 +648,7 @@ async function main() {
         body: "The updated visual direction uses stronger service positioning, clearer proof points, and a tighter mobile layout.",
         updateType: "progress",
         isVisibleToClient: true,
-        createdBy: adminId,
+        createdBy: ownerId,
       },
       {
         id: ids.updates.prototypeReady,
@@ -657,7 +657,7 @@ async function main() {
         body: "The clickable homepage prototype is available. Please review the hero, services, and proof sections first.",
         updateType: "approval",
         isVisibleToClient: true,
-        createdBy: adminId,
+        createdBy: ownerId,
       },
       {
         id: ids.updates.dashboardProgress,
@@ -666,7 +666,7 @@ async function main() {
         body: "The project overview, payment summaries, and recent activity panels are now connected to demo data.",
         updateType: "progress",
         isVisibleToClient: true,
-        createdBy: adminId,
+        createdBy: ownerId,
       },
       {
         id: ids.updates.workflowPilot,
@@ -675,7 +675,7 @@ async function main() {
         body: "We mapped the first intake paths and started drafting triage rules for common support requests.",
         updateType: "general",
         isVisibleToClient: true,
-        createdBy: adminId,
+        createdBy: ownerId,
       },
     ]))
     .onConflictDoUpdate({
@@ -781,7 +781,7 @@ async function main() {
         description:
           "Review the homepage and service page design direction before development begins.",
         status: "pending",
-        requestedBy: adminId,
+        requestedBy: ownerId,
         respondedBy: null,
         responseNote: null,
         cancelReason: null,
@@ -798,7 +798,7 @@ async function main() {
         description:
           "Approve the MVP dashboard layout so we can finish the reporting integration.",
         status: "approved",
-        requestedBy: adminId,
+        requestedBy: ownerId,
         respondedBy: clientId,
         responseNote:
           "Approved. The dashboard gives us the right level of operational detail.",
@@ -816,7 +816,7 @@ async function main() {
         description:
           "Confirm the first workflow map before we build the automation rules.",
         status: "changes_requested",
-        requestedBy: adminId,
+        requestedBy: ownerId,
         respondedBy: null,
         responseNote:
           "Please include refund and enterprise-account paths before the next review.",
@@ -939,7 +939,7 @@ async function main() {
       {
         id: ids.files.websiteBrief,
         projectId: ids.projects.websiteRedesign,
-        uploadedBy: adminId,
+        uploadedBy: ownerId,
         fileName: "Website Redesign Brief.pdf",
         bucketName: "project-files",
         storagePath: "demo/website-redesign/website-redesign-brief.pdf",
@@ -952,7 +952,7 @@ async function main() {
       {
         id: ids.files.homepagePreview,
         projectId: ids.projects.websiteRedesign,
-        uploadedBy: adminId,
+        uploadedBy: ownerId,
         fileName: "Homepage Design Preview.png",
         bucketName: "project-files",
         storagePath: "demo/website-redesign/homepage-design-preview.png",
@@ -965,7 +965,7 @@ async function main() {
       {
         id: ids.files.dashboardPrototype,
         projectId: ids.projects.saasDashboardMvp,
-        uploadedBy: adminId,
+        uploadedBy: ownerId,
         fileName: "Dashboard Prototype.pdf",
         bucketName: "project-files",
         storagePath: "demo/saas-dashboard-mvp/dashboard-prototype.pdf",
@@ -978,7 +978,7 @@ async function main() {
       {
         id: ids.files.workflowMap,
         projectId: ids.projects.aiSupportWorkflow,
-        uploadedBy: adminId,
+        uploadedBy: ownerId,
         fileName: "Support Workflow Map.pdf",
         bucketName: "project-files",
         storagePath: "demo/ai-support-workflow/support-workflow-map.pdf",
@@ -991,7 +991,7 @@ async function main() {
       {
         id: ids.files.invoice,
         projectId: ids.projects.websiteRedesign,
-        uploadedBy: adminId,
+        uploadedBy: ownerId,
         fileName: "Website Redesign Invoice.pdf",
         bucketName: "project-files",
         storagePath: "demo/website-redesign/website-redesign-invoice.pdf",
@@ -1025,9 +1025,9 @@ async function main() {
       {
         id: ids.activity.websiteCreated,
         projectId: ids.projects.websiteRedesign,
-        actorId: adminId,
+        actorId: ownerId,
         actorName: "Jordan Ellis",
-        actorRole: "admin",
+        actorRole: "owner",
         type: "project_created",
         message: "Created the Website Redesign project workspace.",
         metadata: { source: "demo-seed" },
@@ -1036,9 +1036,9 @@ async function main() {
       {
         id: ids.activity.websiteFile,
         projectId: ids.projects.websiteRedesign,
-        actorId: adminId,
+        actorId: ownerId,
         actorName: "Jordan Ellis",
-        actorRole: "admin",
+        actorRole: "owner",
         type: "file_uploaded",
         message: "Uploaded the homepage design preview.",
         metadata: { source: "demo-seed", fileId: ids.files.homepagePreview },
@@ -1047,9 +1047,9 @@ async function main() {
       {
         id: ids.activity.dashboardApproval,
         projectId: ids.projects.saasDashboardMvp,
-        actorId: adminId,
+        actorId: ownerId,
         actorName: "Jordan Ellis",
-        actorRole: "admin",
+        actorRole: "owner",
         type: "approval_requested",
         message: "Requested approval for the dashboard prototype.",
         metadata: {
@@ -1061,9 +1061,9 @@ async function main() {
       {
         id: ids.activity.dashboardPayment,
         projectId: ids.projects.saasDashboardMvp,
-        actorId: adminId,
+        actorId: ownerId,
         actorName: "Jordan Ellis",
-        actorRole: "admin",
+        actorRole: "owner",
         type: "payment_created",
         message: "Added the reporting integration milestone payment.",
         metadata: {
@@ -1075,9 +1075,9 @@ async function main() {
       {
         id: ids.activity.workflowUpdate,
         projectId: ids.projects.aiSupportWorkflow,
-        actorId: adminId,
+        actorId: ownerId,
         actorName: "Jordan Ellis",
-        actorRole: "admin",
+        actorRole: "owner",
         type: "project_update_added",
         message: "Posted the first AI support workflow pilot update.",
         metadata: { source: "demo-seed", updateId: ids.updates.workflowPilot },
@@ -1142,7 +1142,7 @@ async function main() {
     });
 
   console.log("DeliverFlow demo seed completed.");
-  console.log(`Admin profile: ${demoEmails.admin}`);
+  console.log(`Owner profile: ${demoEmails.owner}`);
   console.log(`Client profile: ${demoEmails.client}`);
 }
 

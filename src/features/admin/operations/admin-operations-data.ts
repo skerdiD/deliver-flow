@@ -9,10 +9,12 @@ import {
   feedback,
   milestones,
   payments,
+  profiles,
   projectAssignments,
   projectFiles,
   projects,
   tasks,
+  workspaces,
 } from "@/db/schema";
 import { requireAdminWorkspace } from "@/lib/supabase/auth";
 import type {
@@ -27,8 +29,10 @@ import type {
   AdminPaymentsPageData,
   AdminPaymentRecord,
   AdminSettingsData,
+  AdminTeamSettingsData,
   AdminTaskRecord,
   AdminTasksPageData,
+  AdminWorkspaceSettingsData,
 } from "@/features/admin/operations/types";
 
 function toIsoString(value: Date | string): string {
@@ -539,5 +543,59 @@ export async function getAdminSettingsData(): Promise<AdminSettingsData> {
     email: profile.email,
     role: profile.role,
     createdAt: profile.created_at,
+  };
+}
+
+export async function getAdminWorkspaceSettingsData(): Promise<AdminWorkspaceSettingsData> {
+  const { workspaceId } = await requireAdminWorkspace();
+
+  const [workspace] = await db
+    .select({
+      id: workspaces.id,
+      name: workspaces.name,
+      slug: workspaces.slug,
+      createdAt: workspaces.createdAt,
+      updatedAt: workspaces.updatedAt,
+    })
+    .from(workspaces)
+    .where(eq(workspaces.id, workspaceId))
+    .limit(1);
+
+  if (!workspace) {
+    throw new Error("Workspace not found.");
+  }
+
+  return {
+    id: workspace.id,
+    name: workspace.name,
+    slug: workspace.slug,
+    createdAt: toIsoString(workspace.createdAt),
+    updatedAt: toIsoString(workspace.updatedAt),
+  };
+}
+
+export async function getAdminTeamSettingsData(): Promise<AdminTeamSettingsData> {
+  const { workspaceId } = await requireAdminWorkspace();
+
+  const members = await db
+    .select({
+      id: profiles.id,
+      fullName: profiles.fullName,
+      email: profiles.email,
+      role: profiles.role,
+      createdAt: profiles.createdAt,
+    })
+    .from(profiles)
+    .where(eq(profiles.workspaceId, workspaceId))
+    .orderBy(asc(profiles.createdAt));
+
+  return {
+    members: members.map((member) => ({
+      id: member.id,
+      fullName: member.fullName,
+      email: member.email,
+      role: member.role,
+      createdAt: toIsoString(member.createdAt),
+    })),
   };
 }

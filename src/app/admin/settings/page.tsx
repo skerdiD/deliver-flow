@@ -15,7 +15,7 @@ export default async function AdminSettingsRoute() {
     <div className="space-y-6">
       <PageHeader
         eyebrow="Settings"
-        title="Admin workspace settings"
+        title="Owner workspace settings"
         description="Profile details, practical workspace defaults, and delivery preferences in one simple place."
       />
 

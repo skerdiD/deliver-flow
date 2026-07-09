@@ -50,7 +50,7 @@ export function AdminFilesPage({ data }: AdminFilesPageProps) {
         <SummaryCard
           label="Internal only"
           value={String(data.summary.internalOnly)}
-          description="Files kept on the admin side only."
+          description="Files kept on the owner side only."
         />
         <SummaryCard
           label="Stored size"

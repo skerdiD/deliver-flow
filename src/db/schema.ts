@@ -22,7 +22,7 @@ export const authUsers = authSchema.table("users", {
   email: text("email"),
 });
 
-export const appRoleEnum = pgEnum("app_role", ["admin", "client"]);
+export const appRoleEnum = pgEnum("app_role", ["owner", "client"]);
 
 export const clientStatusEnum = pgEnum("client_status", [
   "active",
@@ -106,7 +106,7 @@ export const projectFileCategoryEnum = pgEnum("project_file_category", [
 
 export const projectActivityActorRoleEnum = pgEnum(
   "project_activity_actor_role",
-  ["admin", "client", "system"],
+  ["owner", "client", "system"],
 );
 
 export const projectViewTargetTypeEnum = pgEnum("project_view_target_type", [

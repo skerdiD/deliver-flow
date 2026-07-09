@@ -7,7 +7,7 @@ export function AdminSidebar() {
   return (
     <DashboardSidebar
       homeHref="/admin/dashboard"
-      subtitle="Admin workspace"
+      subtitle="Owner workspace"
       navigation={adminNavigation}
       expandedWidthClass="w-72"
       footerTitle="Delivery clarity"

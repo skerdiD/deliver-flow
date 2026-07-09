@@ -186,6 +186,16 @@ export async function requireRole(role: UserRole): Promise<Profile> {
   return profile;
 }
 
+export async function requireOwnerRole(): Promise<Profile> {
+  const profile = await requireCurrentProfile();
+
+  if (profile.role !== "owner") {
+    redirect(getDashboardPathForRole(profile.role));
+  }
+
+  return profile;
+}
+
 export type AdminWorkspace = {
   profile: Profile;
   workspaceId: string;
@@ -202,7 +212,7 @@ function slugifyWorkspaceName(value: string) {
 }
 
 export async function requireAdminWorkspace(): Promise<AdminWorkspace> {
-  const profile = await requireRole("admin");
+  const profile = await requireOwnerRole();
 
   if (profile.workspace_id) {
     return {

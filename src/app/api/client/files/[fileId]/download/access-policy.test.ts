@@ -19,7 +19,7 @@ describe("client file download access policy", () => {
     expect(
       getFileDownloadAccessDecision({
         isAuthenticated: true,
-        role: "admin",
+        role: "owner",
         fileIdIsValid: true,
         fileIsAuthorized: true,
       }),

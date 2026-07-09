@@ -99,7 +99,7 @@ export type ClientPortalApproval = {
 export type ClientPortalActivity = {
   id: string;
   actorName: string | null;
-  actorRole: "admin" | "client" | "system";
+  actorRole: "owner" | "client" | "system";
   message: string;
   createdAt: string;
 };

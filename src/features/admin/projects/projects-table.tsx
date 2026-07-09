@@ -320,7 +320,7 @@ export function ProjectsTable({ projects }: ProjectsTableProps) {
                     {project.description}
                   </p>
                   <Link
-                    href={`/admin/clients/${project.client.id}`}
+                    href={`/owner/clients/${project.client.id}`}
                     className="inline-flex max-w-full rounded-sm text-xs font-medium text-slate-700 outline-none transition-colors hover:text-slate-950 focus-visible:ring-2 focus-visible:ring-slate-950/20 focus-visible:ring-offset-2"
                   >
                     <span className="truncate">

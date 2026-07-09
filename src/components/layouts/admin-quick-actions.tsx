@@ -97,7 +97,7 @@ export function AdminQuickActions({ projects }: AdminQuickActionsProps) {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild className="gap-3 px-2.5 py-2.5">
-            <Link href="/admin/clients/new">
+            <Link href="/owner/clients/new">
               <UserPlus className="size-4 text-slate-500" />
               <span>New Client</span>
             </Link>

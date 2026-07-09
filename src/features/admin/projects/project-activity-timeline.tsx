@@ -59,10 +59,22 @@ function getActivityIconClass(type: string) {
 
 function formatActor(activity: AdminProjectActivity) {
   if (activity.actorName) {
-    return `${activity.actorName} (${activity.actorRole})`;
+    return `${activity.actorName} (${getActorRoleLabel(activity.actorRole)})`;
   }
 
-  return activity.actorRole === "system" ? "System" : activity.actorRole;
+  return getActorRoleLabel(activity.actorRole);
+}
+
+function getActorRoleLabel(role: "owner" | "client" | "system") {
+  if (role === "owner") {
+    return "Owner";
+  }
+
+  if (role === "client") {
+    return "Client";
+  }
+
+  return "System";
 }
 
 export function ProjectActivityTimeline({

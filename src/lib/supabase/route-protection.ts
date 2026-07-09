@@ -12,17 +12,12 @@ type RouteAccessDecision =
   | { type: "allow" }
   | { type: "redirect"; destination: string };
 
-const protectedRolePrefixes: Record<UserRole, string> = {
-  admin: "/admin",
-  client: "/client",
-};
-
 export function isSupportedRole(value: unknown): value is UserRole {
-  return value === "admin" || value === "client";
+  return value === "owner" || value === "client";
 }
 
 export function getDashboardPathForRole(role: UserRole) {
-  if (role === "admin") {
+  if (role === "owner") {
     return routes.admin.dashboard;
   }
 
@@ -30,9 +25,7 @@ export function getDashboardPathForRole(role: UserRole) {
 }
 
 export function isProtectedRoute(pathname: string) {
-  return Object.values(protectedRolePrefixes).some((prefix) =>
-    pathMatchesPrefix(pathname, prefix),
-  );
+  return pathMatchesPrefix(pathname, "/admin") || pathMatchesPrefix(pathname, "/client");
 }
 
 export function getRouteAccessDecision(
@@ -76,9 +69,12 @@ export function getRouteAccessDecision(
     };
   }
 
-  const requiredRole = getRequiredRoleForPath(pathname);
+  const requiredRoleArea = getRequiredRoleAreaForPath(pathname);
 
-  if (requiredRole && requiredRole !== authState.role) {
+  if (
+    (requiredRoleArea === "owner" && authState.role !== "owner") ||
+    (requiredRoleArea === "client" && authState.role !== "client")
+  ) {
     return {
       type: "redirect",
       destination: getDashboardPathForRole(authState.role),
@@ -106,12 +102,12 @@ function getInvalidAccountDecision(
   };
 }
 
-function getRequiredRoleForPath(pathname: string): UserRole | null {
-  if (pathMatchesPrefix(pathname, protectedRolePrefixes.admin)) {
-    return "admin";
+function getRequiredRoleAreaForPath(pathname: string): "owner" | "client" | null {
+  if (pathMatchesPrefix(pathname, "/admin")) {
+    return "owner";
   }
 
-  if (pathMatchesPrefix(pathname, protectedRolePrefixes.client)) {
+  if (pathMatchesPrefix(pathname, "/client")) {
     return "client";
   }
 
@@ -119,7 +115,7 @@ function getRequiredRoleForPath(pathname: string): UserRole | null {
 }
 
 function isAuthRoute(pathname: string) {
-  return pathname === routes.auth.login;
+  return pathname === routes.auth.login || pathname === routes.auth.signup;
 }
 
 function pathMatchesPrefix(pathname: string, prefix: string) {

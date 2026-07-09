@@ -1,6 +1,8 @@
+import type { UserRole } from "@/types/database";
+
 type FileDownloadAccessInput = {
   isAuthenticated: boolean;
-  role?: "admin" | "client";
+  role?: UserRole;
   fileIdIsValid: boolean;
   fileIsAuthorized: boolean;
 };

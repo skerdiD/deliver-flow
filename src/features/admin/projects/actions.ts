@@ -46,7 +46,7 @@ import {
 } from "@/features/projects/file-storage";
 import { logProjectActivity } from "@/features/projects/activity";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { requireAdminWorkspace, requireRole } from "@/lib/supabase/auth";
+import { requireAdminWorkspace, requireOwnerRole } from "@/lib/supabase/auth";
 
 export type ProjectActionResult = {
   success: boolean;
@@ -180,7 +180,7 @@ function revalidateProjectWorkflow(projectId: string) {
 export async function createProjectAction(
   values: ProjectFormValues,
 ): Promise<ProjectActionResult> {
-  const adminProfile = await requireRole("admin");
+  const adminProfile = await requireOwnerRole();
 
   const parsed = projectFormSchema.safeParse(values);
 
@@ -198,7 +198,7 @@ export async function createProjectAction(
       projectId: project.id,
       actorId: adminProfile.id,
       actorName: getActorName(adminProfile),
-      actorRole: "admin",
+      actorRole: "owner",
       type: "project_created",
       message: "Project created.",
       metadata: {
@@ -227,7 +227,7 @@ export async function updateProjectAction(
   id: string,
   values: ProjectFormValues,
 ): Promise<ProjectActionResult> {
-  await requireRole("admin");
+  await requireOwnerRole();
 
   const idParsed = projectIdActionSchema.safeParse({ projectId: id });
   if (!idParsed.success) {
@@ -275,7 +275,7 @@ export async function updateProjectAction(
 export async function archiveProjectAction(
   id: string,
 ): Promise<ProjectActionResult> {
-  const adminProfile = await requireRole("admin");
+  const adminProfile = await requireOwnerRole();
 
   const idParsed = projectIdActionSchema.safeParse({ projectId: id });
   if (!idParsed.success) {
@@ -298,7 +298,7 @@ export async function archiveProjectAction(
     projectId: idParsed.data.projectId,
     actorId: adminProfile.id,
     actorName: getActorName(adminProfile),
-    actorRole: "admin",
+    actorRole: "owner",
     type: "project_archived",
     message: "Project archived.",
     metadata: {
@@ -318,7 +318,7 @@ export async function archiveProjectAction(
 export async function deleteProjectAction(
   id: string,
 ): Promise<ProjectActionResult> {
-  const adminProfile = await requireRole("admin");
+  const adminProfile = await requireOwnerRole();
 
   const idParsed = projectIdActionSchema.safeParse({ projectId: id });
   if (!idParsed.success) {
@@ -341,7 +341,7 @@ export async function deleteProjectAction(
     projectId: idParsed.data.projectId,
     actorId: adminProfile.id,
     actorName: getActorName(adminProfile),
-    actorRole: "admin",
+    actorRole: "owner",
     type: "project_deleted",
     message: "Project deleted.",
     metadata: {
@@ -362,7 +362,7 @@ export async function updateProjectProgressAction(
   id: string,
   values: ProgressFormValues,
 ): Promise<ProjectActionResult> {
-  const adminProfile = await requireRole("admin");
+  const adminProfile = await requireOwnerRole();
 
   const idParsed = projectIdActionSchema.safeParse({ projectId: id });
   if (!idParsed.success) {
@@ -394,7 +394,7 @@ export async function updateProjectProgressAction(
     projectId: idParsed.data.projectId,
     actorId: adminProfile.id,
     actorName: getActorName(adminProfile),
-    actorRole: "admin",
+    actorRole: "owner",
     type: "project_progress_updated",
     message: `Project progress updated to ${parsed.data.progress}%.`,
     metadata: {
@@ -416,7 +416,7 @@ export async function addTaskAction(
   projectId: string,
   values: TaskFormValues,
 ): Promise<ProjectActionResult> {
-  await requireRole("admin");
+  await requireOwnerRole();
 
   const idParsed = projectIdActionSchema.safeParse({ projectId });
   if (!idParsed.success) {
@@ -457,7 +457,7 @@ export async function markTaskCompleteAction(
   projectId: string,
   taskId: string,
 ): Promise<ProjectActionResult> {
-  await requireRole("admin");
+  await requireOwnerRole();
 
   const parsed = projectItemActionSchema.safeParse({
     projectId,
@@ -486,7 +486,7 @@ export async function addMilestoneAction(
   projectId: string,
   values: MilestoneFormValues,
 ): Promise<ProjectActionResult> {
-  const adminProfile = await requireRole("admin");
+  const adminProfile = await requireOwnerRole();
 
   const idParsed = projectIdActionSchema.safeParse({ projectId });
   if (!idParsed.success) {
@@ -521,7 +521,7 @@ export async function addMilestoneAction(
     projectId: idParsed.data.projectId,
     actorId: adminProfile.id,
     actorName: getActorName(adminProfile),
-    actorRole: "admin",
+    actorRole: "owner",
     type: "milestone_added",
     message: `Milestone added: ${parsed.data.title}.`,
     metadata: {
@@ -542,7 +542,7 @@ export async function markMilestoneCompleteAction(
   projectId: string,
   milestoneId: string,
 ): Promise<ProjectActionResult> {
-  const adminProfile = await requireRole("admin");
+  const adminProfile = await requireOwnerRole();
 
   const parsed = projectItemActionSchema.safeParse({
     projectId,
@@ -572,7 +572,7 @@ export async function markMilestoneCompleteAction(
     projectId: parsed.data.projectId,
     actorId: adminProfile.id,
     actorName: getActorName(adminProfile),
-    actorRole: "admin",
+    actorRole: "owner",
     type: "milestone_completed",
     message: `Milestone completed: ${milestone.title}.`,
     metadata: {
@@ -594,7 +594,7 @@ export async function addUpdateAction(
   projectId: string,
   values: UpdateFormValues,
 ): Promise<ProjectActionResult> {
-  const adminProfile = await requireRole("admin");
+  const adminProfile = await requireOwnerRole();
 
   const idParsed = projectIdActionSchema.safeParse({ projectId });
   if (!idParsed.success) {
@@ -626,7 +626,7 @@ export async function addUpdateAction(
     projectId: idParsed.data.projectId,
     actorId: adminProfile.id,
     actorName: getActorName(adminProfile),
-    actorRole: "admin",
+    actorRole: "owner",
     type: "project_update_added",
     message: `Project update posted: ${parsed.data.title}.`,
     metadata: {
@@ -736,7 +736,7 @@ export async function requestProjectApprovalAction(
     projectId: projectIdParsed.data,
     actorId: adminProfile.id,
     actorName: getActorName(adminProfile),
-    actorRole: "admin",
+    actorRole: "owner",
     type: "approval_requested",
     message: `Approval requested: ${createdApproval.title}.`,
     metadata: {
@@ -809,7 +809,7 @@ export async function addProjectPaymentAction(
     projectId: projectIdParsed.data,
     actorId: adminProfile.id,
     actorName: getActorName(adminProfile),
-    actorRole: "admin",
+    actorRole: "owner",
     type: "payment_created",
     message: "Payment record created.",
     metadata: {
@@ -898,7 +898,7 @@ export async function updateProjectPaymentStatusAction(input: {
     projectId: parsed.data.projectId,
     actorId: adminProfile.id,
     actorName: getActorName(adminProfile),
-    actorRole: "admin",
+    actorRole: "owner",
     type: "payment_status_updated",
     message: `Payment status changed from ${
       paymentBeforeUpdate?.status ?? "unknown"
@@ -1014,7 +1014,7 @@ export async function uploadProjectFileAction(
     projectId: projectIdParsed.data,
     actorId: adminProfile.id,
     actorName: getActorName(adminProfile),
-    actorRole: "admin",
+    actorRole: "owner",
     type: "file_uploaded",
     message: `File uploaded: ${createdFile.fileName}.`,
     metadata: {

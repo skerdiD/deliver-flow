@@ -152,6 +152,26 @@ export type AdminSettingsData = {
   createdAt: string;
 };
 
+export type AdminWorkspaceSettingsData = {
+  id: string;
+  name: string;
+  slug: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminTeamMember = {
+  id: string;
+  fullName: string | null;
+  email: string;
+  role: string;
+  createdAt: string;
+};
+
+export type AdminTeamSettingsData = {
+  members: AdminTeamMember[];
+};
+
 export function getTaskStatusMeta(status: TaskStatus): {
   label: string;
   tone: BadgeTone;

@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     template: "%s | DeliverFlow",
   },
   description:
-    "A client portal and admin dashboard for project delivery, updates, approvals, and files.",
+    "A client portal and Owner Dashboard for project delivery, updates, approvals, and files.",
 };
 
 type RootLayoutProps = {

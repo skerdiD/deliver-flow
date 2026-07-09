@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, Loader2 } from "lucide-react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -24,6 +25,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  getDashboardPathForRole,
+  isSupportedRole,
+} from "@/lib/supabase/route-protection";
 
 function getSafeNextPath(value: string | null) {
   if (!value || !value.startsWith("/") || value.startsWith("//")) {
@@ -72,7 +77,10 @@ export function LoginForm() {
     try {
       const supabase = createSupabaseBrowserClient();
 
-      const { error } = await supabase.auth.signInWithPassword({
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.signInWithPassword({
         email: values.email,
         password: values.password,
       });
@@ -83,7 +91,41 @@ export function LoginForm() {
         return;
       }
 
-      router.replace(getSafeNextPath(searchParams.get("next")));
+      if (!user) {
+        setAuthError("Email or password is incorrect.");
+        setIsLoading(false);
+        return;
+      }
+
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+      const profile = profileData as { role: unknown } | null;
+
+      if (profileError || !profile) {
+        await supabase.auth.signOut();
+        setAuthError(
+          "Your account exists, but your workspace profile is not ready yet. Ask the workspace owner to check your access.",
+        );
+        setIsLoading(false);
+        return;
+      }
+
+      if (!isSupportedRole(profile.role)) {
+        await supabase.auth.signOut();
+        setAuthError(
+          "We could not confirm your account role. Ask the workspace owner to review your access.",
+        );
+        setIsLoading(false);
+        return;
+      }
+
+      const nextPath = getSafeNextPath(searchParams.get("next"));
+      const dashboardPath = getDashboardPathForRole(profile.role);
+
+      router.replace(nextPath === routes.home ? dashboardPath : nextPath);
       router.refresh();
     } catch {
       setAuthError(
@@ -165,7 +207,13 @@ export function LoginForm() {
 
       <CardFooter className="border-t border-slate-200 px-5 py-4 sm:px-6">
         <p className="w-full text-center text-sm leading-6 text-slate-600">
-          Need access? Ask your project owner for an invite.
+          Starting a workspace?{" "}
+          <Link
+            href={routes.auth.signup}
+            className="font-medium text-blue-700 hover:text-blue-800"
+          >
+            Create an account.
+          </Link>
         </p>
       </CardFooter>
     </Card>

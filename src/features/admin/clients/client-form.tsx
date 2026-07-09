@@ -82,12 +82,12 @@ export function ClientForm({
       }
 
       if (mode === "edit" && result.clientId) {
-        router.push(`/admin/clients/${result.clientId}`);
+        router.push(`/owner/clients/${result.clientId}`);
         router.refresh();
         return;
       }
 
-      router.push("/admin/clients");
+      router.push("/owner/clients");
       router.refresh();
     });
   }
@@ -101,7 +101,7 @@ export function ClientForm({
         <CardDescription>
           {mode === "create"
             ? "Save the client details you need before assigning projects."
-            : "Update the client details shown across the admin workspace."}
+            : "Update the client details shown across the Owner workspace."}
         </CardDescription>
       </CardHeader>
 

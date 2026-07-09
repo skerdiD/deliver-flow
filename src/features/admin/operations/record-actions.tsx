@@ -200,7 +200,7 @@ export function TaskRecordActions(props: {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit task</DialogTitle>
-            <DialogDescription>Update the task details shown in the admin workspace.</DialogDescription>
+            <DialogDescription>Update the task details shown in the Owner workspace.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <Input value={title} onChange={(event) => setTitle(event.target.value)} />

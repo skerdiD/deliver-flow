@@ -347,7 +347,7 @@ function buildAttentionItems(projects: ClientPortalProject[]) {
         icon: MessageSquare,
         title: "Feedback reply available",
         projectName: project.name,
-        reason: "There is an admin response ready for you to review.",
+        reason: "There is an owner response ready for you to review.",
         badgeLabel: "Reply added",
         badgeTone: "purple",
         href: `/client/feedback?${projectQuery}`,

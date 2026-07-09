@@ -34,8 +34,8 @@ export async function GET(
 ) {
   const profile = await getCurrentProfile();
 
-  if (!profile || profile.role !== "admin") {
-    return jsonError("Admin access required.", 403);
+  if (!profile || profile.role !== "owner") {
+    return jsonError("Owner access required.", 403);
   }
 
   const workspaceId = profile.workspace_id;

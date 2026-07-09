@@ -1,6 +1,8 @@
 import { BellRing, Settings, UserRound } from "lucide-react";
+import Link from "next/link";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { routes } from "@/config/routes";
 import {
   formatDateTimeLabel,
   type AdminSettingsData,
@@ -17,7 +19,7 @@ export function AdminSettingsPage({ data }: AdminSettingsPageProps) {
         <CardHeader>
           <CardTitle>Profile and account</CardTitle>
           <p className="text-sm text-slate-500">
-            Basic admin account details currently come from Supabase Auth and
+            Basic owner account details currently come from Supabase Auth and
             the profiles table.
           </p>
         </CardHeader>
@@ -27,7 +29,7 @@ export function AdminSettingsPage({ data }: AdminSettingsPageProps) {
             icon={UserRound}
             label="Display name"
             value={data.fullName ?? "No full name saved yet"}
-            description="Update this in your profile record when you want the admin workspace to show a personal name."
+            description="Update this in your profile record when you want the owner workspace to show a personal name."
           />
           <SettingRow
             icon={Settings}
@@ -38,8 +40,8 @@ export function AdminSettingsPage({ data }: AdminSettingsPageProps) {
           <SettingRow
             icon={BellRing}
             label="Workspace access"
-            value={data.role === "admin" ? "Admin" : data.role}
-            description={`Admin access enabled since ${formatDateTimeLabel(data.createdAt)}.`}
+            value={getRoleLabel(data.role)}
+            description={`Workspace access enabled since ${formatDateTimeLabel(data.createdAt)}.`}
           />
         </CardContent>
       </Card>
@@ -54,12 +56,14 @@ export function AdminSettingsPage({ data }: AdminSettingsPageProps) {
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-slate-600">
             <PreferenceRow
-              title="Dashboard focus"
-              value="Show active work, open payments, and fresh feedback first."
+              title="Workspace"
+              value="Manage the workspace name and basic workspace details."
+              href={routes.admin.workspaceSettings}
             />
             <PreferenceRow
-              title="Notification habit"
-              value="Use email and in-app review passes before each delivery milestone."
+              title="Team"
+              value="Review workspace members and prepare team invitations."
+              href={routes.admin.teamSettings}
             />
             <PreferenceRow
               title="Timezone"
@@ -123,11 +127,32 @@ function SettingRow(props: {
   );
 }
 
-function PreferenceRow(props: { title: string; value: string }) {
-  return (
-    <div className="rounded-lg border border-slate-200 p-4">
+function PreferenceRow(props: { title: string; value: string; href?: string }) {
+  const content = (
+    <>
       <p className="font-medium text-slate-950">{props.title}</p>
       <p className="mt-2 leading-6 text-slate-600">{props.value}</p>
+    </>
+  );
+
+  if (props.href) {
+    return (
+      <Link
+        href={props.href}
+        className="block rounded-lg border border-slate-200 p-4 transition-colors hover:border-slate-300 hover:bg-slate-50"
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <div className="rounded-lg border border-slate-200 p-4">
+      {content}
     </div>
   );
+}
+
+function getRoleLabel(role: string) {
+  return role.charAt(0).toUpperCase() + role.slice(1);
 }

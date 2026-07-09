@@ -5,7 +5,7 @@ import { and, eq } from "drizzle-orm";
 import { db, type Db } from "@/db";
 import { projectActivity, projectViewEvents, projects } from "@/db/schema";
 
-export type ProjectActivityActorRole = "admin" | "client" | "system";
+export type ProjectActivityActorRole = "owner" | "client" | "system";
 
 export type ProjectViewTargetType =
   | "project"

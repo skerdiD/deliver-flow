@@ -32,7 +32,7 @@ export default async function EditClientPage({ params }: EditClientPageProps) {
   return (
     <div className="space-y-6">
       <Button variant="outline" asChild>
-        <Link href={`/admin/clients/${client.id}`}>
+        <Link href={`/owner/clients/${client.id}`}>
           <ArrowLeft className="mr-2 size-4" />
           Back to profile
         </Link>
@@ -41,7 +41,7 @@ export default async function EditClientPage({ params }: EditClientPageProps) {
       <PageHeader
         eyebrow="Edit client"
         title={`Update ${client.name}`}
-        description="Change the client details used across the admin workspace."
+        description="Change the client details used across the Owner workspace."
       />
 
       <ClientForm

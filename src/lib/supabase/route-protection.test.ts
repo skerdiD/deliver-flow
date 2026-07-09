@@ -31,18 +31,18 @@ describe("route protection policy", () => {
       });
   });
 
-  it("allows admins into admin routes and redirects them away from client routes", () => {
+  it("allows owners into admin routes and redirects them away from client routes", () => {
     expect(
       getRouteAccessDecision("/admin/dashboard", "", {
         status: "authenticated",
-        role: "admin",
+        role: "owner",
       }),
     ).toEqual({ type: "allow" });
 
     expect(
       getRouteAccessDecision("/client/overview", "", {
         status: "authenticated",
-        role: "admin",
+        role: "owner",
       }),
     ).toEqual({
         type: "redirect",
@@ -81,9 +81,19 @@ describe("route protection policy", () => {
       });
 
     expect(
+      getRouteAccessDecision(routes.auth.signup, "", {
+        status: "authenticated",
+        role: "owner",
+      }),
+    ).toEqual({
+        type: "redirect",
+        destination: routes.admin.dashboard,
+      });
+
+    expect(
       getRouteAccessDecision(routes.home, "", {
         status: "authenticated",
-        role: "admin",
+        role: "owner",
       }),
     ).toEqual({
         type: "redirect",
@@ -142,9 +152,10 @@ describe("route protection policy", () => {
     expect(isProtectedRoute("/client/approvals")).toBe(true);
     expect(isProtectedRoute("/login")).toBe(false);
     expect(isProtectedRoute("/api/client/files/file_123/download")).toBe(false);
-    expect(isSupportedRole("admin")).toBe(true);
+    expect(isSupportedRole("owner")).toBe(true);
     expect(isSupportedRole("client")).toBe(true);
-    expect(isSupportedRole("owner")).toBe(false);
+    expect(isSupportedRole("admin")).toBe(false);
+    expect(isSupportedRole("guest")).toBe(false);
   });
 
   it("protects dynamic admin and client detail routes by role", () => {
@@ -161,7 +172,7 @@ describe("route protection policy", () => {
     expect(
       getRouteAccessDecision("/client/project/project_123", "", {
         status: "authenticated",
-        role: "admin",
+        role: "owner",
       }),
     ).toEqual({
         type: "redirect",
@@ -170,7 +181,7 @@ describe("route protection policy", () => {
   });
 
   it("maps roles to their dashboard redirect targets", () => {
-    expect(getDashboardPathForRole("admin")).toBe(routes.admin.dashboard);
+    expect(getDashboardPathForRole("owner")).toBe(routes.admin.dashboard);
     expect(getDashboardPathForRole("client")).toBe(routes.client.dashboard);
   });
 });

@@ -15,7 +15,7 @@ import { ProjectProgressOverview } from "@/features/admin/dashboard/project-prog
 import { RecentFeedbackPanel } from "@/features/admin/dashboard/recent-feedback-panel";
 
 export const metadata: Metadata = {
-  title: "Admin Dashboard",
+  title: "Owner Dashboard",
 };
 
 export default async function AdminDashboardPage() {
@@ -24,7 +24,7 @@ export default async function AdminDashboardPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Admin workspace"
+        eyebrow="Owner workspace"
         title="Delivery overview"
         description="Projects that need attention, milestones ready for review, client feedback, and payments still open."
       >

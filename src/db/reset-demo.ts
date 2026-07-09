@@ -40,7 +40,7 @@ const demoProjectSlugs = [
   "demo-ai-support-workflow",
 ];
 
-const demoProfileEmails = ["admin@deliverflow.demo", "client@deliverflow.demo"];
+const demoProfileEmails = ["owner@deliverflow.demo", "client@deliverflow.demo"];
 
 async function main() {
   console.log("Resetting DeliverFlow demo data...");

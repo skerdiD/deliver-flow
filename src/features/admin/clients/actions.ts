@@ -13,7 +13,7 @@ import {
   clientFormSchema,
   type ClientFormValues,
 } from "@/features/admin/clients/client-validation";
-import { requireRole } from "@/lib/supabase/auth";
+import { requireOwnerRole } from "@/lib/supabase/auth";
 
 export type ClientActionResult = {
   success: boolean;
@@ -51,7 +51,7 @@ function getFieldErrors(error: unknown): ClientActionResult["fieldErrors"] {
 export async function createClientAction(
   values: ClientFormValues,
 ): Promise<ClientActionResult> {
-  await requireRole("admin");
+  await requireOwnerRole();
 
   const parsed = clientFormSchema.safeParse(values);
 
@@ -66,7 +66,7 @@ export async function createClientAction(
   try {
     const client = await createAdminClient(parsed.data);
 
-    revalidatePath("/admin/clients");
+    revalidatePath("/owner/clients");
 
     return {
       success: true,
@@ -85,7 +85,7 @@ export async function updateClientAction(
   id: string,
   values: ClientFormValues,
 ): Promise<ClientActionResult> {
-  await requireRole("admin");
+  await requireOwnerRole();
 
   const idParsed = clientIdActionSchema.safeParse({ clientId: id });
   if (!idParsed.success) {
@@ -115,8 +115,8 @@ export async function updateClientAction(
       };
     }
 
-    revalidatePath("/admin/clients");
-    revalidatePath(`/admin/clients/${idParsed.data.clientId}`);
+    revalidatePath("/owner/clients");
+    revalidatePath(`/owner/clients/${idParsed.data.clientId}`);
 
     return {
       success: true,
@@ -134,7 +134,7 @@ export async function updateClientAction(
 export async function archiveClientAction(
   id: string,
 ): Promise<ClientActionResult> {
-  await requireRole("admin");
+  await requireOwnerRole();
 
   const idParsed = clientIdActionSchema.safeParse({ clientId: id });
   if (!idParsed.success) {
@@ -153,8 +153,8 @@ export async function archiveClientAction(
     };
   }
 
-  revalidatePath("/admin/clients");
-  revalidatePath(`/admin/clients/${idParsed.data.clientId}`);
+  revalidatePath("/owner/clients");
+  revalidatePath(`/owner/clients/${idParsed.data.clientId}`);
   revalidatePath("/client/overview");
   revalidatePath("/client/project");
 
@@ -168,7 +168,7 @@ export async function archiveClientAction(
 export async function deleteClientAction(
   id: string,
 ): Promise<ClientActionResult> {
-  await requireRole("admin");
+  await requireOwnerRole();
 
   const idParsed = clientIdActionSchema.safeParse({ clientId: id });
   if (!idParsed.success) {
@@ -187,8 +187,8 @@ export async function deleteClientAction(
     };
   }
 
-  revalidatePath("/admin/clients");
-  revalidatePath(`/admin/clients/${idParsed.data.clientId}`);
+  revalidatePath("/owner/clients");
+  revalidatePath(`/owner/clients/${idParsed.data.clientId}`);
   revalidatePath("/client/overview");
   revalidatePath("/client/project");
 

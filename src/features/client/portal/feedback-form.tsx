@@ -194,7 +194,7 @@ export function FeedbackForm({ projectId, feedback }: FeedbackFormProps) {
                       </p>
                     ) : (
                       <p className="mt-2 text-sm text-slate-500">
-                        No admin response yet.
+                        No owner response yet.
                       </p>
                     )}
                   </div>

@@ -32,7 +32,7 @@ export type AdminFeedbackStatus = "open" | "reviewed" | "resolved";
 export type AdminProjectActivity = {
   id: string;
   actorName: string | null;
-  actorRole: "admin" | "client" | "system";
+  actorRole: "owner" | "client" | "system";
   type: string;
   message: string;
   createdAt: string;

@@ -12,6 +12,7 @@ import {
   payments,
   projectFiles,
   tasks,
+  workspaces,
 } from "@/db/schema";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireAdminWorkspace } from "@/lib/supabase/auth";
@@ -69,6 +70,45 @@ const feedbackIdSchema = z.object({
 const approvalIdSchema = z.object({
   approvalId: z.string().uuid("Approval id is invalid."),
 });
+
+const workspaceNameSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(2, "Workspace name must be at least 2 characters.")
+    .max(80, "Workspace name must be 80 characters or less."),
+});
+
+export async function updateWorkspaceNameAction(input: {
+  name: string;
+}): Promise<AdminOperationActionResult> {
+  const parsed = workspaceNameSchema.safeParse(input);
+
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: "Enter a valid workspace name.",
+    };
+  }
+
+  const { workspaceId } = await requireAdminWorkspace();
+
+  await db
+    .update(workspaces)
+    .set({
+      name: parsed.data.name,
+      updatedAt: new Date(),
+    })
+    .where(eq(workspaces.id, workspaceId));
+
+  revalidatePath(routes.admin.settings);
+  revalidatePath(routes.admin.workspaceSettings);
+
+  return {
+    success: true,
+    message: "Workspace name updated.",
+  };
+}
 
 const approvalCancelSchema = approvalIdSchema.extend({
   reason: z.string().trim().max(500).optional(),

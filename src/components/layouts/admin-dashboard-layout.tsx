@@ -21,10 +21,10 @@ export function AdminDashboardLayout({
 
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
           <AppTopbar
-            title="Admin Dashboard"
+            title="Owner Dashboard"
             description="Manage delivery, clients, approvals, and payments."
             userName={profile.full_name}
-            userRoleLabel="Admin"
+            userRoleLabel={getRoleLabel(profile.role)}
             quickActionProjects={quickActionProjects}
             mobileNavigationType="admin"
           />
@@ -38,4 +38,8 @@ export function AdminDashboardLayout({
       </div>
     </div>
   );
+}
+
+function getRoleLabel(role: Profile["role"]) {
+  return role === "owner" ? "Owner" : "Client";
 }

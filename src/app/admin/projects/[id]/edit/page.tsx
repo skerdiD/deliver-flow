@@ -45,7 +45,7 @@ export default async function EditProjectPage({ params }: EditProjectPageProps) 
       <PageHeader
         eyebrow="Edit project"
         title={`Update ${project.name}`}
-        description="Change the project details used across the admin workspace and client portal."
+        description="Change the project details used across the Owner workspace and client portal."
       />
 
       <ProjectForm

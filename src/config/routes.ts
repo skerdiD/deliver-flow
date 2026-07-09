@@ -3,6 +3,7 @@ export const routes = {
 
   auth: {
     login: "/login",
+    signup: "/signup",
   },
 
   invite: {
@@ -11,7 +12,7 @@ export const routes = {
 
   admin: {
     dashboard: "/admin/dashboard",
-    clients: "/admin/clients",
+    clients: "/owner/clients",
     projects: "/admin/projects",
     notes: "/admin/notes",
     milestones: "/admin/milestones",
@@ -21,6 +22,8 @@ export const routes = {
     files: "/admin/files",
     approvals: "/admin/approvals",
     settings: "/admin/settings",
+    workspaceSettings: "/admin/settings/workspace",
+    teamSettings: "/admin/settings/team",
   },
 
   client: {
