@@ -9,6 +9,7 @@ import {
   MessageSquareReply,
   MoreHorizontal,
   RotateCcw,
+  Upload,
   Trash2,
   XCircle,
 } from "lucide-react";
@@ -45,6 +46,7 @@ import {
   deletePaymentAction,
   deleteTaskAction,
   markAdminTaskCompleteAction,
+  replaceFileAction,
   respondToFeedbackAction,
   rejectApprovalAction,
   renameFileAction,
@@ -54,11 +56,13 @@ import {
   type AdminOperationActionResult,
 } from "@/features/admin/operations/actions";
 import { updateProjectPaymentStatusAction } from "@/features/admin/projects/actions";
+import { PROJECT_FILE_ACCEPT_ATTRIBUTE } from "@/features/projects/file-security";
 import type { AdminPaymentStatus } from "@/features/admin/projects/types";
 
 type DialogKind =
   | "task-edit"
   | "task-delete"
+  | "file-replace"
   | "file-rename"
   | "file-delete"
   | "payment-void"
@@ -75,15 +79,21 @@ function useActionRunner() {
   const [result, setResult] = useState<AdminOperationActionResult | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  function run(action: () => Promise<AdminOperationActionResult>, onSuccess?: () => void) {
+  function run(
+    action: () => Promise<AdminOperationActionResult>,
+    onSuccess?: () => void,
+  ) {
     setResult(null);
     startTransition(async () => {
       const actionResult = await action();
       setResult(actionResult);
 
+      if (actionResult.success || actionResult.didMutate) {
+        router.refresh();
+      }
+
       if (actionResult.success) {
         onSuccess?.();
-        router.refresh();
       }
     });
   }
@@ -96,11 +106,17 @@ function ResultMessage({
 }: {
   result: AdminOperationActionResult | null;
 }) {
-  if (!result || result.success) {
+  if (!result) {
     return null;
   }
 
-  return <p className="text-sm text-red-600">{result.message}</p>;
+  const className = result.success
+    ? "text-sm text-emerald-600"
+    : result.didMutate
+      ? "text-sm text-amber-600"
+      : "text-sm text-red-600";
+
+  return <p className={className}>{result.message}</p>;
 }
 
 function RecordActionsTrigger({ label }: { label: string }) {
@@ -196,21 +212,38 @@ export function TaskRecordActions(props: {
         </RecordActionsContent>
       </DropdownMenu>
 
-      <Dialog open={dialog === "task-edit"} onOpenChange={(open) => setDialog(open ? "task-edit" : null)}>
+      <Dialog
+        open={dialog === "task-edit"}
+        onOpenChange={(open) => setDialog(open ? "task-edit" : null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit task</DialogTitle>
-            <DialogDescription>Update the task details shown in the Owner workspace.</DialogDescription>
+            <DialogDescription>
+              Update the task details shown in the Owner workspace.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            <Input value={title} onChange={(event) => setTitle(event.target.value)} />
-            <Textarea value={description} onChange={(event) => setDescription(event.target.value)} />
-            <Input type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} />
+            <Input
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+            />
+            <Textarea
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+            />
+            <Input
+              type="date"
+              value={dueDate}
+              onChange={(event) => setDueDate(event.target.value)}
+            />
           </div>
           <ResultMessage result={result} />
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline" disabled={isPending}>Cancel</Button>
+              <Button variant="outline" disabled={isPending}>
+                Cancel
+              </Button>
             </DialogClose>
             <Button
               disabled={isPending}
@@ -244,8 +277,9 @@ export function TaskRecordActions(props: {
         isPending={isPending}
         result={result}
         onConfirm={() =>
-          run(() => deleteTaskAction({ taskId: props.taskId }), () =>
-            setDialog(null),
+          run(
+            () => deleteTaskAction({ taskId: props.taskId }),
+            () => setDialog(null),
           )
         }
       />
@@ -253,12 +287,11 @@ export function TaskRecordActions(props: {
   );
 }
 
-export function FileRecordActions(props: {
-  fileId: string;
-  fileName: string;
-}) {
+export function FileRecordActions(props: { fileId: string; fileName: string }) {
   const [dialog, setDialog] = useState<DialogKind>(null);
   const [fileName, setFileName] = useState(props.fileName);
+  const [replacementFile, setReplacementFile] = useState<File | null>(null);
+  const [replacementLabel, setReplacementLabel] = useState(props.fileName);
   const { result, setResult, isPending, run } = useActionRunner();
 
   return (
@@ -271,6 +304,19 @@ export function FileRecordActions(props: {
               <Download className="size-4" />
               Download
             </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className={recordActionItemClassName}
+            onSelect={(event) => {
+              event.preventDefault();
+              setReplacementFile(null);
+              setReplacementLabel(props.fileName);
+              setResult(null);
+              setDialog("file-replace");
+            }}
+          >
+            <Upload className="size-4" />
+            Replace file
           </DropdownMenuItem>
           <DropdownMenuItem
             className={recordActionItemClassName}
@@ -299,17 +345,99 @@ export function FileRecordActions(props: {
         </RecordActionsContent>
       </DropdownMenu>
 
-      <Dialog open={dialog === "file-rename"} onOpenChange={(open) => setDialog(open ? "file-rename" : null)}>
+      <Dialog
+        open={dialog === "file-replace"}
+        onOpenChange={(open) => setDialog(open ? "file-replace" : null)}
+      >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Rename file</DialogTitle>
-            <DialogDescription>Change the display name without moving the storage object.</DialogDescription>
+            <DialogTitle>Replace file</DialogTitle>
+            <DialogDescription>
+              Upload a new validated file. The current file stays active until
+              the replacement is saved.
+            </DialogDescription>
           </DialogHeader>
-          <Input value={fileName} onChange={(event) => setFileName(event.target.value)} />
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-slate-700">Display name</p>
+              <Input
+                aria-label="Replacement display name"
+                value={replacementLabel}
+                onChange={(event) => setReplacementLabel(event.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-slate-700">
+                Replacement file
+              </p>
+              <Input
+                accept={PROJECT_FILE_ACCEPT_ATTRIBUTE}
+                aria-label="Replacement file"
+                type="file"
+                onChange={(event) =>
+                  setReplacementFile(event.target.files?.[0] ?? null)
+                }
+              />
+            </div>
+          </div>
           <ResultMessage result={result} />
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline" disabled={isPending}>Cancel</Button>
+              <Button variant="outline" disabled={isPending}>
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button
+              disabled={isPending || !replacementFile}
+              onClick={() =>
+                run(
+                  async () => {
+                    if (!replacementFile) {
+                      return {
+                        success: false,
+                        message: "Choose a replacement file.",
+                      };
+                    }
+
+                    const formData = new FormData();
+                    formData.set("fileId", props.fileId);
+                    formData.set("file", replacementFile);
+                    formData.set("label", replacementLabel);
+
+                    return replaceFileAction(formData);
+                  },
+                  () => setDialog(null),
+                )
+              }
+            >
+              {isPending ? <Loader2 className="size-4 animate-spin" /> : null}
+              Replace file
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={dialog === "file-rename"}
+        onOpenChange={(open) => setDialog(open ? "file-rename" : null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rename file</DialogTitle>
+            <DialogDescription>
+              Change the display name without moving the storage object.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            value={fileName}
+            onChange={(event) => setFileName(event.target.value)}
+          />
+          <ResultMessage result={result} />
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline" disabled={isPending}>
+                Cancel
+              </Button>
             </DialogClose>
             <Button
               disabled={isPending}
@@ -331,14 +459,15 @@ export function FileRecordActions(props: {
         open={dialog === "file-delete"}
         onOpenChange={(open) => setDialog(open ? "file-delete" : null)}
         title="Delete file?"
-        description="This removes the storage object when possible, then hides the file record."
+        description="This hides the file immediately, then removes the storage object or queues cleanup if storage is unavailable."
         actionLabel="Delete file"
         destructive
         isPending={isPending}
         result={result}
         onConfirm={() =>
-          run(() => deleteFileAction({ fileId: props.fileId }), () =>
-            setDialog(null),
+          run(
+            () => deleteFileAction({ fileId: props.fileId }),
+            () => setDialog(null),
           )
         }
       />
@@ -456,8 +585,9 @@ export function PaymentRecordActions(props: {
         isPending={isPending}
         result={result}
         onConfirm={() =>
-          run(() => deletePaymentAction({ paymentId: props.paymentId }), () =>
-            setDialog(null),
+          run(
+            () => deletePaymentAction({ paymentId: props.paymentId }),
+            () => setDialog(null),
           )
         }
       />
@@ -492,7 +622,9 @@ export function FeedbackRecordActions(props: {
           </DropdownMenuItem>
           <DropdownMenuItem
             className={recordActionItemClassName}
-            onSelect={() => run(() => resolveFeedbackAction({ feedbackId: props.feedbackId }))}
+            onSelect={() =>
+              run(() => resolveFeedbackAction({ feedbackId: props.feedbackId }))
+            }
           >
             <CheckCircle2 className="size-4" />
             Mark resolved
@@ -578,8 +710,9 @@ export function FeedbackRecordActions(props: {
         isPending={isPending}
         result={result}
         onConfirm={() =>
-          run(() => archiveFeedbackAction({ feedbackId: props.feedbackId }), () =>
-            setDialog(null),
+          run(
+            () => archiveFeedbackAction({ feedbackId: props.feedbackId }),
+            () => setDialog(null),
           )
         }
       />
@@ -594,8 +727,9 @@ export function FeedbackRecordActions(props: {
         isPending={isPending}
         result={result}
         onConfirm={() =>
-          run(() => deleteFeedbackAction({ feedbackId: props.feedbackId }), () =>
-            setDialog(null),
+          run(
+            () => deleteFeedbackAction({ feedbackId: props.feedbackId }),
+            () => setDialog(null),
           )
         }
       />
@@ -615,14 +749,18 @@ export function ApprovalRecordActions(props: { approvalId: string }) {
         <RecordActionsContent>
           <DropdownMenuItem
             className={recordActionItemClassName}
-            onSelect={() => run(() => approveApprovalAction({ approvalId: props.approvalId }))}
+            onSelect={() =>
+              run(() => approveApprovalAction({ approvalId: props.approvalId }))
+            }
           >
             <CheckCircle2 className="size-4" />
             Approve
           </DropdownMenuItem>
           <DropdownMenuItem
             className={recordActionItemClassName}
-            onSelect={() => run(() => rejectApprovalAction({ approvalId: props.approvalId }))}
+            onSelect={() =>
+              run(() => rejectApprovalAction({ approvalId: props.approvalId }))
+            }
           >
             <RotateCcw className="size-4" />
             Reject
@@ -655,24 +793,40 @@ export function ApprovalRecordActions(props: { approvalId: string }) {
         </RecordActionsContent>
       </DropdownMenu>
 
-      <Dialog open={dialog === "approval-cancel"} onOpenChange={(open) => setDialog(open ? "approval-cancel" : null)}>
+      <Dialog
+        open={dialog === "approval-cancel"}
+        onOpenChange={(open) => setDialog(open ? "approval-cancel" : null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Cancel approval request?</DialogTitle>
-            <DialogDescription>This stops the request from counting as pending while keeping the history.</DialogDescription>
+            <DialogDescription>
+              This stops the request from counting as pending while keeping the
+              history.
+            </DialogDescription>
           </DialogHeader>
-          <Textarea value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Optional reason" />
+          <Textarea
+            value={reason}
+            onChange={(event) => setReason(event.target.value)}
+            placeholder="Optional reason"
+          />
           <ResultMessage result={result} />
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline" disabled={isPending}>Cancel</Button>
+              <Button variant="outline" disabled={isPending}>
+                Cancel
+              </Button>
             </DialogClose>
             <Button
               variant="outline"
               disabled={isPending}
               onClick={() =>
                 run(
-                  () => cancelApprovalAction({ approvalId: props.approvalId, reason }),
+                  () =>
+                    cancelApprovalAction({
+                      approvalId: props.approvalId,
+                      reason,
+                    }),
                   () => setDialog(null),
                 )
               }
@@ -694,8 +848,9 @@ export function ApprovalRecordActions(props: { approvalId: string }) {
         isPending={isPending}
         result={result}
         onConfirm={() =>
-          run(() => deleteApprovalAction({ approvalId: props.approvalId }), () =>
-            setDialog(null),
+          run(
+            () => deleteApprovalAction({ approvalId: props.approvalId }),
+            () => setDialog(null),
           )
         }
       />
@@ -724,14 +879,18 @@ function SimpleConfirmDialog(props: {
         <ResultMessage result={props.result} />
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline" disabled={props.isPending}>Cancel</Button>
+            <Button variant="outline" disabled={props.isPending}>
+              Cancel
+            </Button>
           </DialogClose>
           <Button
             variant={props.destructive ? "destructive" : "outline"}
             disabled={props.isPending}
             onClick={props.onConfirm}
           >
-            {props.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
+            {props.isPending ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : null}
             {props.actionLabel}
           </Button>
         </DialogFooter>
@@ -780,14 +939,20 @@ function StrongConfirmDialog(props: {
         <ResultMessage result={props.result} />
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline" disabled={props.isPending}>Cancel</Button>
+            <Button variant="outline" disabled={props.isPending}>
+              Cancel
+            </Button>
           </DialogClose>
           <Button
             variant={props.destructive ? "destructive" : "outline"}
-            disabled={props.isPending || props.confirmText !== props.confirmWord}
+            disabled={
+              props.isPending || props.confirmText !== props.confirmWord
+            }
             onClick={props.onConfirm}
           >
-            {props.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
+            {props.isPending ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : null}
             {props.actionLabel}
           </Button>
         </DialogFooter>

@@ -1,7 +1,7 @@
 "use client";
 
 import { Files, Loader2, Upload } from "lucide-react";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
 import { EmptyState } from "@/components/shared/empty-state";
 import { FormStatus } from "@/components/shared/form-status";
@@ -20,7 +20,14 @@ import {
 } from "@/components/ui/select";
 import { uploadProjectFileAction } from "@/features/admin/projects/actions";
 import { FileRecordActions } from "@/features/admin/operations/record-actions";
+import { getFileScanStatusMeta } from "@/features/admin/operations/types";
 import type { AdminProjectFile } from "@/features/admin/projects/types";
+import {
+  getProjectFileAllowedTypeLabels,
+  normalizeProjectFileExtension,
+  PROJECT_FILE_ACCEPT_ATTRIBUTE,
+  PROJECT_FILE_DEFAULT_MAX_UPLOAD_BYTES,
+} from "@/features/projects/file-security";
 import { formatRelativeTime, formatShortDate } from "@/lib/format";
 
 type ProjectFilesCardProps = {
@@ -38,6 +45,28 @@ export function ProjectFilesCard({ projectId, files }: ProjectFilesCardProps) {
     uploadProjectFileAction,
     initialUploadState,
   );
+  const [clientValidationMessage, setClientValidationMessage] = useState("");
+
+  function validateSelectedFile(file: File | null) {
+    if (!file) {
+      setClientValidationMessage("");
+      return;
+    }
+
+    if (file.size > PROJECT_FILE_DEFAULT_MAX_UPLOAD_BYTES) {
+      setClientValidationMessage("File is too large for upload.");
+      return;
+    }
+
+    const extension = normalizeProjectFileExtension(file.name);
+
+    if (!extension) {
+      setClientValidationMessage("Choose a supported file type.");
+      return;
+    }
+
+    setClientValidationMessage("");
+  }
 
   return (
     <Card className="rounded-lg border-slate-200 shadow-sm">
@@ -63,9 +92,17 @@ export function ProjectFilesCard({ projectId, files }: ProjectFilesCardProps) {
                   id="project-file-upload"
                   name="file"
                   type="file"
+                  accept={PROJECT_FILE_ACCEPT_ATTRIBUTE}
                   className="w-full bg-white"
                   disabled={isUploading}
+                  onChange={(event) =>
+                    validateSelectedFile(event.target.files?.[0] ?? null)
+                  }
                 />
+                <p className="text-xs text-slate-500">
+                  Up to 25 MB. Allowed:{" "}
+                  {getProjectFileAllowedTypeLabels().join(", ")}.
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -113,12 +150,15 @@ export function ProjectFilesCard({ projectId, files }: ProjectFilesCardProps) {
             </label>
 
             <FormStatus
-              message={uploadState.message}
-              success={uploadState.success}
+              message={clientValidationMessage || uploadState.message}
+              success={!clientValidationMessage && uploadState.success}
             />
 
             <div className="flex justify-end">
-              <Button type="submit" disabled={isUploading}>
+              <Button
+                type="submit"
+                disabled={isUploading || Boolean(clientValidationMessage)}
+              >
                 {isUploading ? (
                   <>
                     <Loader2 className="size-4 animate-spin" />
@@ -157,6 +197,12 @@ export function ProjectFilesCard({ projectId, files }: ProjectFilesCardProps) {
                     {formatFileSize(file.fileSize)}
                   </p>
                   <p className="text-xs text-slate-500">
+                    Original: {file.originalFileName}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    Uploaded by {file.uploadedByName ?? "Unknown uploader"}
+                  </p>
+                  <p className="text-xs text-slate-500">
                     {file.viewedAt
                       ? `Viewed ${formatRelativeTime(file.viewedAt)}`
                       : "Not viewed yet"}
@@ -177,6 +223,16 @@ export function ProjectFilesCard({ projectId, files }: ProjectFilesCardProps) {
                       />
                     }
                     meta={formatShortDate(file.createdAt)}
+                  />
+                  <BadgeWithMeta
+                    className="sm:items-end"
+                    badge={
+                      <StatusBadge
+                        label={getFileScanStatusMeta(file.scanStatus).label}
+                        tone={getFileScanStatusMeta(file.scanStatus).tone}
+                      />
+                    }
+                    meta={file.uploadedByName ?? "Unknown uploader"}
                   />
                   <FileRecordActions
                     fileId={file.id}

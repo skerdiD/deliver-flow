@@ -40,10 +40,23 @@ import {
   type UpdateFormValues,
 } from "@/features/admin/projects/project-validation";
 import {
-  PROJECT_FILES_BUCKET,
   buildProjectFileStoragePath,
-  sanitizeProjectFileName,
-} from "@/features/projects/file-storage";
+  formatProjectFileSize,
+  getProjectFileAllowedTypeLabels,
+  PROJECT_FILES_BUCKET,
+  validateProjectFileSelection,
+} from "@/features/projects/file-security";
+import {
+  createProjectFileChecksum,
+  getProjectFileSecurityConfig,
+} from "@/features/projects/file-security.server";
+import {
+  queueProjectFileCleanupJob,
+  releaseWorkspaceStorageBytes,
+  removeProjectFileStorageObject,
+  reserveWorkspaceStorageBytes,
+  runInitialProjectFileScan,
+} from "@/features/projects/project-files.server";
 import { logProjectActivity } from "@/features/projects/activity";
 import { isDemoWorkspaceId } from "@/lib/demo";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -102,7 +115,6 @@ const projectFileCategorySchema = z.enum([
   "deliverable",
   "other",
 ]);
-const MAX_PROJECT_FILE_SIZE_BYTES = 25 * 1024 * 1024;
 
 async function getMutableProject(projectId: string) {
   const { workspaceId } = await requireAdminWorkspace();
@@ -130,30 +142,6 @@ function getActionErrorMessage(error: unknown, fallback: string) {
   }
 
   return fallback;
-}
-
-function getFileExtension(fileName: string) {
-  const lastDotIndex = fileName.lastIndexOf(".");
-
-  if (lastDotIndex <= 0 || lastDotIndex === fileName.length - 1) {
-    return "";
-  }
-
-  return fileName.slice(lastDotIndex);
-}
-
-function getDisplayFileName(fileName: string, labelValue: FormDataEntryValue | null) {
-  if (typeof labelValue !== "string" || !labelValue.trim()) {
-    return sanitizeProjectFileName(fileName);
-  }
-
-  const label = labelValue.trim();
-
-  if (label.includes(".")) {
-    return sanitizeProjectFileName(label);
-  }
-
-  return sanitizeProjectFileName(`${label}${getFileExtension(fileName)}`);
 }
 
 function getActorName(profile: { full_name: string | null; email: string }) {
@@ -248,7 +236,10 @@ export async function updateProjectAction(
   }
 
   try {
-    const project = await updateAdminProject(idParsed.data.projectId, parsed.data);
+    const project = await updateAdminProject(
+      idParsed.data.projectId,
+      parsed.data,
+    );
 
     if (!project) {
       return {
@@ -281,7 +272,8 @@ export async function archiveProjectAction(
   if (isDemoWorkspaceId(workspaceId)) {
     return {
       success: false,
-      message: "Demo workspace data is protected and can be reset from the seed.",
+      message:
+        "Demo workspace data is protected and can be reset from the seed.",
     };
   }
 
@@ -331,7 +323,8 @@ export async function deleteProjectAction(
   if (isDemoWorkspaceId(workspaceId)) {
     return {
       success: false,
-      message: "Demo workspace data is protected and can be reset from the seed.",
+      message:
+        "Demo workspace data is protected and can be reset from the seed.",
     };
   }
 
@@ -396,7 +389,10 @@ export async function updateProjectProgressAction(
     };
   }
 
-  const project = await updateProjectProgress(idParsed.data.projectId, parsed.data);
+  const project = await updateProjectProgress(
+    idParsed.data.projectId,
+    parsed.data,
+  );
 
   if (!project) {
     return {
@@ -890,7 +886,8 @@ export async function updateProjectPaymentStatusAction(input: {
       status: parsed.data.status,
       paidAt: parsed.data.status === "paid" ? new Date() : null,
       voidedAt: parsed.data.status === "void" ? new Date() : null,
-      voidReason: parsed.data.status === "void" ? "Voided from status menu" : null,
+      voidReason:
+        parsed.data.status === "void" ? "Voided from status menu" : null,
       updatedAt: new Date(),
     })
     .where(
@@ -939,14 +936,13 @@ export async function uploadProjectFileAction(
   formData: FormData,
 ): Promise<ProjectActionResult> {
   const { profile: adminProfile, workspaceId } = await requireAdminWorkspace();
+  const securityConfig = getProjectFileSecurityConfig();
   const projectIdParsed = uuidSchema.safeParse(formData.get("projectId"));
   const categoryParsed = projectFileCategorySchema.safeParse(
     formData.get("category") || "deliverable",
   );
   const visibleToClient = formData.get("isVisibleToClient") === "on";
   const file = formData.get("file");
-  const displayFileName =
-    file instanceof File ? getDisplayFileName(file.name, formData.get("label")) : "";
 
   if (!projectIdParsed.success) {
     return {
@@ -969,13 +965,6 @@ export async function uploadProjectFileAction(
     };
   }
 
-  if (file.size > MAX_PROJECT_FILE_SIZE_BYTES) {
-    return {
-      success: false,
-      message: "File is too large. Upload files up to 25 MB.",
-    };
-  }
-
   const project = await getMutableProject(projectIdParsed.data);
 
   if (!project) {
@@ -985,45 +974,138 @@ export async function uploadProjectFileAction(
     };
   }
 
-  const safeFileName = sanitizeProjectFileName(file.name);
-  const storagePath = buildProjectFileStoragePath({
-    projectId: projectIdParsed.data,
-    fileName: safeFileName,
+  const fileBytes = await file.arrayBuffer();
+  const validation = validateProjectFileSelection({
+    bytes: fileBytes,
+    declaredMimeType: file.type,
+    displayLabel:
+      typeof formData.get("label") === "string"
+        ? formData.get("label")?.toString()
+        : null,
+    maxUploadBytes: securityConfig.maxUploadBytes,
+    originalFileName: file.name,
+    sizeBytes: fileBytes.byteLength,
   });
+
+  if (!validation.ok) {
+    return {
+      success: false,
+      message: validation.message,
+    };
+  }
+
+  const storageReservation = await reserveWorkspaceStorageBytes({
+    additionalBytes: fileBytes.byteLength,
+    workspaceId,
+  });
+
+  if (!storageReservation.allowed) {
+    return {
+      success: false,
+      message: `Workspace storage quota exceeded. ${formatProjectFileSize(
+        securityConfig.workspaceQuotaBytes,
+      )} total storage is allowed for each workspace.`,
+    };
+  }
+
+  const storagePath = buildProjectFileStoragePath({
+    extension: validation.value.extension,
+    objectId: crypto.randomUUID(),
+    projectId: projectIdParsed.data,
+    workspaceId,
+  });
+  const checksumSha256 = await createProjectFileChecksum(fileBytes);
   const supabase = createSupabaseAdminClient();
   const { error } = await supabase.storage
     .from(PROJECT_FILES_BUCKET)
-    .upload(storagePath, file, {
-      contentType: file.type || "application/octet-stream",
+    .upload(storagePath, fileBytes, {
+      contentType: validation.value.validatedMimeType,
       upsert: false,
     });
 
   if (error) {
+    await releaseWorkspaceStorageBytes({
+      releasedBytes: fileBytes.byteLength,
+      workspaceId,
+    });
+
     return {
       success: false,
       message: "File could not be uploaded. Check Supabase Storage settings.",
     };
   }
 
-  const [createdFile] = await db
-    .insert(projectFiles)
-    .values({
+  let createdFile:
+    | {
+        id: string;
+        fileName: string;
+        category: string;
+      }
+    | undefined;
+
+  try {
+    [createdFile] = await db
+      .insert(projectFiles)
+      .values({
+        workspaceId,
+        projectId: projectIdParsed.data,
+        uploadedBy: adminProfile.id,
+        fileName: validation.value.displayFileName,
+        originalFileName: validation.value.originalFileName,
+        bucketName: PROJECT_FILES_BUCKET,
+        storagePath,
+        fileType: validation.value.validatedMimeType,
+        fileSize: fileBytes.byteLength,
+        fileExtension: validation.value.extension,
+        checksumSha256,
+        category: categoryParsed.data,
+        scanStatus: "pending",
+        isVisibleToClient: visibleToClient,
+      })
+      .returning({
+        id: projectFiles.id,
+        fileName: projectFiles.fileName,
+        category: projectFiles.category,
+      });
+  } catch (dbError) {
+    await releaseWorkspaceStorageBytes({
+      releasedBytes: fileBytes.byteLength,
       workspaceId,
-      projectId: projectIdParsed.data,
-      uploadedBy: adminProfile.id,
-      fileName: displayFileName,
-      bucketName: PROJECT_FILES_BUCKET,
-      storagePath,
-      fileType: file.type || "application/octet-stream",
-      fileSize: file.size,
-      category: categoryParsed.data,
-      isVisibleToClient: visibleToClient,
-    })
-    .returning({
-      id: projectFiles.id,
-      fileName: projectFiles.fileName,
-      category: projectFiles.category,
     });
+
+    const cleanupOutcome = await removeProjectFileStorageObject({
+      bucketName: PROJECT_FILES_BUCKET,
+      projectId: projectIdParsed.data,
+      reason: "upload_db_failed",
+      storagePath,
+      workspaceId,
+    });
+
+    if (!cleanupOutcome.deleted && !cleanupOutcome.cleanupQueued) {
+      await queueProjectFileCleanupJob({
+        bucketName: PROJECT_FILES_BUCKET,
+        lastError:
+          dbError instanceof Error
+            ? dbError.message
+            : "Database insert failed.",
+        projectId: projectIdParsed.data,
+        reason: "upload_db_failed",
+        storagePath,
+        workspaceId,
+      });
+    }
+
+    return {
+      success: false,
+      message: "File metadata could not be saved. Upload was rolled back.",
+    };
+  }
+
+  const scanResult = await runInitialProjectFileScan({
+    fileId: createdFile.id,
+    projectId: projectIdParsed.data,
+    workspaceId,
+  });
 
   await logProjectActivity({
     projectId: projectIdParsed.data,
@@ -1037,6 +1119,7 @@ export async function uploadProjectFileAction(
       fileName: createdFile.fileName,
       category: createdFile.category,
       isVisibleToClient: visibleToClient,
+      scanStatus: scanResult.status,
     },
   });
 
@@ -1044,7 +1127,12 @@ export async function uploadProjectFileAction(
 
   return {
     success: true,
-    message: "File uploaded.",
+    message:
+      scanResult.status === "clean"
+        ? "File uploaded."
+        : `File uploaded and held for scanning. Allowed types: ${getProjectFileAllowedTypeLabels().join(
+            ", ",
+          )}.`,
     projectId: projectIdParsed.data,
   };
 }

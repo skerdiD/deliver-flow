@@ -21,12 +21,13 @@ describe("project file storage helpers", () => {
   it("builds a structured project storage path", () => {
     expect(
       buildProjectFileStoragePath({
+        extension: ".pdf",
+        objectId: "f0f0f0f0-0000-4000-8000-000000000001",
         projectId: "70000000-0000-4000-8000-000000000002",
-        fileName: "Final Brief.pdf",
-        timestamp: 1_788_222_000_000,
+        workspaceId: "60000000-0000-4000-8000-000000000001",
       }),
     ).toBe(
-      "projects/70000000-0000-4000-8000-000000000002/1788222000000-Final-Brief.pdf",
+      "workspaces/60000000-0000-4000-8000-000000000001/projects/70000000-0000-4000-8000-000000000002/f0f0f0f0-0000-4000-8000-000000000001/file.pdf",
     );
   });
 });

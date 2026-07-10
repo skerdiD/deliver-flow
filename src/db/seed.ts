@@ -294,45 +294,49 @@ async function main() {
       },
     });
 
-  await db.delete(workspaces).where(
-    inArray(workspaces.slug, [
-      `workspace-${ownerId.replaceAll("-", "")}`,
-      `workspace-${clientId.replaceAll("-", "")}`,
-    ]),
-  );
+  await db
+    .delete(workspaces)
+    .where(
+      inArray(workspaces.slug, [
+        `workspace-${ownerId.replaceAll("-", "")}`,
+        `workspace-${clientId.replaceAll("-", "")}`,
+      ]),
+    );
 
   await db
     .insert(clients)
-    .values(withDemoWorkspace([
-      {
-        id: ids.clients.acmeStudio,
-        profileId: clientId,
-        companyName: "Acme Studio",
-        contactName: "Demo Client",
-        email: demoEmails.client,
-        phone: "+1 555 019 1042",
-        status: "active",
-        notes:
-          "Brand studio testing a polished client portal for active website work.",
-        createdBy: ownerId,
-        archivedAt: null,
-        deletedAt: null,
-      },
-      {
-        id: ids.clients.northwindDigital,
-        profileId: null,
-        companyName: "Northwind Digital",
-        contactName: "Elliot Harper",
-        email: demoEmails.northwind,
-        phone: "+1 555 019 2088",
-        status: "active",
-        notes:
-          "Operations team reviewing a dashboard MVP and support automation pilot.",
-        createdBy: ownerId,
-        archivedAt: null,
-        deletedAt: null,
-      },
-    ]))
+    .values(
+      withDemoWorkspace([
+        {
+          id: ids.clients.acmeStudio,
+          profileId: clientId,
+          companyName: "Acme Studio",
+          contactName: "Demo Client",
+          email: demoEmails.client,
+          phone: "+1 555 019 1042",
+          status: "active",
+          notes:
+            "Brand studio testing a polished client portal for active website work.",
+          createdBy: ownerId,
+          archivedAt: null,
+          deletedAt: null,
+        },
+        {
+          id: ids.clients.northwindDigital,
+          profileId: null,
+          companyName: "Northwind Digital",
+          contactName: "Elliot Harper",
+          email: demoEmails.northwind,
+          phone: "+1 555 019 2088",
+          status: "active",
+          notes:
+            "Operations team reviewing a dashboard MVP and support automation pilot.",
+          createdBy: ownerId,
+          archivedAt: null,
+          deletedAt: null,
+        },
+      ]),
+    )
     .onConflictDoUpdate({
       target: clients.id,
       set: {
@@ -352,54 +356,57 @@ async function main() {
 
   await db
     .insert(projects)
-    .values(withDemoWorkspace([
-      {
-        id: ids.projects.websiteRedesign,
-        name: "Website Redesign",
-        slug: "demo-website-redesign",
-        description:
-          "A complete website refresh with clearer positioning, responsive page templates, and launch-ready content.",
-        status: "waiting_feedback",
-        progress: 82,
-        liveDemoUrl: "https://demo.deliverflow.dev/website-redesign",
-        repositoryUrl: "https://github.com/deliverflow-demo/website-redesign",
-        deadline: "2026-07-18",
-        createdBy: ownerId,
-        archivedAt: null,
-        deletedAt: null,
-      },
-      {
-        id: ids.projects.saasDashboardMvp,
-        name: "SaaS Dashboard MVP",
-        slug: "demo-saas-dashboard-mvp",
-        description:
-          "A product dashboard MVP with role-based reporting, billing visibility, and a focused owner workflow.",
-        status: "in_progress",
-        progress: 58,
-        liveDemoUrl: "https://demo.deliverflow.dev/saas-dashboard-mvp",
-        repositoryUrl: "https://github.com/deliverflow-demo/saas-dashboard-mvp",
-        deadline: "2026-08-06",
-        createdBy: ownerId,
-        archivedAt: null,
-        deletedAt: null,
-      },
-      {
-        id: ids.projects.aiSupportWorkflow,
-        name: "AI Support Workflow",
-        slug: "demo-ai-support-workflow",
-        description:
-          "A support workflow pilot that triages requests, drafts replies, and routes edge cases to the right team.",
-        status: "active",
-        progress: 34,
-        liveDemoUrl: "https://demo.deliverflow.dev/ai-support-workflow",
-        repositoryUrl:
-          "https://github.com/deliverflow-demo/ai-support-workflow",
-        deadline: "2026-09-02",
-        createdBy: ownerId,
-        archivedAt: null,
-        deletedAt: null,
-      },
-    ]))
+    .values(
+      withDemoWorkspace([
+        {
+          id: ids.projects.websiteRedesign,
+          name: "Website Redesign",
+          slug: "demo-website-redesign",
+          description:
+            "A complete website refresh with clearer positioning, responsive page templates, and launch-ready content.",
+          status: "waiting_feedback",
+          progress: 82,
+          liveDemoUrl: "https://demo.deliverflow.dev/website-redesign",
+          repositoryUrl: "https://github.com/deliverflow-demo/website-redesign",
+          deadline: "2026-07-18",
+          createdBy: ownerId,
+          archivedAt: null,
+          deletedAt: null,
+        },
+        {
+          id: ids.projects.saasDashboardMvp,
+          name: "SaaS Dashboard MVP",
+          slug: "demo-saas-dashboard-mvp",
+          description:
+            "A product dashboard MVP with role-based reporting, billing visibility, and a focused owner workflow.",
+          status: "in_progress",
+          progress: 58,
+          liveDemoUrl: "https://demo.deliverflow.dev/saas-dashboard-mvp",
+          repositoryUrl:
+            "https://github.com/deliverflow-demo/saas-dashboard-mvp",
+          deadline: "2026-08-06",
+          createdBy: ownerId,
+          archivedAt: null,
+          deletedAt: null,
+        },
+        {
+          id: ids.projects.aiSupportWorkflow,
+          name: "AI Support Workflow",
+          slug: "demo-ai-support-workflow",
+          description:
+            "A support workflow pilot that triages requests, drafts replies, and routes edge cases to the right team.",
+          status: "active",
+          progress: 34,
+          liveDemoUrl: "https://demo.deliverflow.dev/ai-support-workflow",
+          repositoryUrl:
+            "https://github.com/deliverflow-demo/ai-support-workflow",
+          deadline: "2026-09-02",
+          createdBy: ownerId,
+          archivedAt: null,
+          deletedAt: null,
+        },
+      ]),
+    )
     .onConflictDoUpdate({
       target: projects.id,
       set: {
@@ -420,23 +427,25 @@ async function main() {
 
   await db
     .insert(projectAssignments)
-    .values(withDemoWorkspace([
-      {
-        projectId: ids.projects.websiteRedesign,
-        clientId: ids.clients.acmeStudio,
-        assignedBy: ownerId,
-      },
-      {
-        projectId: ids.projects.saasDashboardMvp,
-        clientId: ids.clients.acmeStudio,
-        assignedBy: ownerId,
-      },
-      {
-        projectId: ids.projects.aiSupportWorkflow,
-        clientId: ids.clients.northwindDigital,
-        assignedBy: ownerId,
-      },
-    ]))
+    .values(
+      withDemoWorkspace([
+        {
+          projectId: ids.projects.websiteRedesign,
+          clientId: ids.clients.acmeStudio,
+          assignedBy: ownerId,
+        },
+        {
+          projectId: ids.projects.saasDashboardMvp,
+          clientId: ids.clients.acmeStudio,
+          assignedBy: ownerId,
+        },
+        {
+          projectId: ids.projects.aiSupportWorkflow,
+          clientId: ids.clients.northwindDigital,
+          assignedBy: ownerId,
+        },
+      ]),
+    )
     .onConflictDoUpdate({
       target: [projectAssignments.projectId, projectAssignments.clientId],
       set: {
@@ -447,80 +456,82 @@ async function main() {
 
   await db
     .insert(milestones)
-    .values(withDemoWorkspace([
-      {
-        id: ids.milestones.discovery,
-        projectId: ids.projects.websiteRedesign,
-        title: "Discovery and content plan",
-        description:
-          "Sitemap, page priorities, and messaging direction approved for the redesign.",
-        status: "completed",
-        dueDate: "2026-06-26",
-        position: 1,
-        isVisibleToClient: true,
-        createdBy: ownerId,
-      },
-      {
-        id: ids.milestones.designReview,
-        projectId: ids.projects.websiteRedesign,
-        title: "Homepage design review",
-        description:
-          "High-fidelity homepage and service page layouts are ready for client review.",
-        status: "waiting_approval",
-        dueDate: "2026-07-09",
-        position: 2,
-        isVisibleToClient: true,
-        createdBy: ownerId,
-      },
-      {
-        id: ids.milestones.dashboardFoundation,
-        projectId: ids.projects.saasDashboardMvp,
-        title: "Dashboard foundation",
-        description:
-          "Navigation, metrics, project cards, and billing overview are in place.",
-        status: "completed",
-        dueDate: "2026-07-03",
-        position: 1,
-        isVisibleToClient: true,
-        createdBy: ownerId,
-      },
-      {
-        id: ids.milestones.dataIntegration,
-        projectId: ids.projects.saasDashboardMvp,
-        title: "Data integration",
-        description:
-          "Connect Supabase data, reporting filters, and customer-facing summaries.",
-        status: "in_progress",
-        dueDate: "2026-07-24",
-        position: 2,
-        isVisibleToClient: true,
-        createdBy: ownerId,
-      },
-      {
-        id: ids.milestones.workflowPilot,
-        projectId: ids.projects.aiSupportWorkflow,
-        title: "Workflow pilot",
-        description:
-          "Map support intake, triage rules, escalation paths, and reporting events.",
-        status: "in_progress",
-        dueDate: "2026-08-14",
-        position: 1,
-        isVisibleToClient: true,
-        createdBy: ownerId,
-      },
-      {
-        id: ids.milestones.launchPrep,
-        projectId: ids.projects.aiSupportWorkflow,
-        title: "Launch preparation",
-        description:
-          "Prepare handoff notes, prompt library, and team training checklist.",
-        status: "not_started",
-        dueDate: "2026-08-28",
-        position: 2,
-        isVisibleToClient: true,
-        createdBy: ownerId,
-      },
-    ]))
+    .values(
+      withDemoWorkspace([
+        {
+          id: ids.milestones.discovery,
+          projectId: ids.projects.websiteRedesign,
+          title: "Discovery and content plan",
+          description:
+            "Sitemap, page priorities, and messaging direction approved for the redesign.",
+          status: "completed",
+          dueDate: "2026-06-26",
+          position: 1,
+          isVisibleToClient: true,
+          createdBy: ownerId,
+        },
+        {
+          id: ids.milestones.designReview,
+          projectId: ids.projects.websiteRedesign,
+          title: "Homepage design review",
+          description:
+            "High-fidelity homepage and service page layouts are ready for client review.",
+          status: "waiting_approval",
+          dueDate: "2026-07-09",
+          position: 2,
+          isVisibleToClient: true,
+          createdBy: ownerId,
+        },
+        {
+          id: ids.milestones.dashboardFoundation,
+          projectId: ids.projects.saasDashboardMvp,
+          title: "Dashboard foundation",
+          description:
+            "Navigation, metrics, project cards, and billing overview are in place.",
+          status: "completed",
+          dueDate: "2026-07-03",
+          position: 1,
+          isVisibleToClient: true,
+          createdBy: ownerId,
+        },
+        {
+          id: ids.milestones.dataIntegration,
+          projectId: ids.projects.saasDashboardMvp,
+          title: "Data integration",
+          description:
+            "Connect Supabase data, reporting filters, and customer-facing summaries.",
+          status: "in_progress",
+          dueDate: "2026-07-24",
+          position: 2,
+          isVisibleToClient: true,
+          createdBy: ownerId,
+        },
+        {
+          id: ids.milestones.workflowPilot,
+          projectId: ids.projects.aiSupportWorkflow,
+          title: "Workflow pilot",
+          description:
+            "Map support intake, triage rules, escalation paths, and reporting events.",
+          status: "in_progress",
+          dueDate: "2026-08-14",
+          position: 1,
+          isVisibleToClient: true,
+          createdBy: ownerId,
+        },
+        {
+          id: ids.milestones.launchPrep,
+          projectId: ids.projects.aiSupportWorkflow,
+          title: "Launch preparation",
+          description:
+            "Prepare handoff notes, prompt library, and team training checklist.",
+          status: "not_started",
+          dueDate: "2026-08-28",
+          position: 2,
+          isVisibleToClient: true,
+          createdBy: ownerId,
+        },
+      ]),
+    )
     .onConflictDoUpdate({
       target: milestones.id,
       set: {
@@ -538,128 +549,130 @@ async function main() {
 
   await db
     .insert(tasks)
-    .values(withDemoWorkspace([
-      {
-        id: ids.tasks.sitemap,
-        projectId: ids.projects.websiteRedesign,
-        milestoneId: ids.milestones.discovery,
-        title: "Finalize sitemap",
-        description:
-          "Confirm top-level navigation, service pages, and launch scope.",
-        status: "completed",
-        priority: "high",
-        dueDate: "2026-06-25",
-        position: 1,
-        isVisibleToClient: true,
-        createdBy: ownerId,
-        deletedAt: null,
-      },
-      {
-        id: ids.tasks.homepageConcept,
-        projectId: ids.projects.websiteRedesign,
-        milestoneId: ids.milestones.designReview,
-        title: "Prepare homepage concept",
-        description:
-          "Package homepage, services, and case-study section for review.",
-        status: "in_progress",
-        priority: "high",
-        dueDate: "2026-07-08",
-        position: 2,
-        isVisibleToClient: true,
-        createdBy: ownerId,
-        deletedAt: null,
-      },
-      {
-        id: ids.tasks.responsiveQa,
-        projectId: ids.projects.websiteRedesign,
-        milestoneId: ids.milestones.designReview,
-        title: "Run responsive QA pass",
-        description:
-          "Check mobile and tablet states after the final design notes are approved.",
-        status: "todo",
-        priority: "medium",
-        dueDate: "2026-07-15",
-        position: 3,
-        isVisibleToClient: true,
-        createdBy: ownerId,
-        deletedAt: null,
-      },
-      {
-        id: ids.tasks.dashboardShell,
-        projectId: ids.projects.saasDashboardMvp,
-        milestoneId: ids.milestones.dashboardFoundation,
-        title: "Build dashboard shell",
-        description:
-          "Create the core owner dashboard layout and project summary cards.",
-        status: "completed",
-        priority: "high",
-        dueDate: "2026-07-02",
-        position: 1,
-        isVisibleToClient: true,
-        createdBy: ownerId,
-        deletedAt: null,
-      },
-      {
-        id: ids.tasks.billingCards,
-        projectId: ids.projects.saasDashboardMvp,
-        milestoneId: ids.milestones.dataIntegration,
-        title: "Connect billing cards",
-        description:
-          "Show paid, partial, overdue, and upcoming payment states in the portal.",
-        status: "in_progress",
-        priority: "medium",
-        dueDate: "2026-07-20",
-        position: 2,
-        isVisibleToClient: true,
-        createdBy: ownerId,
-        deletedAt: null,
-      },
-      {
-        id: ids.tasks.supabaseReports,
-        projectId: ids.projects.saasDashboardMvp,
-        milestoneId: ids.milestones.dataIntegration,
-        title: "Wire Supabase reports",
-        description:
-          "Load chart data, project counts, and recent account activity from the database.",
-        status: "blocked",
-        priority: "high",
-        dueDate: "2026-07-23",
-        position: 3,
-        isVisibleToClient: true,
-        createdBy: ownerId,
-        deletedAt: null,
-      },
-      {
-        id: ids.tasks.knowledgeMap,
-        projectId: ids.projects.aiSupportWorkflow,
-        milestoneId: ids.milestones.workflowPilot,
-        title: "Map support knowledge sources",
-        description:
-          "Inventory help center content, macros, and escalation categories.",
-        status: "in_progress",
-        priority: "high",
-        dueDate: "2026-08-05",
-        position: 1,
-        isVisibleToClient: true,
-        createdBy: ownerId,
-        deletedAt: null,
-      },
-      {
-        id: ids.tasks.escalationRules,
-        projectId: ids.projects.aiSupportWorkflow,
-        milestoneId: ids.milestones.launchPrep,
-        title: "Draft escalation rules",
-        description:
-          "Define when AI drafts are routed to finance, product, or account owners.",
-        status: "todo",
-        priority: "medium",
-        dueDate: "2026-08-22",
-        position: 2,
-        isVisibleToClient: true,
-        createdBy: ownerId,
-        deletedAt: null,
-      },
-    ]))
+    .values(
+      withDemoWorkspace([
+        {
+          id: ids.tasks.sitemap,
+          projectId: ids.projects.websiteRedesign,
+          milestoneId: ids.milestones.discovery,
+          title: "Finalize sitemap",
+          description:
+            "Confirm top-level navigation, service pages, and launch scope.",
+          status: "completed",
+          priority: "high",
+          dueDate: "2026-06-25",
+          position: 1,
+          isVisibleToClient: true,
+          createdBy: ownerId,
+          deletedAt: null,
+        },
+        {
+          id: ids.tasks.homepageConcept,
+          projectId: ids.projects.websiteRedesign,
+          milestoneId: ids.milestones.designReview,
+          title: "Prepare homepage concept",
+          description:
+            "Package homepage, services, and case-study section for review.",
+          status: "in_progress",
+          priority: "high",
+          dueDate: "2026-07-08",
+          position: 2,
+          isVisibleToClient: true,
+          createdBy: ownerId,
+          deletedAt: null,
+        },
+        {
+          id: ids.tasks.responsiveQa,
+          projectId: ids.projects.websiteRedesign,
+          milestoneId: ids.milestones.designReview,
+          title: "Run responsive QA pass",
+          description:
+            "Check mobile and tablet states after the final design notes are approved.",
+          status: "todo",
+          priority: "medium",
+          dueDate: "2026-07-15",
+          position: 3,
+          isVisibleToClient: true,
+          createdBy: ownerId,
+          deletedAt: null,
+        },
+        {
+          id: ids.tasks.dashboardShell,
+          projectId: ids.projects.saasDashboardMvp,
+          milestoneId: ids.milestones.dashboardFoundation,
+          title: "Build dashboard shell",
+          description:
+            "Create the core owner dashboard layout and project summary cards.",
+          status: "completed",
+          priority: "high",
+          dueDate: "2026-07-02",
+          position: 1,
+          isVisibleToClient: true,
+          createdBy: ownerId,
+          deletedAt: null,
+        },
+        {
+          id: ids.tasks.billingCards,
+          projectId: ids.projects.saasDashboardMvp,
+          milestoneId: ids.milestones.dataIntegration,
+          title: "Connect billing cards",
+          description:
+            "Show paid, partial, overdue, and upcoming payment states in the portal.",
+          status: "in_progress",
+          priority: "medium",
+          dueDate: "2026-07-20",
+          position: 2,
+          isVisibleToClient: true,
+          createdBy: ownerId,
+          deletedAt: null,
+        },
+        {
+          id: ids.tasks.supabaseReports,
+          projectId: ids.projects.saasDashboardMvp,
+          milestoneId: ids.milestones.dataIntegration,
+          title: "Wire Supabase reports",
+          description:
+            "Load chart data, project counts, and recent account activity from the database.",
+          status: "blocked",
+          priority: "high",
+          dueDate: "2026-07-23",
+          position: 3,
+          isVisibleToClient: true,
+          createdBy: ownerId,
+          deletedAt: null,
+        },
+        {
+          id: ids.tasks.knowledgeMap,
+          projectId: ids.projects.aiSupportWorkflow,
+          milestoneId: ids.milestones.workflowPilot,
+          title: "Map support knowledge sources",
+          description:
+            "Inventory help center content, macros, and escalation categories.",
+          status: "in_progress",
+          priority: "high",
+          dueDate: "2026-08-05",
+          position: 1,
+          isVisibleToClient: true,
+          createdBy: ownerId,
+          deletedAt: null,
+        },
+        {
+          id: ids.tasks.escalationRules,
+          projectId: ids.projects.aiSupportWorkflow,
+          milestoneId: ids.milestones.launchPrep,
+          title: "Draft escalation rules",
+          description:
+            "Define when AI drafts are routed to finance, product, or account owners.",
+          status: "todo",
+          priority: "medium",
+          dueDate: "2026-08-22",
+          position: 2,
+          isVisibleToClient: true,
+          createdBy: ownerId,
+          deletedAt: null,
+        },
+      ]),
+    )
     .onConflictDoUpdate({
       target: tasks.id,
       set: {
@@ -680,44 +693,46 @@ async function main() {
 
   await db
     .insert(projectUpdates)
-    .values(withDemoWorkspace([
-      {
-        id: ids.updates.designDirection,
-        projectId: ids.projects.websiteRedesign,
-        title: "Design direction is ready",
-        body: "The updated visual direction uses stronger service positioning, clearer proof points, and a tighter mobile layout.",
-        updateType: "progress",
-        isVisibleToClient: true,
-        createdBy: ownerId,
-      },
-      {
-        id: ids.updates.prototypeReady,
-        projectId: ids.projects.websiteRedesign,
-        title: "Prototype shared for review",
-        body: "The clickable homepage prototype is available. Please review the hero, services, and proof sections first.",
-        updateType: "approval",
-        isVisibleToClient: true,
-        createdBy: ownerId,
-      },
-      {
-        id: ids.updates.dashboardProgress,
-        projectId: ids.projects.saasDashboardMvp,
-        title: "Dashboard MVP progress",
-        body: "The project overview, payment summaries, and recent activity panels are now connected to demo data.",
-        updateType: "progress",
-        isVisibleToClient: true,
-        createdBy: ownerId,
-      },
-      {
-        id: ids.updates.workflowPilot,
-        projectId: ids.projects.aiSupportWorkflow,
-        title: "Support workflow pilot started",
-        body: "We mapped the first intake paths and started drafting triage rules for common support requests.",
-        updateType: "general",
-        isVisibleToClient: true,
-        createdBy: ownerId,
-      },
-    ]))
+    .values(
+      withDemoWorkspace([
+        {
+          id: ids.updates.designDirection,
+          projectId: ids.projects.websiteRedesign,
+          title: "Design direction is ready",
+          body: "The updated visual direction uses stronger service positioning, clearer proof points, and a tighter mobile layout.",
+          updateType: "progress",
+          isVisibleToClient: true,
+          createdBy: ownerId,
+        },
+        {
+          id: ids.updates.prototypeReady,
+          projectId: ids.projects.websiteRedesign,
+          title: "Prototype shared for review",
+          body: "The clickable homepage prototype is available. Please review the hero, services, and proof sections first.",
+          updateType: "approval",
+          isVisibleToClient: true,
+          createdBy: ownerId,
+        },
+        {
+          id: ids.updates.dashboardProgress,
+          projectId: ids.projects.saasDashboardMvp,
+          title: "Dashboard MVP progress",
+          body: "The project overview, payment summaries, and recent activity panels are now connected to demo data.",
+          updateType: "progress",
+          isVisibleToClient: true,
+          createdBy: ownerId,
+        },
+        {
+          id: ids.updates.workflowPilot,
+          projectId: ids.projects.aiSupportWorkflow,
+          title: "Support workflow pilot started",
+          body: "We mapped the first intake paths and started drafting triage rules for common support requests.",
+          updateType: "general",
+          isVisibleToClient: true,
+          createdBy: ownerId,
+        },
+      ]),
+    )
     .onConflictDoUpdate({
       target: projectUpdates.id,
       set: {
@@ -733,66 +748,68 @@ async function main() {
 
   await db
     .insert(feedback)
-    .values(withDemoWorkspace([
-      {
-        id: ids.feedback.acmeHero,
-        projectId: ids.projects.websiteRedesign,
-        clientId: ids.clients.acmeStudio,
-        createdBy: clientId,
-        message:
-          "The new homepage is much clearer. Can we make the proof section feel a bit more specific to agency clients?",
-        status: "open",
-        adminResponse: null,
-        isVisibleToClient: true,
-        archivedAt: null,
-        resolvedAt: null,
-        deletedAt: null,
-      },
-      {
-        id: ids.feedback.acmeProof,
-        projectId: ids.projects.websiteRedesign,
-        clientId: ids.clients.acmeStudio,
-        createdBy: clientId,
-        message:
-          "The case-study block works well. The testimonial copy can stay as-is.",
-        status: "resolved",
-        adminResponse:
-          "Great, I kept the testimonial block and marked the section ready for launch.",
-        isVisibleToClient: true,
-        resolvedAt: new Date("2026-06-28T14:00:00.000Z"),
-        archivedAt: null,
-        deletedAt: null,
-      },
-      {
-        id: ids.feedback.northwindMetrics,
-        projectId: ids.projects.saasDashboardMvp,
-        clientId: ids.clients.acmeStudio,
-        createdBy: clientId,
-        message:
-          "The metrics layout is easy to scan. Please keep the overdue payment count visible on mobile.",
-        status: "reviewed",
-        adminResponse:
-          "Noted. I will keep the billing summary above the fold on smaller screens.",
-        isVisibleToClient: true,
-        archivedAt: null,
-        resolvedAt: null,
-        deletedAt: null,
-      },
-      {
-        id: ids.feedback.northwindWorkflow,
-        projectId: ids.projects.aiSupportWorkflow,
-        clientId: ids.clients.northwindDigital,
-        createdBy: null,
-        message:
-          "The escalation map should include refund requests and enterprise account handoffs.",
-        status: "open",
-        adminResponse: null,
-        isVisibleToClient: true,
-        archivedAt: null,
-        resolvedAt: null,
-        deletedAt: null,
-      },
-    ]))
+    .values(
+      withDemoWorkspace([
+        {
+          id: ids.feedback.acmeHero,
+          projectId: ids.projects.websiteRedesign,
+          clientId: ids.clients.acmeStudio,
+          createdBy: clientId,
+          message:
+            "The new homepage is much clearer. Can we make the proof section feel a bit more specific to agency clients?",
+          status: "open",
+          adminResponse: null,
+          isVisibleToClient: true,
+          archivedAt: null,
+          resolvedAt: null,
+          deletedAt: null,
+        },
+        {
+          id: ids.feedback.acmeProof,
+          projectId: ids.projects.websiteRedesign,
+          clientId: ids.clients.acmeStudio,
+          createdBy: clientId,
+          message:
+            "The case-study block works well. The testimonial copy can stay as-is.",
+          status: "resolved",
+          adminResponse:
+            "Great, I kept the testimonial block and marked the section ready for launch.",
+          isVisibleToClient: true,
+          resolvedAt: new Date("2026-06-28T14:00:00.000Z"),
+          archivedAt: null,
+          deletedAt: null,
+        },
+        {
+          id: ids.feedback.northwindMetrics,
+          projectId: ids.projects.saasDashboardMvp,
+          clientId: ids.clients.acmeStudio,
+          createdBy: clientId,
+          message:
+            "The metrics layout is easy to scan. Please keep the overdue payment count visible on mobile.",
+          status: "reviewed",
+          adminResponse:
+            "Noted. I will keep the billing summary above the fold on smaller screens.",
+          isVisibleToClient: true,
+          archivedAt: null,
+          resolvedAt: null,
+          deletedAt: null,
+        },
+        {
+          id: ids.feedback.northwindWorkflow,
+          projectId: ids.projects.aiSupportWorkflow,
+          clientId: ids.clients.northwindDigital,
+          createdBy: null,
+          message:
+            "The escalation map should include refund requests and enterprise account handoffs.",
+          status: "open",
+          adminResponse: null,
+          isVisibleToClient: true,
+          archivedAt: null,
+          resolvedAt: null,
+          deletedAt: null,
+        },
+      ]),
+    )
     .onConflictDoUpdate({
       target: feedback.id,
       set: {
@@ -812,61 +829,63 @@ async function main() {
 
   await db
     .insert(approvals)
-    .values(withDemoWorkspace([
-      {
-        id: ids.approvals.acmeDesign,
-        projectId: ids.projects.websiteRedesign,
-        milestoneId: ids.milestones.designReview,
-        title: "Homepage design approval",
-        description:
-          "Review the homepage and service page design direction before development begins.",
-        status: "pending",
-        requestedBy: ownerId,
-        respondedBy: null,
-        responseNote: null,
-        cancelReason: null,
-        requestedAt: new Date("2026-06-29T10:00:00.000Z"),
-        respondedAt: null,
-        cancelledAt: null,
-        deletedAt: null,
-      },
-      {
-        id: ids.approvals.dashboardPrototype,
-        projectId: ids.projects.saasDashboardMvp,
-        milestoneId: ids.milestones.dashboardFoundation,
-        title: "Dashboard prototype approval",
-        description:
-          "Approve the MVP dashboard layout so we can finish the reporting integration.",
-        status: "approved",
-        requestedBy: ownerId,
-        respondedBy: clientId,
-        responseNote:
-          "Approved. The dashboard gives us the right level of operational detail.",
-        cancelReason: null,
-        requestedAt: new Date("2026-06-27T09:30:00.000Z"),
-        respondedAt: new Date("2026-06-28T12:15:00.000Z"),
-        cancelledAt: null,
-        deletedAt: null,
-      },
-      {
-        id: ids.approvals.workflowPilot,
-        projectId: ids.projects.aiSupportWorkflow,
-        milestoneId: ids.milestones.workflowPilot,
-        title: "Support workflow pilot review",
-        description:
-          "Confirm the first workflow map before we build the automation rules.",
-        status: "changes_requested",
-        requestedBy: ownerId,
-        respondedBy: null,
-        responseNote:
-          "Please include refund and enterprise-account paths before the next review.",
-        cancelReason: null,
-        requestedAt: new Date("2026-06-26T11:00:00.000Z"),
-        respondedAt: new Date("2026-06-29T08:45:00.000Z"),
-        cancelledAt: null,
-        deletedAt: null,
-      },
-    ]))
+    .values(
+      withDemoWorkspace([
+        {
+          id: ids.approvals.acmeDesign,
+          projectId: ids.projects.websiteRedesign,
+          milestoneId: ids.milestones.designReview,
+          title: "Homepage design approval",
+          description:
+            "Review the homepage and service page design direction before development begins.",
+          status: "pending",
+          requestedBy: ownerId,
+          respondedBy: null,
+          responseNote: null,
+          cancelReason: null,
+          requestedAt: new Date("2026-06-29T10:00:00.000Z"),
+          respondedAt: null,
+          cancelledAt: null,
+          deletedAt: null,
+        },
+        {
+          id: ids.approvals.dashboardPrototype,
+          projectId: ids.projects.saasDashboardMvp,
+          milestoneId: ids.milestones.dashboardFoundation,
+          title: "Dashboard prototype approval",
+          description:
+            "Approve the MVP dashboard layout so we can finish the reporting integration.",
+          status: "approved",
+          requestedBy: ownerId,
+          respondedBy: clientId,
+          responseNote:
+            "Approved. The dashboard gives us the right level of operational detail.",
+          cancelReason: null,
+          requestedAt: new Date("2026-06-27T09:30:00.000Z"),
+          respondedAt: new Date("2026-06-28T12:15:00.000Z"),
+          cancelledAt: null,
+          deletedAt: null,
+        },
+        {
+          id: ids.approvals.workflowPilot,
+          projectId: ids.projects.aiSupportWorkflow,
+          milestoneId: ids.milestones.workflowPilot,
+          title: "Support workflow pilot review",
+          description:
+            "Confirm the first workflow map before we build the automation rules.",
+          status: "changes_requested",
+          requestedBy: ownerId,
+          respondedBy: null,
+          responseNote:
+            "Please include refund and enterprise-account paths before the next review.",
+          cancelReason: null,
+          requestedAt: new Date("2026-06-26T11:00:00.000Z"),
+          respondedAt: new Date("2026-06-29T08:45:00.000Z"),
+          cancelledAt: null,
+          deletedAt: null,
+        },
+      ]),
+    )
     .onConflictDoUpdate({
       target: approvals.id,
       set: {
@@ -889,73 +908,76 @@ async function main() {
 
   await db
     .insert(payments)
-    .values(withDemoWorkspace([
-      {
-        id: ids.payments.websiteDeposit,
-        projectId: ids.projects.websiteRedesign,
-        amountCents: 180000,
-        currency: "USD",
-        status: "paid",
-        dueDate: "2026-06-24",
-        paidAt: new Date("2026-06-24T16:00:00.000Z"),
-        voidedAt: null,
-        voidReason: null,
-        deletedAt: null,
-        notes: "Website redesign deposit.",
-      },
-      {
-        id: ids.payments.websiteFinal,
-        projectId: ids.projects.websiteRedesign,
-        amountCents: 140000,
-        currency: "USD",
-        status: "unpaid",
-        dueDate: "2026-07-18",
-        paidAt: null,
-        voidedAt: null,
-        voidReason: null,
-        deletedAt: null,
-        notes: "Final website redesign payment due before launch.",
-      },
-      {
-        id: ids.payments.dashboardDeposit,
-        projectId: ids.projects.saasDashboardMvp,
-        amountCents: 250000,
-        currency: "USD",
-        status: "partial",
-        dueDate: "2026-07-08",
-        paidAt: null,
-        voidedAt: null,
-        voidReason: null,
-        deletedAt: null,
-        notes: "Dashboard MVP build, deposit received with balance remaining.",
-      },
-      {
-        id: ids.payments.dashboardMilestone,
-        projectId: ids.projects.saasDashboardMvp,
-        amountCents: 95000,
-        currency: "USD",
-        status: "overdue",
-        dueDate: "2026-06-28",
-        paidAt: null,
-        voidedAt: null,
-        voidReason: null,
-        deletedAt: null,
-        notes: "Reporting integration milestone.",
-      },
-      {
-        id: ids.payments.workflowInvoice,
-        projectId: ids.projects.aiSupportWorkflow,
-        amountCents: 210000,
-        currency: "USD",
-        status: "unpaid",
-        dueDate: "2026-08-14",
-        paidAt: null,
-        voidedAt: null,
-        voidReason: null,
-        deletedAt: null,
-        notes: "AI support workflow pilot invoice.",
-      },
-    ]))
+    .values(
+      withDemoWorkspace([
+        {
+          id: ids.payments.websiteDeposit,
+          projectId: ids.projects.websiteRedesign,
+          amountCents: 180000,
+          currency: "USD",
+          status: "paid",
+          dueDate: "2026-06-24",
+          paidAt: new Date("2026-06-24T16:00:00.000Z"),
+          voidedAt: null,
+          voidReason: null,
+          deletedAt: null,
+          notes: "Website redesign deposit.",
+        },
+        {
+          id: ids.payments.websiteFinal,
+          projectId: ids.projects.websiteRedesign,
+          amountCents: 140000,
+          currency: "USD",
+          status: "unpaid",
+          dueDate: "2026-07-18",
+          paidAt: null,
+          voidedAt: null,
+          voidReason: null,
+          deletedAt: null,
+          notes: "Final website redesign payment due before launch.",
+        },
+        {
+          id: ids.payments.dashboardDeposit,
+          projectId: ids.projects.saasDashboardMvp,
+          amountCents: 250000,
+          currency: "USD",
+          status: "partial",
+          dueDate: "2026-07-08",
+          paidAt: null,
+          voidedAt: null,
+          voidReason: null,
+          deletedAt: null,
+          notes:
+            "Dashboard MVP build, deposit received with balance remaining.",
+        },
+        {
+          id: ids.payments.dashboardMilestone,
+          projectId: ids.projects.saasDashboardMvp,
+          amountCents: 95000,
+          currency: "USD",
+          status: "overdue",
+          dueDate: "2026-06-28",
+          paidAt: null,
+          voidedAt: null,
+          voidReason: null,
+          deletedAt: null,
+          notes: "Reporting integration milestone.",
+        },
+        {
+          id: ids.payments.workflowInvoice,
+          projectId: ids.projects.aiSupportWorkflow,
+          amountCents: 210000,
+          currency: "USD",
+          status: "unpaid",
+          dueDate: "2026-08-14",
+          paidAt: null,
+          voidedAt: null,
+          voidReason: null,
+          deletedAt: null,
+          notes: "AI support workflow pilot invoice.",
+        },
+      ]),
+    )
     .onConflictDoUpdate({
       target: payments.id,
       set: {
@@ -975,84 +997,122 @@ async function main() {
 
   await db
     .insert(projectFiles)
-    .values(withDemoWorkspace([
-      {
-        id: ids.files.websiteBrief,
-        projectId: ids.projects.websiteRedesign,
-        uploadedBy: ownerId,
-        fileName: "Website Redesign Brief.pdf",
-        bucketName: "project-files",
-        storagePath: "demo/website-redesign/website-redesign-brief.pdf",
-        fileType: "application/pdf",
-        fileSize: 1_860_000,
-        category: "brief",
-        isVisibleToClient: true,
-        deletedAt: null,
-      },
-      {
-        id: ids.files.homepagePreview,
-        projectId: ids.projects.websiteRedesign,
-        uploadedBy: ownerId,
-        fileName: "Homepage Design Preview.png",
-        bucketName: "project-files",
-        storagePath: "demo/website-redesign/homepage-design-preview.png",
-        fileType: "image/png",
-        fileSize: 3_420_000,
-        category: "design",
-        isVisibleToClient: true,
-        deletedAt: null,
-      },
-      {
-        id: ids.files.dashboardPrototype,
-        projectId: ids.projects.saasDashboardMvp,
-        uploadedBy: ownerId,
-        fileName: "Dashboard Prototype.pdf",
-        bucketName: "project-files",
-        storagePath: "demo/saas-dashboard-mvp/dashboard-prototype.pdf",
-        fileType: "application/pdf",
-        fileSize: 2_480_000,
-        category: "deliverable",
-        isVisibleToClient: true,
-        deletedAt: null,
-      },
-      {
-        id: ids.files.workflowMap,
-        projectId: ids.projects.aiSupportWorkflow,
-        uploadedBy: ownerId,
-        fileName: "Support Workflow Map.pdf",
-        bucketName: "project-files",
-        storagePath: "demo/ai-support-workflow/support-workflow-map.pdf",
-        fileType: "application/pdf",
-        fileSize: 1_240_000,
-        category: "document",
-        isVisibleToClient: true,
-        deletedAt: null,
-      },
-      {
-        id: ids.files.invoice,
-        projectId: ids.projects.websiteRedesign,
-        uploadedBy: ownerId,
-        fileName: "Website Redesign Invoice.pdf",
-        bucketName: "project-files",
-        storagePath: "demo/website-redesign/website-redesign-invoice.pdf",
-        fileType: "application/pdf",
-        fileSize: 480_000,
-        category: "invoice",
-        isVisibleToClient: true,
-        deletedAt: null,
-      },
-    ]))
+    .values(
+      withDemoWorkspace([
+        {
+          id: ids.files.websiteBrief,
+          projectId: ids.projects.websiteRedesign,
+          uploadedBy: ownerId,
+          fileName: "Website Redesign Brief.pdf",
+          originalFileName: "Website Redesign Brief.pdf",
+          bucketName: "project-files",
+          storagePath: "demo/website-redesign/website-redesign-brief.pdf",
+          fileType: "application/pdf",
+          fileSize: 1_860_000,
+          fileExtension: ".pdf",
+          checksumSha256: null,
+          category: "brief",
+          scanStatus: "clean",
+          scanCompletedAt: sql`now()`,
+          scanFailureReason: null,
+          isVisibleToClient: true,
+          deletedAt: null,
+        },
+        {
+          id: ids.files.homepagePreview,
+          projectId: ids.projects.websiteRedesign,
+          uploadedBy: ownerId,
+          fileName: "Homepage Design Preview.png",
+          originalFileName: "Homepage Design Preview.png",
+          bucketName: "project-files",
+          storagePath: "demo/website-redesign/homepage-design-preview.png",
+          fileType: "image/png",
+          fileSize: 3_420_000,
+          fileExtension: ".png",
+          checksumSha256: null,
+          category: "design",
+          scanStatus: "clean",
+          scanCompletedAt: sql`now()`,
+          scanFailureReason: null,
+          isVisibleToClient: true,
+          deletedAt: null,
+        },
+        {
+          id: ids.files.dashboardPrototype,
+          projectId: ids.projects.saasDashboardMvp,
+          uploadedBy: ownerId,
+          fileName: "Dashboard Prototype.pdf",
+          originalFileName: "Dashboard Prototype.pdf",
+          bucketName: "project-files",
+          storagePath: "demo/saas-dashboard-mvp/dashboard-prototype.pdf",
+          fileType: "application/pdf",
+          fileSize: 2_480_000,
+          fileExtension: ".pdf",
+          checksumSha256: null,
+          category: "deliverable",
+          scanStatus: "clean",
+          scanCompletedAt: sql`now()`,
+          scanFailureReason: null,
+          isVisibleToClient: true,
+          deletedAt: null,
+        },
+        {
+          id: ids.files.workflowMap,
+          projectId: ids.projects.aiSupportWorkflow,
+          uploadedBy: ownerId,
+          fileName: "Support Workflow Map.pdf",
+          originalFileName: "Support Workflow Map.pdf",
+          bucketName: "project-files",
+          storagePath: "demo/ai-support-workflow/support-workflow-map.pdf",
+          fileType: "application/pdf",
+          fileSize: 1_240_000,
+          fileExtension: ".pdf",
+          checksumSha256: null,
+          category: "document",
+          scanStatus: "clean",
+          scanCompletedAt: sql`now()`,
+          scanFailureReason: null,
+          isVisibleToClient: true,
+          deletedAt: null,
+        },
+        {
+          id: ids.files.invoice,
+          projectId: ids.projects.websiteRedesign,
+          uploadedBy: ownerId,
+          fileName: "Website Redesign Invoice.pdf",
+          originalFileName: "Website Redesign Invoice.pdf",
+          bucketName: "project-files",
+          storagePath: "demo/website-redesign/website-redesign-invoice.pdf",
+          fileType: "application/pdf",
+          fileSize: 480_000,
+          fileExtension: ".pdf",
+          checksumSha256: null,
+          category: "invoice",
+          scanStatus: "clean",
+          scanCompletedAt: sql`now()`,
+          scanFailureReason: null,
+          isVisibleToClient: true,
+          deletedAt: null,
+        },
+      ]),
+    )
     .onConflictDoUpdate({
       target: projectFiles.id,
       set: {
         projectId: sql`excluded.project_id`,
         uploadedBy: sql`excluded.uploaded_by`,
         fileName: sql`excluded.file_name`,
+        originalFileName: sql`excluded.original_file_name`,
         bucketName: sql`excluded.bucket_name`,
         storagePath: sql`excluded.storage_path`,
         fileType: sql`excluded.file_type`,
         fileSize: sql`excluded.file_size`,
+        fileExtension: sql`excluded.file_extension`,
+        checksumSha256: sql`excluded.checksum_sha256`,
         category: sql`excluded.category`,
+        scanStatus: sql`excluded.scan_status`,
+        scanCompletedAt: sql`excluded.scan_completed_at`,
+        scanFailureReason: sql`excluded.scan_failure_reason`,
         isVisibleToClient: sql`excluded.is_visible_to_client`,
         deletedAt: null,
         updatedAt: sql`now()`,
@@ -1061,69 +1121,74 @@ async function main() {
 
   await db
     .insert(projectActivity)
-    .values(withDemoWorkspace([
-      {
-        id: ids.activity.websiteCreated,
-        projectId: ids.projects.websiteRedesign,
-        actorId: ownerId,
-        actorName: "Demo Owner",
-        actorRole: "owner",
-        type: "project_created",
-        message: "Created the Website Redesign project workspace.",
-        metadata: { source: "demo-seed" },
-        createdAt: new Date("2026-06-24T09:00:00.000Z"),
-      },
-      {
-        id: ids.activity.websiteFile,
-        projectId: ids.projects.websiteRedesign,
-        actorId: ownerId,
-        actorName: "Demo Owner",
-        actorRole: "owner",
-        type: "file_uploaded",
-        message: "Uploaded the homepage design preview.",
-        metadata: { source: "demo-seed", fileId: ids.files.homepagePreview },
-        createdAt: new Date("2026-06-28T15:20:00.000Z"),
-      },
-      {
-        id: ids.activity.dashboardApproval,
-        projectId: ids.projects.saasDashboardMvp,
-        actorId: ownerId,
-        actorName: "Demo Owner",
-        actorRole: "owner",
-        type: "approval_requested",
-        message: "Requested approval for the dashboard prototype.",
-        metadata: {
-          source: "demo-seed",
-          approvalId: ids.approvals.dashboardPrototype,
+    .values(
+      withDemoWorkspace([
+        {
+          id: ids.activity.websiteCreated,
+          projectId: ids.projects.websiteRedesign,
+          actorId: ownerId,
+          actorName: "Demo Owner",
+          actorRole: "owner",
+          type: "project_created",
+          message: "Created the Website Redesign project workspace.",
+          metadata: { source: "demo-seed" },
+          createdAt: new Date("2026-06-24T09:00:00.000Z"),
         },
-        createdAt: new Date("2026-06-27T09:30:00.000Z"),
-      },
-      {
-        id: ids.activity.dashboardPayment,
-        projectId: ids.projects.saasDashboardMvp,
-        actorId: ownerId,
-        actorName: "Demo Owner",
-        actorRole: "owner",
-        type: "payment_created",
-        message: "Added the reporting integration milestone payment.",
-        metadata: {
-          source: "demo-seed",
-          paymentId: ids.payments.dashboardMilestone,
+        {
+          id: ids.activity.websiteFile,
+          projectId: ids.projects.websiteRedesign,
+          actorId: ownerId,
+          actorName: "Demo Owner",
+          actorRole: "owner",
+          type: "file_uploaded",
+          message: "Uploaded the homepage design preview.",
+          metadata: { source: "demo-seed", fileId: ids.files.homepagePreview },
+          createdAt: new Date("2026-06-28T15:20:00.000Z"),
         },
-        createdAt: new Date("2026-06-28T10:15:00.000Z"),
-      },
-      {
-        id: ids.activity.workflowUpdate,
-        projectId: ids.projects.aiSupportWorkflow,
-        actorId: ownerId,
-        actorName: "Demo Owner",
-        actorRole: "owner",
-        type: "project_update_added",
-        message: "Posted the first AI support workflow pilot update.",
-        metadata: { source: "demo-seed", updateId: ids.updates.workflowPilot },
-        createdAt: new Date("2026-06-29T13:10:00.000Z"),
-      },
-    ]))
+        {
+          id: ids.activity.dashboardApproval,
+          projectId: ids.projects.saasDashboardMvp,
+          actorId: ownerId,
+          actorName: "Demo Owner",
+          actorRole: "owner",
+          type: "approval_requested",
+          message: "Requested approval for the dashboard prototype.",
+          metadata: {
+            source: "demo-seed",
+            approvalId: ids.approvals.dashboardPrototype,
+          },
+          createdAt: new Date("2026-06-27T09:30:00.000Z"),
+        },
+        {
+          id: ids.activity.dashboardPayment,
+          projectId: ids.projects.saasDashboardMvp,
+          actorId: ownerId,
+          actorName: "Demo Owner",
+          actorRole: "owner",
+          type: "payment_created",
+          message: "Added the reporting integration milestone payment.",
+          metadata: {
+            source: "demo-seed",
+            paymentId: ids.payments.dashboardMilestone,
+          },
+          createdAt: new Date("2026-06-28T10:15:00.000Z"),
+        },
+        {
+          id: ids.activity.workflowUpdate,
+          projectId: ids.projects.aiSupportWorkflow,
+          actorId: ownerId,
+          actorName: "Demo Owner",
+          actorRole: "owner",
+          type: "project_update_added",
+          message: "Posted the first AI support workflow pilot update.",
+          metadata: {
+            source: "demo-seed",
+            updateId: ids.updates.workflowPilot,
+          },
+          createdAt: new Date("2026-06-29T13:10:00.000Z"),
+        },
+      ]),
+    )
     .onConflictDoUpdate({
       target: projectActivity.id,
       set: {
@@ -1140,35 +1205,37 @@ async function main() {
 
   await db
     .insert(projectViewEvents)
-    .values(withDemoWorkspace([
-      {
-        id: ids.views.acmeProject,
-        projectId: ids.projects.websiteRedesign,
-        clientId: ids.clients.acmeStudio,
-        userId: clientId,
-        targetType: "project",
-        targetId: ids.projects.websiteRedesign,
-        viewedAt: new Date("2026-06-29T16:00:00.000Z"),
-      },
-      {
-        id: ids.views.acmeApproval,
-        projectId: ids.projects.websiteRedesign,
-        clientId: ids.clients.acmeStudio,
-        userId: clientId,
-        targetType: "approval",
-        targetId: ids.approvals.acmeDesign,
-        viewedAt: new Date("2026-06-29T16:05:00.000Z"),
-      },
-      {
-        id: ids.views.northwindProject,
-        projectId: ids.projects.aiSupportWorkflow,
-        clientId: ids.clients.northwindDigital,
-        userId: null,
-        targetType: "project",
-        targetId: ids.projects.aiSupportWorkflow,
-        viewedAt: new Date("2026-06-28T18:30:00.000Z"),
-      },
-    ]))
+    .values(
+      withDemoWorkspace([
+        {
+          id: ids.views.acmeProject,
+          projectId: ids.projects.websiteRedesign,
+          clientId: ids.clients.acmeStudio,
+          userId: clientId,
+          targetType: "project",
+          targetId: ids.projects.websiteRedesign,
+          viewedAt: new Date("2026-06-29T16:00:00.000Z"),
+        },
+        {
+          id: ids.views.acmeApproval,
+          projectId: ids.projects.websiteRedesign,
+          clientId: ids.clients.acmeStudio,
+          userId: clientId,
+          targetType: "approval",
+          targetId: ids.approvals.acmeDesign,
+          viewedAt: new Date("2026-06-29T16:05:00.000Z"),
+        },
+        {
+          id: ids.views.northwindProject,
+          projectId: ids.projects.aiSupportWorkflow,
+          clientId: ids.clients.northwindDigital,
+          userId: null,
+          targetType: "project",
+          targetId: ids.projects.aiSupportWorkflow,
+          viewedAt: new Date("2026-06-28T18:30:00.000Z"),
+        },
+      ]),
+    )
     .onConflictDoUpdate({
       target: projectViewEvents.id,
       set: {

@@ -108,7 +108,11 @@ export async function getAdminMilestonesPageData(): Promise<AdminMilestonesPageD
         isNull(projects.deletedAt),
       ),
     )
-    .orderBy(asc(milestones.dueDate), asc(milestones.position), desc(milestones.createdAt));
+    .orderBy(
+      asc(milestones.dueDate),
+      asc(milestones.position),
+      desc(milestones.createdAt),
+    );
 
   const projectClientMap = await getProjectClientMap(
     Array.from(new Set(milestoneRows.map((row) => row.projectId))),
@@ -160,27 +164,30 @@ export async function getAdminMilestonesPageData(): Promise<AdminMilestonesPageD
     });
   }
 
-  const normalizedMilestones: AdminMilestoneRecord[] = milestoneRows.map((row) => {
-    const latestApproval = latestApprovalByMilestoneId.get(row.id);
+  const normalizedMilestones: AdminMilestoneRecord[] = milestoneRows.map(
+    (row) => {
+      const latestApproval = latestApprovalByMilestoneId.get(row.id);
 
-    return {
-      id: row.id,
-      projectId: row.projectId,
-      projectName: row.projectName,
-      clientName:
-        projectClientMap.get(row.projectId)?.clientName ?? "Unassigned client",
-      clientEmail: projectClientMap.get(row.projectId)?.clientEmail ?? null,
-      title: row.title,
-      description: row.description,
-      status: row.status,
-      dueDate: row.dueDate,
-      position: row.position,
-      approvalStatus: latestApproval?.status ?? null,
-      responseNote: latestApproval?.responseNote ?? null,
-      requestedAt: latestApproval?.requestedAt ?? null,
-      respondedAt: latestApproval?.respondedAt ?? null,
-    };
-  });
+      return {
+        id: row.id,
+        projectId: row.projectId,
+        projectName: row.projectName,
+        clientName:
+          projectClientMap.get(row.projectId)?.clientName ??
+          "Unassigned client",
+        clientEmail: projectClientMap.get(row.projectId)?.clientEmail ?? null,
+        title: row.title,
+        description: row.description,
+        status: row.status,
+        dueDate: row.dueDate,
+        position: row.position,
+        approvalStatus: latestApproval?.status ?? null,
+        responseNote: latestApproval?.responseNote ?? null,
+        requestedAt: latestApproval?.requestedAt ?? null,
+        respondedAt: latestApproval?.respondedAt ?? null,
+      };
+    },
+  );
 
   return {
     milestones: normalizedMilestones,
@@ -242,7 +249,8 @@ export async function getAdminTasksPageData(): Promise<AdminTasksPageData> {
     id: row.id,
     projectId: row.projectId,
     projectName: row.projectName,
-    clientName: projectClientMap.get(row.projectId)?.clientName ?? "Unassigned client",
+    clientName:
+      projectClientMap.get(row.projectId)?.clientName ?? "Unassigned client",
     clientEmail: projectClientMap.get(row.projectId)?.clientEmail ?? null,
     title: row.title,
     description: row.description,
@@ -264,7 +272,8 @@ export async function getAdminTasksPageData(): Promise<AdminTasksPageData> {
       total: normalizedTasks.length,
       completed: normalizedTasks.filter((task) => task.status === "completed")
         .length,
-      blocked: normalizedTasks.filter((task) => task.status === "blocked").length,
+      blocked: normalizedTasks.filter((task) => task.status === "blocked")
+        .length,
       dueSoon: normalizedTasks.filter((task) => {
         if (!task.dueDate || task.status === "completed") {
           return false;
@@ -326,7 +335,8 @@ export async function getAdminFeedbackPageData(): Promise<AdminFeedbackPageData>
   return {
     feedback: normalizedFeedback,
     summary: {
-      unread: normalizedFeedback.filter((item) => item.status === "open").length,
+      unread: normalizedFeedback.filter((item) => item.status === "open")
+        .length,
       reviewed: normalizedFeedback.filter((item) => item.status === "reviewed")
         .length,
       resolved: normalizedFeedback.filter((item) => item.status === "resolved")
@@ -375,7 +385,8 @@ export async function getAdminPaymentsPageData(): Promise<AdminPaymentsPageData>
     id: row.id,
     projectId: row.projectId,
     projectName: row.projectName,
-    clientName: projectClientMap.get(row.projectId)?.clientName ?? "Unassigned client",
+    clientName:
+      projectClientMap.get(row.projectId)?.clientName ?? "Unassigned client",
     clientEmail: projectClientMap.get(row.projectId)?.clientEmail ?? null,
     amountCents: row.amountCents,
     currency: row.currency,
@@ -394,12 +405,16 @@ export async function getAdminPaymentsPageData(): Promise<AdminPaymentsPageData>
         .filter((payment) => payment.status === "paid")
         .reduce((total, payment) => total + payment.amountCents, 0),
       outstandingCents: normalizedPayments
-        .filter((payment) => payment.status !== "paid" && payment.status !== "void")
+        .filter(
+          (payment) => payment.status !== "paid" && payment.status !== "void",
+        )
         .reduce((total, payment) => total + payment.amountCents, 0),
-      overdueCount: normalizedPayments.filter((payment) => payment.status === "overdue")
-        .length,
-      pendingCount: normalizedPayments.filter((payment) =>
-        payment.status === "unpaid" || payment.status === "partial"
+      overdueCount: normalizedPayments.filter(
+        (payment) => payment.status === "overdue",
+      ).length,
+      pendingCount: normalizedPayments.filter(
+        (payment) =>
+          payment.status === "unpaid" || payment.status === "partial",
       ).length,
     },
   };
@@ -414,16 +429,19 @@ export async function getAdminFilesPageData(): Promise<AdminFilesPageData> {
       projectId: projectFiles.projectId,
       projectName: projects.name,
       fileName: projectFiles.fileName,
+      originalFileName: projectFiles.originalFileName,
       fileType: projectFiles.fileType,
       fileSize: projectFiles.fileSize,
       category: projectFiles.category,
-      bucketName: projectFiles.bucketName,
-      storagePath: projectFiles.storagePath,
+      scanStatus: projectFiles.scanStatus,
+      uploadedByName: profiles.fullName,
+      uploadedByEmail: profiles.email,
       isVisibleToClient: projectFiles.isVisibleToClient,
       createdAt: projectFiles.createdAt,
     })
     .from(projectFiles)
     .innerJoin(projects, eq(projectFiles.projectId, projects.id))
+    .leftJoin(profiles, eq(projectFiles.uploadedBy, profiles.id))
     .where(
       and(
         isNull(projectFiles.deletedAt),
@@ -444,17 +462,31 @@ export async function getAdminFilesPageData(): Promise<AdminFilesPageData> {
     id: row.id,
     projectId: row.projectId,
     projectName: row.projectName,
-    clientName: projectClientMap.get(row.projectId)?.clientName ?? "Unassigned client",
+    clientName:
+      projectClientMap.get(row.projectId)?.clientName ?? "Unassigned client",
     clientEmail: projectClientMap.get(row.projectId)?.clientEmail ?? null,
     fileName: row.fileName,
+    originalFileName: row.originalFileName,
     fileType: row.fileType,
     fileSize: row.fileSize,
     category: row.category,
-    bucketName: row.bucketName,
-    storagePath: row.storagePath,
+    scanStatus: row.scanStatus,
+    uploadedByName: row.uploadedByName?.trim() || row.uploadedByEmail,
     isVisibleToClient: row.isVisibleToClient,
     createdAt: toIsoString(row.createdAt),
   }));
+
+  const [workspace] = await db
+    .select({
+      storageQuotaBytes: workspaces.storageQuotaBytes,
+      storageUsedBytes: workspaces.storageUsedBytes,
+    })
+    .from(workspaces)
+    .where(eq(workspaces.id, workspaceId))
+    .limit(1);
+
+  const workspaceQuotaBytes = workspace?.storageQuotaBytes ?? 0;
+  const workspaceUsedBytes = workspace?.storageUsedBytes ?? 0;
 
   return {
     files: normalizedFiles,
@@ -464,10 +496,22 @@ export async function getAdminFilesPageData(): Promise<AdminFilesPageData> {
         .length,
       internalOnly: normalizedFiles.filter((file) => !file.isVisibleToClient)
         .length,
+      pendingScan: normalizedFiles.filter(
+        (file) => file.scanStatus === "pending",
+      ).length,
       totalSizeBytes: normalizedFiles.reduce(
         (total, file) => total + (file.fileSize ?? 0),
         0,
       ),
+      usagePercent:
+        workspaceQuotaBytes > 0
+          ? Math.min(
+              100,
+              Math.round((workspaceUsedBytes / workspaceQuotaBytes) * 100),
+            )
+          : 0,
+      workspaceQuotaBytes,
+      workspaceUsedBytes,
     },
   };
 }
@@ -507,25 +551,29 @@ export async function getAdminApprovalsPageData(): Promise<AdminApprovalsPageDat
     workspaceId,
   );
 
-  const normalizedApprovals: AdminApprovalRecord[] = approvalRows.map((row) => ({
-    id: row.id,
-    projectId: row.projectId,
-    projectName: row.projectName,
-    clientName: projectClientMap.get(row.projectId)?.clientName ?? "Unassigned client",
-    clientEmail: projectClientMap.get(row.projectId)?.clientEmail ?? null,
-    title: row.title,
-    description: row.description,
-    milestoneTitle: row.milestoneTitle,
-    status: row.status,
-    responseNote: row.responseNote,
-    requestedAt: toIsoString(row.requestedAt),
-    respondedAt: row.respondedAt ? toIsoString(row.respondedAt) : null,
-  }));
+  const normalizedApprovals: AdminApprovalRecord[] = approvalRows.map(
+    (row) => ({
+      id: row.id,
+      projectId: row.projectId,
+      projectName: row.projectName,
+      clientName:
+        projectClientMap.get(row.projectId)?.clientName ?? "Unassigned client",
+      clientEmail: projectClientMap.get(row.projectId)?.clientEmail ?? null,
+      title: row.title,
+      description: row.description,
+      milestoneTitle: row.milestoneTitle,
+      status: row.status,
+      responseNote: row.responseNote,
+      requestedAt: toIsoString(row.requestedAt),
+      respondedAt: row.respondedAt ? toIsoString(row.respondedAt) : null,
+    }),
+  );
 
   return {
     approvals: normalizedApprovals,
     summary: {
-      pending: normalizedApprovals.filter((item) => item.status === "pending").length,
+      pending: normalizedApprovals.filter((item) => item.status === "pending")
+        .length,
       approved: normalizedApprovals.filter((item) => item.status === "approved")
         .length,
       changesRequested: normalizedApprovals.filter(
@@ -554,6 +602,8 @@ export async function getAdminWorkspaceSettingsData(): Promise<AdminWorkspaceSet
       id: workspaces.id,
       name: workspaces.name,
       slug: workspaces.slug,
+      storageQuotaBytes: workspaces.storageQuotaBytes,
+      storageUsedBytes: workspaces.storageUsedBytes,
       createdAt: workspaces.createdAt,
       updatedAt: workspaces.updatedAt,
     })
@@ -569,6 +619,8 @@ export async function getAdminWorkspaceSettingsData(): Promise<AdminWorkspaceSet
     id: workspace.id,
     name: workspace.name,
     slug: workspace.slug,
+    storageQuotaBytes: workspace.storageQuotaBytes,
+    storageUsedBytes: workspace.storageUsedBytes,
     createdAt: toIsoString(workspace.createdAt),
     updatedAt: toIsoString(workspace.updatedAt),
   };

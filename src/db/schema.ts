@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  bigint,
   boolean,
   check,
   date,
@@ -30,10 +31,11 @@ export const clientStatusEnum = pgEnum("client_status", [
   "archived",
 ]);
 
-export const clientInvitationStatusEnum = pgEnum(
-  "client_invitation_status",
-  ["pending", "accepted", "expired"],
-);
+export const clientInvitationStatusEnum = pgEnum("client_invitation_status", [
+  "pending",
+  "accepted",
+  "expired",
+]);
 
 export const projectStatusEnum = pgEnum("project_status", [
   "draft",
@@ -104,6 +106,18 @@ export const projectFileCategoryEnum = pgEnum("project_file_category", [
   "other",
 ]);
 
+export const projectFileScanStatusEnum = pgEnum("project_file_scan_status", [
+  "pending",
+  "clean",
+  "infected",
+  "failed",
+]);
+
+export const projectFileCleanupStatusEnum = pgEnum(
+  "project_file_cleanup_status",
+  ["pending", "completed", "failed"],
+);
+
 export const projectActivityActorRoleEnum = pgEnum(
   "project_activity_actor_role",
   ["owner", "client", "system"],
@@ -125,6 +139,12 @@ export const workspaces = pgTable(
       .default(sql`gen_random_uuid()`),
     name: text("name").notNull(),
     slug: text("slug").notNull().unique(),
+    storageQuotaBytes: bigint("storage_quota_bytes", { mode: "number" })
+      .notNull()
+      .default(1_073_741_824),
+    storageUsedBytes: bigint("storage_used_bytes", { mode: "number" })
+      .notNull()
+      .default(0),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -134,6 +154,14 @@ export const workspaces = pgTable(
   },
   (table) => ({
     slugIdx: index("workspaces_slug_idx").on(table.slug),
+    storageQuotaBytesCheck: check(
+      "workspaces_storage_quota_bytes_check",
+      sql`${table.storageQuotaBytes} > 0`,
+    ),
+    storageUsedBytesCheck: check(
+      "workspaces_storage_used_bytes_check",
+      sql`${table.storageUsedBytes} >= 0`,
+    ),
   }),
 );
 
@@ -215,9 +243,7 @@ export const clientInvitations = pgTable(
       onDelete: "set null",
     }),
     tokenHash: text("token_hash").notNull().unique(),
-    status: clientInvitationStatusEnum("status")
-      .notNull()
-      .default("pending"),
+    status: clientInvitationStatusEnum("status").notNull().default("pending"),
     invitedBy: uuid("invited_by").references(() => profiles.id, {
       onDelete: "set null",
     }),
@@ -595,11 +621,9 @@ export const feedback = pgTable(
     archivedAtIdx: index("feedback_archived_at_idx").on(table.archivedAt),
     resolvedAtIdx: index("feedback_resolved_at_idx").on(table.resolvedAt),
     deletedAtIdx: index("feedback_deleted_at_idx").on(table.deletedAt),
-    projectClientCreatedAtIdx: index("feedback_project_client_created_at_idx").on(
-      table.projectId,
-      table.clientId,
-      table.createdAt,
-    ),
+    projectClientCreatedAtIdx: index(
+      "feedback_project_client_created_at_idx",
+    ).on(table.projectId, table.clientId, table.createdAt),
     statusCreatedAtIdx: index("feedback_status_created_at_idx").on(
       table.status,
       table.createdAt,
@@ -746,11 +770,19 @@ export const projectFiles = pgTable(
       onDelete: "set null",
     }),
     fileName: text("file_name").notNull(),
+    originalFileName: text("original_file_name").notNull(),
     bucketName: text("bucket_name").notNull().default("project-files"),
     storagePath: text("storage_path").notNull(),
     fileType: text("file_type"),
     fileSize: integer("file_size"),
+    fileExtension: text("file_extension").notNull(),
+    checksumSha256: text("checksum_sha256"),
     category: projectFileCategoryEnum("category").notNull().default("other"),
+    scanStatus: projectFileScanStatusEnum("scan_status")
+      .notNull()
+      .default("pending"),
+    scanCompletedAt: timestamp("scan_completed_at", { withTimezone: true }),
+    scanFailureReason: text("scan_failure_reason"),
     isVisibleToClient: boolean("is_visible_to_client").notNull().default(true),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -770,6 +802,11 @@ export const projectFiles = pgTable(
       table.workspaceId,
     ),
     deletedAtIdx: index("project_files_deleted_at_idx").on(table.deletedAt),
+    scanStatusIdx: index("project_files_scan_status_idx").on(table.scanStatus),
+    workspaceScanStatusIdx: index("project_files_workspace_scan_status_idx").on(
+      table.workspaceId,
+      table.scanStatus,
+    ),
     projectVisibleCreatedAtIdx: index(
       "project_files_project_visible_created_at_idx",
     ).on(table.projectId, table.isVisibleToClient, table.createdAt),
@@ -778,6 +815,47 @@ export const projectFiles = pgTable(
       table.bucketName,
       table.storagePath,
     ),
+  }),
+);
+
+export const projectFileCleanupJobs = pgTable(
+  "project_file_cleanup_jobs",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    projectId: uuid("project_id").references(() => projects.id, {
+      onDelete: "set null",
+    }),
+    fileId: uuid("file_id").references(() => projectFiles.id, {
+      onDelete: "set null",
+    }),
+    bucketName: text("bucket_name").notNull(),
+    storagePath: text("storage_path").notNull(),
+    reason: text("reason").notNull(),
+    status: projectFileCleanupStatusEnum("status").notNull().default("pending"),
+    attempts: integer("attempts").notNull().default(0),
+    lastError: text("last_error"),
+    processedAt: timestamp("processed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    workspaceStatusIdx: index(
+      "project_file_cleanup_jobs_workspace_status_idx",
+    ).on(table.workspaceId, table.status),
+    projectStatusIdx: index("project_file_cleanup_jobs_project_status_idx").on(
+      table.projectId,
+      table.status,
+    ),
+    fileIdIdx: index("project_file_cleanup_jobs_file_id_idx").on(table.fileId),
   }),
 );
 
@@ -828,3 +906,7 @@ export type NewPayment = typeof payments.$inferInsert;
 
 export type ProjectFile = typeof projectFiles.$inferSelect;
 export type NewProjectFile = typeof projectFiles.$inferInsert;
+
+export type ProjectFileCleanupJob = typeof projectFileCleanupJobs.$inferSelect;
+export type NewProjectFileCleanupJob =
+  typeof projectFileCleanupJobs.$inferInsert;

@@ -262,6 +262,8 @@ DeliverFlow uses server-side authorization with Supabase RLS and storage policy 
 - Client-facing queries are scoped to assigned projects
 - Project files use a private Supabase Storage bucket
 - Signed URLs are generated only after permission checks
+- Uploads use server-side MIME, extension, signature, quota, and scan-state checks
+- Client-visible files must be both assigned and scan-clean
 - Service role keys and database URLs stay server-only
 - `NEXT_PUBLIC_*` variables are limited to browser-safe public values
 
@@ -270,6 +272,8 @@ RLS and storage policies are included in:
 ```txt
 supabase/migrations/0001_security_rls_storage.sql
 supabase/migrations/0002_activity_invitation_rls.sql
+supabase/migrations/0003_workspace_rls.sql
+supabase/migrations/0005_file_security_hardening.sql
 ```
 
 Full security documentation:
@@ -277,6 +281,22 @@ Full security documentation:
 ```txt
 docs/security.md
 ```
+
+### File Security Controls
+
+- Maximum single upload size defaults to `25 MB`
+- Signed download URLs default to `120` seconds and are generated server-side only
+- Workspace storage quota defaults to `1 GB`
+- Allowed file types: `PDF`, `PNG`, `JPG`, `JPEG`, `GIF`, `WEBP`, `DOCX`, `XLSX`, `CSV`, `TXT`, and `ZIP`
+- Dangerous executable, script, HTML, and installer extensions are blocked
+- Storage keys are randomized under `workspaces/{workspaceId}/projects/{projectId}/{uuid}/file.ext`
+- Original file names are kept as metadata only and never used as permanent object keys
+- New uploads start in scan-aware flow:
+  - `development-noop` mode marks files clean immediately for local work
+  - `quarantine` mode keeps files pending until a trusted scanner calls the internal webhook
+- Failed storage cleanup is recorded in `project_file_cleanup_jobs` for later recovery
+
+Known limitation: DeliverFlow includes a production integration point for malware scanning, but it does not ship with a real third-party scanner. In production, do not mark files clean automatically unless your scanner webhook is wired up.
 
 ---
 
@@ -303,9 +323,13 @@ Create a `.env.local` file in the project root:
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
-SUPABASE_STORAGE_BUCKET=project-files
 DATABASE_URL=
 DIRECT_URL=
+PROJECT_FILE_MAX_UPLOAD_BYTES=26214400
+PROJECT_FILE_SIGNED_URL_TTL_SECONDS=120
+PROJECT_FILE_WORKSPACE_QUOTA_BYTES=1073741824
+PROJECT_FILE_SCAN_MODE=development-noop
+PROJECT_FILE_SCAN_WEBHOOK_SECRET=
 DEMO_OWNER_EMAIL=
 DEMO_OWNER_PASSWORD=
 DEMO_CLIENT_EMAIL=
@@ -313,6 +337,12 @@ DEMO_CLIENT_PASSWORD=
 ARCJET_KEY=
 NEXT_PUBLIC_SENTRY_DSN=
 SENTRY_AUTH_TOKEN=
+E2E_ADMIN_EMAIL=
+E2E_ADMIN_PASSWORD=
+E2E_CLIENT_EMAIL=
+E2E_CLIENT_PASSWORD=
+E2E_UNASSIGNED_CLIENT_EMAIL=
+E2E_UNASSIGNED_CLIENT_PASSWORD=
 ```
 
 Keep `SUPABASE_SERVICE_ROLE_KEY`, `DATABASE_URL`, `DIRECT_URL`, and `SENTRY_AUTH_TOKEN` server-only.
@@ -325,6 +355,12 @@ npm run db:migrate
 npm run db:seed
 ```
 
+If you apply Supabase SQL policies separately from Drizzle migrations, also run the files hardening SQL from:
+
+```txt
+supabase/migrations/0005_file_security_hardening.sql
+```
+
 ### 5. Start the development server
 
 ```bash
@@ -335,6 +371,16 @@ Open:
 
 ```txt
 http://localhost:3000
+```
+
+### Test Commands
+
+```bash
+npm run lint
+npm run typecheck
+npm run test
+npm run test:e2e
+npm run build
 ```
 
 ---

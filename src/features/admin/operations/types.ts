@@ -109,8 +109,9 @@ export type AdminFileRecord = AdminProjectContext & {
   fileType: string | null;
   fileSize: number | null;
   category: ProjectFileCategory;
-  bucketName: string;
-  storagePath: string;
+  originalFileName: string;
+  scanStatus: "pending" | "clean" | "infected" | "failed";
+  uploadedByName: string | null;
   isVisibleToClient: boolean;
   createdAt: string;
 };
@@ -121,7 +122,11 @@ export type AdminFilesPageData = {
     totalFiles: number;
     visibleToClients: number;
     internalOnly: number;
+    pendingScan: number;
     totalSizeBytes: number;
+    usagePercent: number;
+    workspaceQuotaBytes: number;
+    workspaceUsedBytes: number;
   };
 };
 
@@ -156,6 +161,8 @@ export type AdminWorkspaceSettingsData = {
   id: string;
   name: string;
   slug: string;
+  storageQuotaBytes: number;
+  storageUsedBytes: number;
   createdAt: string;
   updatedAt: string;
 };
@@ -297,6 +304,24 @@ export function getFileVisibilityMeta(isVisibleToClient: boolean): {
   }
 
   return { label: "Internal", tone: "slate" };
+}
+
+export function getFileScanStatusMeta(
+  status: "pending" | "clean" | "infected" | "failed",
+): {
+  label: string;
+  tone: BadgeTone;
+} {
+  switch (status) {
+    case "clean":
+      return { label: "Available", tone: "green" };
+    case "infected":
+      return { label: "Blocked", tone: "red" };
+    case "failed":
+      return { label: "Scan failed", tone: "yellow" };
+    default:
+      return { label: "Scanning", tone: "purple" };
+  }
 }
 
 export function getFileCategoryLabel(category: ProjectFileCategory) {

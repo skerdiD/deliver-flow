@@ -271,7 +271,10 @@ function getLatestApprovalByMilestoneId(
   >();
 
   for (const approval of approvalsList) {
-    if (!approval.milestoneId || latestApprovalByMilestoneId.has(approval.milestoneId)) {
+    if (
+      !approval.milestoneId ||
+      latestApprovalByMilestoneId.has(approval.milestoneId)
+    ) {
       continue;
     }
 
@@ -290,7 +293,9 @@ function getLatestApprovalByMilestoneId(
 
 function attachApprovalStateToMilestones(
   milestonesList: ClientPortalProject["milestones"],
-  latestApprovalByMilestoneId: ReturnType<typeof getLatestApprovalByMilestoneId>,
+  latestApprovalByMilestoneId: ReturnType<
+    typeof getLatestApprovalByMilestoneId
+  >,
 ): ClientPortalProject["milestones"] {
   return milestonesList.map((milestone) => {
     const latestApproval = latestApprovalByMilestoneId.get(milestone.id);
@@ -422,7 +427,9 @@ export const getClientAssignedProjects = cache(
     return assignments.map((assignment) =>
       mapAssignmentToSwitcherProject(
         assignment,
-        derivePaymentStatus(paymentsByProjectId.get(assignment.projectId) ?? []),
+        derivePaymentStatus(
+          paymentsByProjectId.get(assignment.projectId) ?? [],
+        ),
       ),
     );
   },
@@ -448,8 +455,8 @@ export async function getSelectedClientProject(
     selectedProjectId,
     didFallback: Boolean(
       requestedProjectId &&
-        selectedProjectId &&
-        requestedProjectId !== selectedProjectId,
+      selectedProjectId &&
+      requestedProjectId !== selectedProjectId,
     ),
   };
 }
@@ -613,6 +620,7 @@ async function buildClientPortalProject(
           eq(projectFiles.projectId, assignment.projectId),
           eq(projectFiles.workspaceId, assignment.workspaceId),
           eq(projectFiles.isVisibleToClient, true),
+          eq(projectFiles.scanStatus, "clean"),
           isNull(projectFiles.deletedAt),
         ),
       )
@@ -1018,7 +1026,10 @@ async function buildClientPortalDashboardProjects(
 
   const latestApprovalByMilestoneId =
     getLatestApprovalByMilestoneId(projectApprovals);
-  const milestonesByProjectId = new Map<string, ClientPortalProject["milestones"]>();
+  const milestonesByProjectId = new Map<
+    string,
+    ClientPortalProject["milestones"]
+  >();
   for (const milestone of projectMilestones) {
     const assignment = assignmentByProjectId.get(milestone.projectId);
     const items = milestonesByProjectId.get(milestone.projectId) ?? [];
@@ -1031,9 +1042,7 @@ async function buildClientPortalDashboardProjects(
         milestone.description ?? "No milestone details have been added yet.",
       status: milestone.status,
       dueDate:
-        milestone.dueDate ??
-        assignment?.deadline ??
-        new Date().toISOString(),
+        milestone.dueDate ?? assignment?.deadline ?? new Date().toISOString(),
       approvalStatus: latestApproval?.approvalStatus ?? null,
       responseNote: latestApproval?.responseNote ?? null,
       requestedAt: latestApproval?.requestedAt ?? null,
@@ -1068,7 +1077,10 @@ async function buildClientPortalDashboardProjects(
     updatesByProjectId.set(update.projectId, items);
   }
 
-  const paymentsByProjectId = new Map<string, ClientPortalProject["payments"]>();
+  const paymentsByProjectId = new Map<
+    string,
+    ClientPortalProject["payments"]
+  >();
   for (const payment of projectPayments) {
     const assignment = assignmentByProjectId.get(payment.projectId);
     const items = paymentsByProjectId.get(payment.projectId) ?? [];
@@ -1100,7 +1112,10 @@ async function buildClientPortalDashboardProjects(
     filesByProjectId.set(file.projectId, items);
   }
 
-  const feedbackByProjectId = new Map<string, ClientPortalProject["feedback"]>();
+  const feedbackByProjectId = new Map<
+    string,
+    ClientPortalProject["feedback"]
+  >();
   for (const item of projectFeedback) {
     const assignment = assignmentByProjectId.get(item.projectId);
 
@@ -1120,7 +1135,10 @@ async function buildClientPortalDashboardProjects(
     feedbackByProjectId.set(item.projectId, items);
   }
 
-  const approvalsByProjectId = new Map<string, ClientPortalProject["approvals"]>();
+  const approvalsByProjectId = new Map<
+    string,
+    ClientPortalProject["approvals"]
+  >();
   for (const approval of projectApprovals) {
     const assignment = assignmentByProjectId.get(approval.projectId);
 
@@ -1139,7 +1157,8 @@ async function buildClientPortalDashboardProjects(
   }
 
   return assignments.map((assignment) => {
-    const mappedMilestones = milestonesByProjectId.get(assignment.projectId) ?? [];
+    const mappedMilestones =
+      milestonesByProjectId.get(assignment.projectId) ?? [];
     const mappedPayments = paymentsByProjectId.get(assignment.projectId) ?? [];
     const paidAmountCents = mappedPayments.reduce((sum, payment) => {
       if (payment.status !== "paid") {
@@ -1159,7 +1178,8 @@ async function buildClientPortalDashboardProjects(
       )?.title ??
       mappedMilestones.at(-1)?.title ??
       "No milestone has been added yet.";
-    const mappedApprovals = approvalsByProjectId.get(assignment.projectId) ?? [];
+    const mappedApprovals =
+      approvalsByProjectId.get(assignment.projectId) ?? [];
 
     return buildClientPortalProjectShell(assignment, {
       currentMilestone,

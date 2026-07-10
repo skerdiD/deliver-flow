@@ -28,6 +28,11 @@ export type AdminApprovalStatus =
   | "cancelled";
 
 export type AdminFeedbackStatus = "open" | "reviewed" | "resolved";
+export type AdminProjectFileScanStatus =
+  | "pending"
+  | "clean"
+  | "infected"
+  | "failed";
 
 export type AdminProjectActivity = {
   id: string;
@@ -101,8 +106,9 @@ export type AdminProjectFile = {
   fileType: string | null;
   fileSize: number | null;
   category: string;
-  bucketName: string;
-  storagePath: string;
+  originalFileName: string;
+  scanStatus: AdminProjectFileScanStatus;
+  uploadedByName: string | null;
   isVisibleToClient: boolean;
   createdAt: string;
   viewedAt?: string | null;

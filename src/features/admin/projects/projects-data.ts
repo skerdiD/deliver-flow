@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { cache } from "react";
 
 import { db } from "@/db";
@@ -8,6 +8,7 @@ import {
   feedback,
   milestones,
   payments,
+  profiles,
   projectActivity,
   projectAssignments,
   projectFiles,
@@ -15,6 +16,7 @@ import {
   projectUpdates,
   projectViewEvents,
   tasks,
+  workspaces,
 } from "@/db/schema";
 import type {
   AdminApprovalStatus,
@@ -33,6 +35,7 @@ import type {
   AdminProjectUpdate,
   AdminTaskStatus,
 } from "@/features/admin/projects/types";
+import { removeProjectFileStorageObject } from "@/features/projects/project-files.server";
 import { requireAdminWorkspace } from "@/lib/supabase/auth";
 
 function toIsoString(value: Date | string): string {
@@ -224,15 +227,18 @@ async function getProjectParts(projectId: string, workspaceId: string) {
       .select({
         id: projectFiles.id,
         fileName: projectFiles.fileName,
+        originalFileName: projectFiles.originalFileName,
         fileType: projectFiles.fileType,
         fileSize: projectFiles.fileSize,
         category: projectFiles.category,
-        bucketName: projectFiles.bucketName,
-        storagePath: projectFiles.storagePath,
+        scanStatus: projectFiles.scanStatus,
+        uploadedByName: profiles.fullName,
+        uploadedByEmail: profiles.email,
         isVisibleToClient: projectFiles.isVisibleToClient,
         createdAt: projectFiles.createdAt,
       })
       .from(projectFiles)
+      .leftJoin(profiles, eq(projectFiles.uploadedBy, profiles.id))
       .where(
         and(
           eq(projectFiles.projectId, projectId),
@@ -422,8 +428,9 @@ async function getProjectParts(projectId: string, workspaceId: string) {
         fileType: file.fileType,
         fileSize: file.fileSize,
         category: file.category,
-        bucketName: file.bucketName,
-        storagePath: file.storagePath,
+        originalFileName: file.originalFileName,
+        scanStatus: file.scanStatus,
+        uploadedByName: file.uploadedByName?.trim() || file.uploadedByEmail,
         isVisibleToClient: file.isVisibleToClient,
         createdAt: toIsoString(file.createdAt),
         viewedAt: getViewedAt(viewMap, "file", file.id),
@@ -531,7 +538,9 @@ export async function getAdminProjects() {
       workspaceId: projects.workspaceId,
     })
     .from(projects)
-    .where(and(eq(projects.workspaceId, workspaceId), isNull(projects.deletedAt)))
+    .where(
+      and(eq(projects.workspaceId, workspaceId), isNull(projects.deletedAt)),
+    )
     .orderBy(desc(projects.createdAt));
 
   if (rows.length === 0) {
@@ -729,11 +738,7 @@ export const getAdminQuickActionProjects = cache(async () => {
     .innerJoin(clients, eq(projectAssignments.clientId, clients.id))
     .where(
       and(
-        inArray(projects.status, [
-          "active",
-          "in_progress",
-          "waiting_feedback",
-        ]),
+        inArray(projects.status, ["active", "in_progress", "waiting_feedback"]),
         eq(projects.workspaceId, workspaceId),
         eq(projectAssignments.workspaceId, workspaceId),
         eq(clients.workspaceId, workspaceId),
@@ -1240,32 +1245,96 @@ export async function deleteAdminProject(
 ): Promise<AdminProject | null> {
   const { workspaceId } = await requireAdminWorkspace();
   const deletedAt = new Date();
-  const [project] = await db
-    .update(projects)
-    .set({
-      deletedAt,
-      updatedAt: deletedAt,
+  const activeFiles = await db
+    .select({
+      bucketName: projectFiles.bucketName,
+      fileSize: projectFiles.fileSize,
+      id: projectFiles.id,
+      projectId: projectFiles.projectId,
+      storagePath: projectFiles.storagePath,
+      workspaceId: projectFiles.workspaceId,
     })
+    .from(projectFiles)
     .where(
       and(
-        eq(projects.id, id),
-        eq(projects.workspaceId, workspaceId),
-        isNull(projects.deletedAt),
+        eq(projectFiles.projectId, id),
+        eq(projectFiles.workspaceId, workspaceId),
+        isNull(projectFiles.deletedAt),
       ),
-    )
-    .returning({
-      id: projects.id,
-      name: projects.name,
-      description: projects.description,
-      status: projects.status,
-      progress: projects.progress,
-      deadline: projects.deadline,
-      liveDemoUrl: projects.liveDemoUrl,
-      repositoryUrl: projects.repositoryUrl,
-      createdAt: projects.createdAt,
-      archivedAt: projects.archivedAt,
-      workspaceId: projects.workspaceId,
-    });
+    );
+
+  const releasedBytes = activeFiles.reduce(
+    (total, file) => total + (file.fileSize ?? 0),
+    0,
+  );
+
+  const project = await db.transaction(async (tx) => {
+    await tx
+      .update(projectFiles)
+      .set({
+        deletedAt,
+        updatedAt: deletedAt,
+      })
+      .where(
+        and(
+          eq(projectFiles.projectId, id),
+          eq(projectFiles.workspaceId, workspaceId),
+          isNull(projectFiles.deletedAt),
+        ),
+      );
+
+    if (releasedBytes > 0) {
+      await tx
+        .update(workspaces)
+        .set({
+          storageUsedBytes: sql`greatest(${workspaces.storageUsedBytes} - ${releasedBytes}, 0)`,
+          updatedAt: deletedAt,
+        })
+        .where(eq(workspaces.id, workspaceId));
+    }
+
+    const [projectRow] = await tx
+      .update(projects)
+      .set({
+        deletedAt,
+        updatedAt: deletedAt,
+      })
+      .where(
+        and(
+          eq(projects.id, id),
+          eq(projects.workspaceId, workspaceId),
+          isNull(projects.deletedAt),
+        ),
+      )
+      .returning({
+        id: projects.id,
+        name: projects.name,
+        description: projects.description,
+        status: projects.status,
+        progress: projects.progress,
+        deadline: projects.deadline,
+        liveDemoUrl: projects.liveDemoUrl,
+        repositoryUrl: projects.repositoryUrl,
+        createdAt: projects.createdAt,
+        archivedAt: projects.archivedAt,
+        workspaceId: projects.workspaceId,
+      });
+
+    return projectRow ?? null;
+  });
+
+  await Promise.all(
+    activeFiles.map((file) =>
+      removeProjectFileStorageObject({
+        bucketName: file.bucketName,
+        fileId: file.id,
+        projectId: file.projectId,
+        reason: "project_deleted",
+        storagePath: file.storagePath,
+        workspaceId: file.workspaceId,
+      }),
+    ),
+  );
 
   return project ? mapProject(project) : null;
 }

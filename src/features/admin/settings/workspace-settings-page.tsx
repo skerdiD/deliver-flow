@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { updateWorkspaceNameAction } from "@/features/admin/operations/actions";
+import { formatFileSize } from "@/features/admin/operations/types";
 import type { AdminWorkspaceSettingsData } from "@/features/admin/operations/types";
 
 type WorkspaceSettingsPageProps = {
@@ -18,6 +19,13 @@ export function WorkspaceSettingsPage({ data }: WorkspaceSettingsPageProps) {
   const [name, setName] = useState(data.name);
   const [message, setMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const usagePercent =
+    data.storageQuotaBytes > 0
+      ? Math.min(
+          100,
+          Math.round((data.storageUsedBytes / data.storageQuotaBytes) * 100),
+        )
+      : 0;
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -89,10 +97,13 @@ export function WorkspaceSettingsPage({ data }: WorkspaceSettingsPageProps) {
             label="Workspace slug"
             value={data.slug}
           />
+          <DetailRow icon={CheckCircle2} label="Workspace ID" value={data.id} />
           <DetailRow
             icon={CheckCircle2}
-            label="Workspace ID"
-            value={data.id}
+            label="Storage usage"
+            value={`${formatFileSize(data.storageUsedBytes)} of ${formatFileSize(
+              data.storageQuotaBytes,
+            )} used (${usagePercent}%)`}
           />
         </CardContent>
       </Card>

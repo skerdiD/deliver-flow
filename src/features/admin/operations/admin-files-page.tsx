@@ -25,6 +25,7 @@ import {
   formatDateTimeLabel,
   formatFileSize,
   getFileCategoryLabel,
+  getFileScanStatusMeta,
   getFileVisibilityMeta,
   type AdminFilesPageData,
 } from "@/features/admin/operations/types";
@@ -43,19 +44,19 @@ export function AdminFilesPage({ data }: AdminFilesPageProps) {
           description="Files saved across client workspaces."
         />
         <SummaryCard
-          label="Visible to clients"
-          value={String(data.summary.visibleToClients)}
-          description="Files that appear in the client portal."
+          label="Available"
+          value={String(data.summary.totalFiles - data.summary.pendingScan)}
+          description="Files that are not waiting on scan review."
         />
         <SummaryCard
-          label="Internal only"
-          value={String(data.summary.internalOnly)}
-          description="Files kept on the owner side only."
+          label="Pending scan"
+          value={String(data.summary.pendingScan)}
+          description="Files held back until they become available."
         />
         <SummaryCard
-          label="Stored size"
-          value={formatFileSize(data.summary.totalSizeBytes)}
-          description="Total file size tracked in metadata."
+          label="Storage usage"
+          value={`${data.summary.usagePercent}%`}
+          description={`${formatFileSize(data.summary.workspaceUsedBytes)} of ${formatFileSize(data.summary.workspaceQuotaBytes)} used.`}
         />
       </div>
 
@@ -82,6 +83,7 @@ export function AdminFilesPage({ data }: AdminFilesPageProps) {
                   const visibilityMeta = getFileVisibilityMeta(
                     file.isVisibleToClient,
                   );
+                  const scanMeta = getFileScanStatusMeta(file.scanStatus);
 
                   return (
                     <MobileRecordCard key={file.id}>
@@ -98,6 +100,10 @@ export function AdminFilesPage({ data }: AdminFilesPageProps) {
                         <StatusBadge
                           label={visibilityMeta.label}
                           tone={visibilityMeta.tone}
+                        />
+                        <StatusBadge
+                          label={scanMeta.label}
+                          tone={scanMeta.tone}
                         />
                       </div>
 
@@ -116,15 +122,18 @@ export function AdminFilesPage({ data }: AdminFilesPageProps) {
                         <MobileRecordMeta label="Type">
                           {file.fileType ?? "Unknown type"}
                         </MobileRecordMeta>
+                        <MobileRecordMeta label="Uploader">
+                          {file.uploadedByName ?? "Unknown uploader"}
+                        </MobileRecordMeta>
                         <MobileRecordMeta label="Uploaded">
                           {formatDateTimeLabel(file.createdAt)}
                         </MobileRecordMeta>
                         <MobileRecordMeta
-                          label="Storage"
+                          label="Original name"
                           className="sm:col-span-2"
                         >
                           <span className="break-all">
-                            {file.bucketName}/{file.storagePath}
+                            {file.originalFileName}
                           </span>
                         </MobileRecordMeta>
                       </div>
@@ -163,6 +172,7 @@ export function AdminFilesPage({ data }: AdminFilesPageProps) {
                       const visibilityMeta = getFileVisibilityMeta(
                         file.isVisibleToClient,
                       );
+                      const scanMeta = getFileScanStatusMeta(file.scanStatus);
 
                       return (
                         <TableRow key={file.id}>
@@ -176,7 +186,7 @@ export function AdminFilesPage({ data }: AdminFilesPageProps) {
                                 {formatFileSize(file.fileSize)}
                               </p>
                               <p className="line-clamp-1 break-all text-xs text-slate-500">
-                                {file.bucketName}/{file.storagePath}
+                                Original: {file.originalFileName}
                               </p>
                             </StackedCell>
                           </TableCell>
@@ -201,7 +211,7 @@ export function AdminFilesPage({ data }: AdminFilesPageProps) {
                                   tone={visibilityMeta.tone}
                                 />
                               }
-                              meta={file.fileType ?? "Unknown type"}
+                              meta={`${scanMeta.label} - ${file.fileType ?? "Unknown type"}`}
                             />
                           </TableCell>
                           <TableCell className="whitespace-nowrap">

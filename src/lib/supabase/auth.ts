@@ -7,6 +7,7 @@ import { cache } from "react";
 import { routes } from "@/config/routes";
 import { db } from "@/db";
 import { clients, profiles, workspaces } from "@/db/schema";
+import { getProjectFileSecurityConfig } from "@/features/projects/file-security.server";
 import {
   getDashboardPathForRole,
   isSupportedRole,
@@ -213,6 +214,7 @@ function slugifyWorkspaceName(value: string) {
 
 export async function requireAdminWorkspace(): Promise<AdminWorkspace> {
   const profile = await requireOwnerRole();
+  const projectFileSecurity = getProjectFileSecurityConfig();
 
   if (profile.workspace_id) {
     return {
@@ -228,6 +230,7 @@ export async function requireAdminWorkspace(): Promise<AdminWorkspace> {
     .values({
       name: workspaceName,
       slug: `${slugifyWorkspaceName(workspaceName)}-${profile.id.slice(0, 8)}`,
+      storageQuotaBytes: projectFileSecurity.workspaceQuotaBytes,
     })
     .onConflictDoUpdate({
       target: workspaces.slug,

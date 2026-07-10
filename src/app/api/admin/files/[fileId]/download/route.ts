@@ -4,10 +4,10 @@ import { z } from "zod";
 
 import { db } from "@/db";
 import { projectFiles, projects } from "@/db/schema";
+import { getProjectFileSecurityConfig } from "@/features/projects/file-security.server";
+import { isManagedProjectFileStoragePath } from "@/features/projects/file-security";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getCurrentProfile } from "@/lib/supabase/auth";
-
-const SIGNED_URL_EXPIRES_IN_SECONDS = 60;
 
 const fileDownloadParamsSchema = z.object({
   fileId: z.string().uuid(),
@@ -16,6 +16,7 @@ const fileDownloadParamsSchema = z.object({
 const noStoreHeaders = {
   "Cache-Control": "no-store, max-age=0",
   "Referrer-Policy": "no-referrer",
+  "X-Content-Type-Options": "nosniff",
 };
 
 function jsonError(message: string, status: number) {
@@ -33,6 +34,7 @@ export async function GET(
   { params }: { params: Promise<{ fileId: string }> },
 ) {
   const profile = await getCurrentProfile();
+  const securityConfig = getProjectFileSecurityConfig();
 
   if (!profile || profile.role !== "owner") {
     return jsonError("Owner access required.", 403);
@@ -49,9 +51,12 @@ export async function GET(
 
   const [file] = await db
     .select({
+      projectId: projectFiles.projectId,
       fileName: projectFiles.fileName,
       bucketName: projectFiles.bucketName,
+      scanStatus: projectFiles.scanStatus,
       storagePath: projectFiles.storagePath,
+      workspaceId: projectFiles.workspaceId,
     })
     .from(projectFiles)
     .innerJoin(projects, eq(projectFiles.projectId, projects.id))
@@ -72,12 +77,30 @@ export async function GET(
     return jsonError("File not found.", 404);
   }
 
+  if (
+    !isManagedProjectFileStoragePath({
+      projectId: file.projectId,
+      storagePath: file.storagePath,
+      workspaceId: file.workspaceId,
+    })
+  ) {
+    return jsonError("File not found.", 404);
+  }
+
+  if (file.scanStatus === "infected") {
+    return jsonError("This file has been blocked by security scanning.", 409);
+  }
+
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase.storage
     .from(file.bucketName)
-    .createSignedUrl(file.storagePath, SIGNED_URL_EXPIRES_IN_SECONDS, {
-      download: file.fileName,
-    });
+    .createSignedUrl(
+      file.storagePath,
+      securityConfig.signedUrlExpiresInSeconds,
+      {
+        download: file.fileName,
+      },
+    );
 
   if (error || !data?.signedUrl) {
     return jsonError("File download is temporarily unavailable.", 502);

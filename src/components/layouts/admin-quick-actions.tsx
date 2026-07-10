@@ -10,7 +10,13 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useMemo, useState, useTransition } from "react";
+import {
+  useActionState,
+  useEffect,
+  useMemo,
+  useState,
+  useTransition,
+} from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -44,6 +50,10 @@ import {
   uploadProjectFileAction,
   type ProjectActionResult,
 } from "@/features/admin/projects/actions";
+import {
+  getProjectFileAllowedTypeLabels,
+  PROJECT_FILE_ACCEPT_ATTRIBUTE,
+} from "@/features/projects/file-security";
 
 export type AdminQuickActionProject = {
   id: string;
@@ -229,9 +239,13 @@ function UploadDeliverableDialog({
                 id="quick-upload-file"
                 name="file"
                 type="file"
+                accept={PROJECT_FILE_ACCEPT_ATTRIBUTE}
                 disabled={isUploading || projects.length === 0}
                 className="h-12 border-slate-300 bg-white text-base shadow-sm file:mr-3 file:rounded-md file:bg-slate-950 file:px-3 file:py-1.5 file:text-white hover:border-slate-400 focus-visible:border-slate-500"
               />
+              <p className="text-xs text-slate-500">
+                Allowed: {getProjectFileAllowedTypeLabels().join(", ")}.
+              </p>
             </div>
 
             <ActionMessage result={uploadState} />

@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -11,14 +11,32 @@ import {
   feedback,
   payments,
   projectFiles,
+  projects,
   tasks,
   workspaces,
 } from "@/db/schema";
+import {
+  createProjectFileChecksum,
+  getProjectFileSecurityConfig,
+} from "@/features/projects/file-security.server";
+import {
+  buildProjectFileStoragePath,
+  formatProjectFileSize,
+  isManagedProjectFileStoragePath,
+  validateProjectFileSelection,
+} from "@/features/projects/file-security";
+import {
+  releaseWorkspaceStorageBytes,
+  removeProjectFileStorageObject,
+  reserveWorkspaceStorageBytes,
+  runInitialProjectFileScan,
+} from "@/features/projects/project-files.server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireAdminWorkspace } from "@/lib/supabase/auth";
 import { isDemoWorkspaceId } from "@/lib/demo";
 
 export type AdminOperationActionResult = {
+  didMutate?: boolean;
   success: boolean;
   message: string;
 };
@@ -49,7 +67,10 @@ const taskIdSchema = z.object({
 const taskUpdateSchema = taskIdSchema.extend({
   title: z.string().trim().min(1).max(160),
   description: z.string().trim().min(1).max(1200),
-  dueDate: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/),
+  dueDate: z
+    .string()
+    .trim()
+    .regex(/^\d{4}-\d{2}-\d{2}$/),
 });
 
 const fileIdSchema = z.object({
@@ -317,17 +338,24 @@ export async function deleteFileAction(input: {
 
   const [file] = await db
     .select({
+      fileSize: projectFiles.fileSize,
       id: projectFiles.id,
       projectId: projectFiles.projectId,
       bucketName: projectFiles.bucketName,
       storagePath: projectFiles.storagePath,
+      workspaceId: projectFiles.workspaceId,
     })
     .from(projectFiles)
+    .innerJoin(projects, eq(projectFiles.projectId, projects.id))
     .where(
       and(
         eq(projectFiles.id, parsed.data.fileId),
         eq(projectFiles.workspaceId, workspaceId),
         isNull(projectFiles.deletedAt),
+        eq(projects.workspaceId, workspaceId),
+        ne(projects.status, "archived"),
+        isNull(projects.archivedAt),
+        isNull(projects.deletedAt),
       ),
     )
     .limit(1);
@@ -339,18 +367,17 @@ export async function deleteFileAction(input: {
     };
   }
 
-  if (file.bucketName && file.storagePath) {
-    const supabase = createSupabaseAdminClient();
-    const { error } = await supabase.storage
-      .from(file.bucketName)
-      .remove([file.storagePath]);
-
-    if (error) {
-      return {
-        success: false,
-        message: "Storage file could not be deleted.",
-      };
-    }
+  if (
+    !isManagedProjectFileStoragePath({
+      projectId: file.projectId,
+      storagePath: file.storagePath,
+      workspaceId: file.workspaceId,
+    })
+  ) {
+    return {
+      success: false,
+      message: "File storage record is invalid.",
+    };
   }
 
   const deletedAt = new Date();
@@ -361,14 +388,267 @@ export async function deleteFileAction(input: {
       updatedAt: deletedAt,
     })
     .where(
-      and(eq(projectFiles.id, file.id), eq(projectFiles.workspaceId, workspaceId)),
+      and(
+        eq(projectFiles.id, file.id),
+        eq(projectFiles.workspaceId, workspaceId),
+      ),
     );
+
+  await releaseWorkspaceStorageBytes({
+    releasedBytes: file.fileSize ?? 0,
+    workspaceId,
+  });
+
+  const cleanupOutcome = await removeProjectFileStorageObject({
+    bucketName: file.bucketName,
+    fileId: file.id,
+    projectId: file.projectId,
+    reason: "delete_failed",
+    storagePath: file.storagePath,
+    workspaceId,
+  });
 
   revalidateProjectOperations(file.projectId);
 
   return {
-    success: true,
-    message: "File deleted.",
+    didMutate: cleanupOutcome.cleanupQueued,
+    success: !cleanupOutcome.cleanupQueued,
+    message: cleanupOutcome.cleanupQueued
+      ? "File removed from records. Storage cleanup was queued."
+      : "File deleted.",
+  };
+}
+
+export async function replaceFileAction(
+  formData: FormData,
+): Promise<AdminOperationActionResult> {
+  const { profile, workspaceId } = await requireAdminWorkspace();
+  const securityConfig = getProjectFileSecurityConfig();
+
+  if (isDemoWorkspaceId(workspaceId)) {
+    return getDemoDestructiveActionResult();
+  }
+
+  const parsed = fileIdSchema.safeParse({
+    fileId: formData.get("fileId"),
+  });
+
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: "File request is invalid.",
+    };
+  }
+
+  const nextFile = formData.get("file");
+
+  if (!(nextFile instanceof File) || nextFile.size <= 0) {
+    return {
+      success: false,
+      message: "Choose a replacement file.",
+    };
+  }
+
+  const [existingFile] = await db
+    .select({
+      bucketName: projectFiles.bucketName,
+      fileName: projectFiles.fileName,
+      fileSize: projectFiles.fileSize,
+      id: projectFiles.id,
+      projectId: projectFiles.projectId,
+      storagePath: projectFiles.storagePath,
+      workspaceId: projectFiles.workspaceId,
+    })
+    .from(projectFiles)
+    .innerJoin(projects, eq(projectFiles.projectId, projects.id))
+    .where(
+      and(
+        eq(projectFiles.id, parsed.data.fileId),
+        eq(projectFiles.workspaceId, workspaceId),
+        isNull(projectFiles.deletedAt),
+        eq(projects.workspaceId, workspaceId),
+        ne(projects.status, "archived"),
+        isNull(projects.archivedAt),
+        isNull(projects.deletedAt),
+      ),
+    )
+    .limit(1);
+
+  if (!existingFile) {
+    return {
+      success: false,
+      message: "File not found.",
+    };
+  }
+
+  if (
+    !isManagedProjectFileStoragePath({
+      projectId: existingFile.projectId,
+      storagePath: existingFile.storagePath,
+      workspaceId: existingFile.workspaceId,
+    })
+  ) {
+    return {
+      success: false,
+      message: "File storage record is invalid.",
+    };
+  }
+
+  const nextFileBytes = await nextFile.arrayBuffer();
+  const validation = validateProjectFileSelection({
+    bytes: nextFileBytes,
+    declaredMimeType: nextFile.type,
+    displayLabel:
+      typeof formData.get("label") === "string"
+        ? formData.get("label")?.toString()
+        : existingFile.fileName,
+    maxUploadBytes: securityConfig.maxUploadBytes,
+    originalFileName: nextFile.name,
+    sizeBytes: nextFileBytes.byteLength,
+  });
+
+  if (!validation.ok) {
+    return {
+      success: false,
+      message: validation.message,
+    };
+  }
+
+  const storageIncreaseBytes = Math.max(
+    nextFileBytes.byteLength - (existingFile.fileSize ?? 0),
+    0,
+  );
+  const storageDecreaseBytes = Math.max(
+    (existingFile.fileSize ?? 0) - nextFileBytes.byteLength,
+    0,
+  );
+
+  const storageReservation = await reserveWorkspaceStorageBytes({
+    additionalBytes: storageIncreaseBytes,
+    workspaceId,
+  });
+
+  if (!storageReservation.allowed) {
+    return {
+      success: false,
+      message: `Workspace storage quota exceeded. ${formatProjectFileSize(
+        securityConfig.workspaceQuotaBytes,
+      )} total storage is allowed for each workspace.`,
+    };
+  }
+
+  const nextStoragePath = buildProjectFileStoragePath({
+    extension: validation.value.extension,
+    objectId: crypto.randomUUID(),
+    projectId: existingFile.projectId,
+    workspaceId,
+  });
+  const checksumSha256 = await createProjectFileChecksum(nextFileBytes);
+  const supabase = createSupabaseAdminClient();
+  const uploadResult = await supabase.storage
+    .from(existingFile.bucketName)
+    .upload(nextStoragePath, nextFileBytes, {
+      contentType: validation.value.validatedMimeType,
+      upsert: false,
+    });
+
+  if (uploadResult.error) {
+    await releaseWorkspaceStorageBytes({
+      releasedBytes: storageIncreaseBytes,
+      workspaceId,
+    });
+
+    return {
+      success: false,
+      message: "Replacement file could not be uploaded.",
+    };
+  }
+
+  try {
+    const [updatedFile] = await db
+      .update(projectFiles)
+      .set({
+        bucketName: existingFile.bucketName,
+        checksumSha256,
+        fileExtension: validation.value.extension,
+        fileName: validation.value.displayFileName,
+        fileSize: nextFileBytes.byteLength,
+        fileType: validation.value.validatedMimeType,
+        originalFileName: validation.value.originalFileName,
+        scanCompletedAt: null,
+        scanFailureReason: null,
+        scanStatus: "pending",
+        storagePath: nextStoragePath,
+        updatedAt: new Date(),
+        uploadedBy: profile.id,
+      })
+      .where(
+        and(
+          eq(projectFiles.id, existingFile.id),
+          eq(projectFiles.workspaceId, workspaceId),
+          isNull(projectFiles.deletedAt),
+        ),
+      )
+      .returning({
+        id: projectFiles.id,
+        projectId: projectFiles.projectId,
+      });
+
+    if (!updatedFile) {
+      throw new Error("File record was not updated.");
+    }
+
+    if (storageDecreaseBytes > 0) {
+      await releaseWorkspaceStorageBytes({
+        releasedBytes: storageDecreaseBytes,
+        workspaceId,
+      });
+    }
+
+    await runInitialProjectFileScan({
+      fileId: updatedFile.id,
+      projectId: updatedFile.projectId,
+      workspaceId,
+    });
+  } catch {
+    await releaseWorkspaceStorageBytes({
+      releasedBytes: storageIncreaseBytes,
+      workspaceId,
+    });
+
+    await removeProjectFileStorageObject({
+      bucketName: existingFile.bucketName,
+      fileId: existingFile.id,
+      projectId: existingFile.projectId,
+      reason: "upload_db_failed",
+      storagePath: nextStoragePath,
+      workspaceId,
+    });
+
+    return {
+      success: false,
+      message:
+        "Replacement could not be saved. The existing file is still active.",
+    };
+  }
+
+  const cleanupOutcome = await removeProjectFileStorageObject({
+    bucketName: existingFile.bucketName,
+    fileId: existingFile.id,
+    projectId: existingFile.projectId,
+    reason: "replacement_old_object",
+    storagePath: existingFile.storagePath,
+    workspaceId,
+  });
+
+  revalidateProjectOperations(existingFile.projectId);
+
+  return {
+    didMutate: cleanupOutcome.cleanupQueued,
+    success: !cleanupOutcome.cleanupQueued,
+    message: cleanupOutcome.cleanupQueued
+      ? "File replaced. Cleanup of the previous storage object was queued."
+      : "File replaced.",
   };
 }
 

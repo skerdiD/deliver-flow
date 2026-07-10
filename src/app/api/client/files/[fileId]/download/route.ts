@@ -11,17 +11,19 @@ import {
   projects,
 } from "@/db/schema";
 import { getFileDownloadAccessDecision } from "@/app/api/client/files/[fileId]/download/access-policy";
+import { getProjectFileSecurityConfig } from "@/features/projects/file-security.server";
+import { isManagedProjectFileStoragePath } from "@/features/projects/file-security";
 import { recordClientViewEvent } from "@/features/projects/activity";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getCurrentProfile } from "@/lib/supabase/auth";
 
-const SIGNED_URL_EXPIRES_IN_SECONDS = 60;
 const fileDownloadParamsSchema = z.object({
   fileId: z.string().uuid(),
 });
 const noStoreHeaders = {
   "Cache-Control": "no-store, max-age=0",
   "Referrer-Policy": "no-referrer",
+  "X-Content-Type-Options": "nosniff",
 };
 
 function jsonError(message: string, status: number) {
@@ -39,6 +41,7 @@ export async function GET(
   { params }: { params: Promise<{ fileId: string }> },
 ) {
   const profile = await getCurrentProfile();
+  const securityConfig = getProjectFileSecurityConfig();
 
   if (!profile) {
     const decision = getFileDownloadAccessDecision({
@@ -90,7 +93,9 @@ export async function GET(
       clientId: clients.id,
       fileName: projectFiles.fileName,
       bucketName: projectFiles.bucketName,
+      scanStatus: projectFiles.scanStatus,
       storagePath: projectFiles.storagePath,
+      workspaceId: projectFiles.workspaceId,
     })
     .from(projectFiles)
     .innerJoin(projects, eq(projectFiles.projectId, projects.id))
@@ -103,6 +108,7 @@ export async function GET(
       and(
         eq(projectFiles.id, parsed.data.fileId),
         eq(projectFiles.isVisibleToClient, true),
+        eq(projectFiles.scanStatus, "clean"),
         isNull(projectFiles.deletedAt),
         ne(projects.status, "archived"),
         eq(projectFiles.workspaceId, profile.workspace_id),
@@ -132,12 +138,26 @@ export async function GET(
     }
   }
 
+  if (
+    !isManagedProjectFileStoragePath({
+      projectId: file.projectId,
+      storagePath: file.storagePath,
+      workspaceId: file.workspaceId,
+    })
+  ) {
+    return jsonError("File not found.", 404);
+  }
+
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase.storage
     .from(file.bucketName)
-    .createSignedUrl(file.storagePath, SIGNED_URL_EXPIRES_IN_SECONDS, {
-      download: file.fileName,
-    });
+    .createSignedUrl(
+      file.storagePath,
+      securityConfig.signedUrlExpiresInSeconds,
+      {
+        download: file.fileName,
+      },
+    );
 
   if (error || !data?.signedUrl) {
     Sentry.captureException(error ?? new Error("Signed URL missing"), {

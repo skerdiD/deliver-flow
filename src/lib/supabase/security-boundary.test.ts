@@ -26,10 +26,7 @@ describe("Supabase security boundaries", () => {
 
   it("keeps admin file downloads scoped to active project files", () => {
     const source = readFileSync(
-      join(
-        workspaceRoot,
-        "src/app/api/admin/files/[fileId]/download/route.ts",
-      ),
+      join(workspaceRoot, "src/app/api/admin/files/[fileId]/download/route.ts"),
       "utf8",
     );
 
@@ -39,6 +36,8 @@ describe("Supabase security boundaries", () => {
     expect(source).toContain('ne(projects.status, "archived")');
     expect(source).toContain("isNull(projects.archivedAt)");
     expect(source).toContain("isNull(projects.deletedAt)");
+    expect(source).toContain("signedUrlExpiresInSeconds");
+    expect(source).toContain('file.scanStatus === "infected"');
   });
 
   it("guards admin direct project mutations and uploads", () => {
@@ -50,8 +49,36 @@ describe("Supabase security boundaries", () => {
     expect(source).toContain("async function getMutableProject");
     expect(source).toContain('ne(projects.status, "archived")');
     expect(source).toContain("isNull(projects.archivedAt)");
-    expect(source).toContain("MAX_PROJECT_FILE_SIZE_BYTES");
-    expect(source).toContain("sanitizeProjectFileName(label)");
+    expect(source).toContain("validateProjectFileSelection");
+    expect(source).toContain("reserveWorkspaceStorageBytes");
+    expect(source).toContain("runInitialProjectFileScan");
+  });
+
+  it("keeps client file reads behind clean scan status checks", () => {
+    const routeSource = readFileSync(
+      join(
+        workspaceRoot,
+        "src/app/api/client/files/[fileId]/download/route.ts",
+      ),
+      "utf8",
+    );
+    const portalSource = readFileSync(
+      join(workspaceRoot, "src/features/client/portal/portal-data.ts"),
+      "utf8",
+    );
+
+    expect(routeSource).toContain('eq(projectFiles.scanStatus, "clean")');
+    expect(portalSource).toContain('eq(projectFiles.scanStatus, "clean")');
+  });
+
+  it("does not expose internal storage paths in the owner files UI", () => {
+    const source = readFileSync(
+      join(workspaceRoot, "src/features/admin/operations/admin-files-page.tsx"),
+      "utf8",
+    );
+
+    expect(source).not.toContain("bucketName}/{file.storagePath");
+    expect(source).toContain("Original:");
   });
 
   it("requires a configured invite origin in production", () => {
