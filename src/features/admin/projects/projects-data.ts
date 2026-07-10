@@ -1184,7 +1184,12 @@ export async function addProjectUpdate(
     title: string;
     body: string;
   },
-): Promise<AdminProject | null> {
+): Promise<{
+  id: string;
+  isVisibleToClient: boolean;
+  projectId: string;
+  title: string;
+} | null> {
   const { profile, workspaceId } = await requireAdminWorkspace();
 
   const [project] = await db
@@ -1203,17 +1208,25 @@ export async function addProjectUpdate(
     return null;
   }
 
-  await db.insert(projectUpdates).values({
-    workspaceId,
-    projectId,
-    title: input.title,
-    body: input.body,
-    updateType: "general",
-    isVisibleToClient: true,
-    createdBy: profile.id,
-  });
+  const [createdUpdate] = await db
+    .insert(projectUpdates)
+    .values({
+      workspaceId,
+      projectId,
+      title: input.title,
+      body: input.body,
+      updateType: "general",
+      isVisibleToClient: true,
+      createdBy: profile.id,
+    })
+    .returning({
+      id: projectUpdates.id,
+      isVisibleToClient: projectUpdates.isVisibleToClient,
+      projectId: projectUpdates.projectId,
+      title: projectUpdates.title,
+    });
 
-  return getAdminProjectById(projectId);
+  return createdUpdate ?? null;
 }
 
 export async function archiveAdminProject(

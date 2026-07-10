@@ -2,11 +2,14 @@ import { AdminSidebar } from "@/components/layouts/admin-sidebar";
 import { AppTopbar } from "@/components/layouts/app-topbar";
 import type { AdminQuickActionProject } from "@/components/layouts/admin-quick-actions";
 import { DemoWorkspaceBanner } from "@/components/layouts/demo-workspace-banner";
+import type { NotificationCenterState } from "@/features/notifications/types";
 import type { Profile } from "@/types/database";
 
 type AdminDashboardLayoutProps = {
   profile: Profile;
   quickActionProjects: AdminQuickActionProject[];
+  notificationCenterState: NotificationCenterState;
+  notificationsHref: string;
   isDemoWorkspace?: boolean;
   children: React.ReactNode;
 };
@@ -14,6 +17,8 @@ type AdminDashboardLayoutProps = {
 export function AdminDashboardLayout({
   profile,
   quickActionProjects,
+  notificationCenterState,
+  notificationsHref,
   isDemoWorkspace = false,
   children,
 }: AdminDashboardLayoutProps) {
@@ -30,6 +35,8 @@ export function AdminDashboardLayout({
             userRoleLabel={getRoleLabel(profile.role)}
             quickActionProjects={quickActionProjects}
             mobileNavigationType="admin"
+            notificationCenterState={notificationCenterState}
+            notificationsHref={notificationsHref}
           />
 
           {isDemoWorkspace ? <DemoWorkspaceBanner /> : null}

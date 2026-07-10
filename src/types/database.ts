@@ -57,6 +57,23 @@ export type ProjectFileCategory =
   | "deliverable"
   | "other";
 
+export type NotificationType =
+  | "project_update_created"
+  | "approval_requested"
+  | "feedback_submitted"
+  | "project_file_uploaded"
+  | "payment_due"
+  | "payment_overdue"
+  | "approval_accepted"
+  | "approval_changes_requested";
+
+export type NotificationEntityType =
+  | "project_update"
+  | "approval"
+  | "feedback"
+  | "project_file"
+  | "payment";
+
 export type Database = {
   public: {
     Tables: {
@@ -644,6 +661,57 @@ export type Database = {
           updated_at?: string;
         };
       };
+
+      notifications: {
+        Row: {
+          id: string;
+          workspace_id: string;
+          recipient_profile_id: string;
+          actor_profile_id: string | null;
+          project_id: string | null;
+          type: NotificationType;
+          title: string;
+          message: string;
+          entity_type: NotificationEntityType | null;
+          entity_id: string | null;
+          action_url: string | null;
+          dedupe_key: string | null;
+          read_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          workspace_id: string;
+          recipient_profile_id: string;
+          actor_profile_id?: string | null;
+          project_id?: string | null;
+          type: NotificationType;
+          title: string;
+          message: string;
+          entity_type?: NotificationEntityType | null;
+          entity_id?: string | null;
+          action_url?: string | null;
+          dedupe_key?: string | null;
+          read_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          workspace_id?: string;
+          recipient_profile_id?: string;
+          actor_profile_id?: string | null;
+          project_id?: string | null;
+          type?: NotificationType;
+          title?: string;
+          message?: string;
+          entity_type?: NotificationEntityType | null;
+          entity_id?: string | null;
+          action_url?: string | null;
+          dedupe_key?: string | null;
+          read_at?: string | null;
+          created_at?: string;
+        };
+      };
     };
 
     Views: Record<string, never>;
@@ -686,6 +754,8 @@ export type Database = {
       approval_status: ApprovalStatus;
       payment_status: PaymentStatus;
       project_file_category: ProjectFileCategory;
+      notification_type: NotificationType;
+      notification_entity_type: NotificationEntityType;
     };
 
     CompositeTypes: Record<string, never>;
@@ -714,3 +784,4 @@ export type Feedback = Tables<"feedback">;
 export type Approval = Tables<"approvals">;
 export type Payment = Tables<"payments">;
 export type ProjectFile = Tables<"project_files">;
+export type Notification = Tables<"notifications">;

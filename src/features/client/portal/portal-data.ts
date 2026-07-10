@@ -31,6 +31,14 @@ import type {
 } from "@/features/client/portal/types";
 import { clientProjectIdSchema } from "@/features/client/portal/portal-validation";
 import {
+  getOwnerApprovalResponseNotificationUrl,
+  getOwnerFeedbackNotificationUrl,
+} from "@/features/notifications/notification-links";
+import {
+  createNotificationsForRecipients,
+  getWorkspaceOwnerRecipientProfileIds,
+} from "@/features/notifications/notification-service";
+import {
   recordClientViewEvent,
   type ProjectViewTargetType,
 } from "@/features/projects/activity";
@@ -1512,24 +1520,50 @@ export async function addClientFeedback(projectId: string, message: string) {
     throw new Error("No project assignment found for this client.");
   }
 
-  const [createdFeedback] = await db
-    .insert(feedback)
-    .values({
-      workspaceId: assignment.workspaceId,
-      projectId: assignment.projectId,
-      clientId: assignment.clientId,
-      createdBy: access.profile.id,
-      message,
-      status: "open",
-      isVisibleToClient: true,
-    })
-    .returning({
-      id: feedback.id,
-      message: feedback.message,
-      status: feedback.status,
-      createdAt: feedback.createdAt,
-      adminResponse: feedback.adminResponse,
-    });
+  const createdFeedback = await db.transaction(async (tx) => {
+    const [feedbackRow] = await tx
+      .insert(feedback)
+      .values({
+        workspaceId: assignment.workspaceId,
+        projectId: assignment.projectId,
+        clientId: assignment.clientId,
+        createdBy: access.profile.id,
+        message,
+        status: "open",
+        isVisibleToClient: true,
+      })
+      .returning({
+        id: feedback.id,
+        message: feedback.message,
+        status: feedback.status,
+        createdAt: feedback.createdAt,
+        adminResponse: feedback.adminResponse,
+      });
+
+    const recipientProfileIds = await getWorkspaceOwnerRecipientProfileIds(
+      assignment.workspaceId,
+      tx,
+    );
+
+    await createNotificationsForRecipients(
+      {
+        workspaceId: assignment.workspaceId,
+        recipientProfileIds,
+        actorProfileId: access.profile.id,
+        projectId: assignment.projectId,
+        type: "feedback_submitted",
+        title: "New client feedback",
+        message: `A client submitted feedback for ${assignment.projectName}.`,
+        entityType: "feedback",
+        entityId: feedbackRow.id,
+        actionUrl: getOwnerFeedbackNotificationUrl(assignment.projectId),
+        skipActorRecipient: true,
+      },
+      tx,
+    );
+
+    return feedbackRow;
+  });
 
   return {
     id: createdFeedback.id,
@@ -1628,6 +1662,39 @@ export async function respondToClientApproval(input: {
           ),
         );
     }
+
+    const recipientProfileIds = await getWorkspaceOwnerRecipientProfileIds(
+      assignment.workspaceId,
+      tx,
+    );
+
+    await createNotificationsForRecipients(
+      {
+        workspaceId: assignment.workspaceId,
+        recipientProfileIds,
+        actorProfileId: access.profile.id,
+        projectId: assignment.projectId,
+        type:
+          input.status === "approved"
+            ? "approval_accepted"
+            : "approval_changes_requested",
+        title:
+          input.status === "approved"
+            ? "Approval accepted"
+            : "Changes requested",
+        message:
+          input.status === "approved"
+            ? `Client approved: ${approval.title}.`
+            : `Client requested changes: ${approval.title}.`,
+        entityType: "approval",
+        entityId: approval.id,
+        actionUrl: getOwnerApprovalResponseNotificationUrl(
+          assignment.projectId,
+        ),
+        skipActorRecipient: true,
+      },
+      tx,
+    );
 
     return {
       ...approval,

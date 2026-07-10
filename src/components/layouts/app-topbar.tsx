@@ -1,5 +1,7 @@
 import { LogoutButton } from "@/components/auth/logout-button";
 import { ClientProjectControls } from "@/components/layouts/client-project-controls";
+import { NotificationCenter } from "@/features/notifications/notification-center";
+import type { NotificationCenterState } from "@/features/notifications/types";
 import {
   AdminQuickActions,
   type AdminQuickActionProject,
@@ -16,6 +18,8 @@ type AppTopbarProps = {
   clientProjects?: ClientProjectSwitcherProject[];
   defaultClientProjectId?: string | null;
   mobileNavigationType?: "admin" | "client";
+  notificationCenterState?: NotificationCenterState;
+  notificationsHref?: string;
 };
 
 export function AppTopbar({
@@ -27,6 +31,8 @@ export function AppTopbar({
   clientProjects,
   defaultClientProjectId = null,
   mobileNavigationType,
+  notificationCenterState,
+  notificationsHref,
 }: AppTopbarProps) {
   const showQuickActions = Boolean(quickActionProjects);
   const showClientProjectControls = Boolean(clientProjects);
@@ -63,6 +69,13 @@ export function AppTopbar({
         <div className="ml-auto flex min-w-0 shrink-0 items-center gap-2 sm:gap-3">
           {showQuickActions ? (
             <AdminQuickActions projects={quickActionProjects ?? []} />
+          ) : null}
+
+          {notificationCenterState && notificationsHref ? (
+            <NotificationCenter
+              initialState={notificationCenterState}
+              notificationsHref={notificationsHref}
+            />
           ) : null}
 
           <div className="hidden text-right md:block">

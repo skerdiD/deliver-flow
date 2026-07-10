@@ -5,6 +5,11 @@ import { and, eq, sql } from "drizzle-orm";
 
 import { db } from "@/db";
 import { projectFileCleanupJobs, projectFiles, workspaces } from "@/db/schema";
+import { getClientFileNotificationUrl } from "@/features/notifications/notification-links";
+import {
+  createNotificationsForRecipients,
+  getAssignedClientRecipientProfileIds,
+} from "@/features/notifications/notification-service";
 import {
   getProjectFileSecurityConfig,
   type ProjectFileSecurityConfig,
@@ -174,8 +179,11 @@ export async function applyProjectFileScanResult(input: {
     .returning({
       bucketName: projectFiles.bucketName,
       id: projectFiles.id,
+      fileName: projectFiles.fileName,
+      isVisibleToClient: projectFiles.isVisibleToClient,
       projectId: projectFiles.projectId,
       storagePath: projectFiles.storagePath,
+      uploadedBy: projectFiles.uploadedBy,
       workspaceId: projectFiles.workspaceId,
     });
 
@@ -184,6 +192,42 @@ export async function applyProjectFileScanResult(input: {
       cleanupQueued: false,
       found: false,
     };
+  }
+
+  if (input.status === "clean" && file.isVisibleToClient) {
+    try {
+      const recipientProfileIds = await getAssignedClientRecipientProfileIds(
+        file.projectId,
+        file.workspaceId,
+      );
+
+      await createNotificationsForRecipients({
+        workspaceId: file.workspaceId,
+        recipientProfileIds,
+        actorProfileId: file.uploadedBy ?? null,
+        projectId: file.projectId,
+        type: "project_file_uploaded",
+        title: "New project file available",
+        message: `A new file is ready: ${file.fileName}.`,
+        entityType: "project_file",
+        entityId: file.id,
+        actionUrl: getClientFileNotificationUrl(file.projectId),
+        dedupeKey: `project_file_uploaded:${file.id}`,
+        skipActorRecipient: true,
+      });
+    } catch (error) {
+      Sentry.captureException(error, {
+        tags: {
+          feature: "notifications",
+          operation: "project-file-uploaded",
+        },
+        extra: {
+          fileId: file.id,
+          projectId: file.projectId,
+          workspaceId: file.workspaceId,
+        },
+      });
+    }
   }
 
   if (input.status !== "infected") {

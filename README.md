@@ -145,6 +145,14 @@ For service providers, it keeps delivery records organized, protects project sco
 - Mark payments as paid when handled elsewhere
 - Show payment status to both owner and assigned client
 
+### Notifications
+
+- In-app notification bell for both Owner and client layouts
+- Dedicated Owner and client notification pages
+- Unread badge, recent dropdown, relative timestamps, and read state controls
+- Server-created notifications for project updates, approval requests, client feedback, shared files, due payments, overdue payments, approval acceptance, and change requests
+- Idempotent payment reminder scheduling with a protected internal route and Vercel cron support
+
 ### Feedback and Approvals
 
 - Clients can submit project feedback
@@ -264,6 +272,7 @@ DeliverFlow uses server-side authorization with Supabase RLS and storage policy 
 - Signed URLs are generated only after permission checks
 - Uploads use server-side MIME, extension, signature, quota, and scan-state checks
 - Client-visible files must be both assigned and scan-clean
+- Notifications are scoped to the authenticated recipient and workspace only
 - Service role keys and database URLs stay server-only
 - `NEXT_PUBLIC_*` variables are limited to browser-safe public values
 
@@ -274,6 +283,7 @@ supabase/migrations/0001_security_rls_storage.sql
 supabase/migrations/0002_activity_invitation_rls.sql
 supabase/migrations/0003_workspace_rls.sql
 supabase/migrations/0005_file_security_hardening.sql
+supabase/migrations/0006_notifications_rls.sql
 ```
 
 Full security documentation:
@@ -297,6 +307,28 @@ docs/security.md
 - Failed storage cleanup is recorded in `project_file_cleanup_jobs` for later recovery
 
 Known limitation: DeliverFlow includes a production integration point for malware scanning, but it does not ship with a real third-party scanner. In production, do not mark files clean automatically unless your scanner webhook is wired up.
+
+### Notifications
+
+- Supported notification events:
+  - `project_update_created`
+  - `approval_requested`
+  - `feedback_submitted`
+  - `project_file_uploaded`
+  - `payment_due`
+  - `payment_overdue`
+  - `approval_accepted`
+  - `approval_changes_requested`
+- Payment reminders are created by the protected internal route at `/api/internal/notifications/payments`
+- `vercel.json` includes a daily cron schedule for that route at `09:00 UTC`
+- Manual test example:
+
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" \
+  http://localhost:3000/api/internal/notifications/payments
+```
+
+Known limitation: the notification center is intentionally server-rendered and action-driven. It refreshes on navigation and mutation results, but it does not use websocket-based realtime delivery yet.
 
 ---
 
@@ -330,6 +362,8 @@ PROJECT_FILE_SIGNED_URL_TTL_SECONDS=120
 PROJECT_FILE_WORKSPACE_QUOTA_BYTES=1073741824
 PROJECT_FILE_SCAN_MODE=development-noop
 PROJECT_FILE_SCAN_WEBHOOK_SECRET=
+CRON_SECRET=
+NOTIFICATION_PAYMENT_DUE_WINDOW_DAYS=3
 DEMO_OWNER_EMAIL=
 DEMO_OWNER_PASSWORD=
 DEMO_CLIENT_EMAIL=
@@ -359,6 +393,7 @@ If you apply Supabase SQL policies separately from Drizzle migrations, also run 
 
 ```txt
 supabase/migrations/0005_file_security_hardening.sql
+supabase/migrations/0006_notifications_rls.sql
 ```
 
 ### 5. Start the development server
@@ -379,6 +414,7 @@ http://localhost:3000
 npm run lint
 npm run typecheck
 npm run test
+npm run test -- src/features/notifications src/app/api/internal/notifications/payments/route.test.ts
 npm run test:e2e
 npm run build
 ```

@@ -131,6 +131,25 @@ export const projectViewTargetTypeEnum = pgEnum("project_view_target_type", [
   "payment",
 ]);
 
+export const notificationTypeEnum = pgEnum("notification_type", [
+  "project_update_created",
+  "approval_requested",
+  "feedback_submitted",
+  "project_file_uploaded",
+  "payment_due",
+  "payment_overdue",
+  "approval_accepted",
+  "approval_changes_requested",
+]);
+
+export const notificationEntityTypeEnum = pgEnum("notification_entity_type", [
+  "project_update",
+  "approval",
+  "feedback",
+  "project_file",
+  "payment",
+]);
+
 export const workspaces = pgTable(
   "workspaces",
   {
@@ -582,6 +601,58 @@ export const projectUpdates = pgTable(
   }),
 );
 
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    recipientProfileId: uuid("recipient_profile_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    actorProfileId: uuid("actor_profile_id").references(() => profiles.id, {
+      onDelete: "set null",
+    }),
+    projectId: uuid("project_id").references(() => projects.id, {
+      onDelete: "set null",
+    }),
+    type: notificationTypeEnum("type").notNull(),
+    title: text("title").notNull(),
+    message: text("message").notNull(),
+    entityType: notificationEntityTypeEnum("entity_type"),
+    entityId: uuid("entity_id"),
+    actionUrl: text("action_url"),
+    dedupeKey: text("dedupe_key"),
+    readAt: timestamp("read_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    recipientCreatedAtIdx: index("notifications_recipient_created_at_idx").on(
+      table.recipientProfileId,
+      table.createdAt,
+    ),
+    recipientReadAtCreatedAtIdx: index(
+      "notifications_recipient_read_created_at_idx",
+    ).on(table.recipientProfileId, table.readAt, table.createdAt),
+    workspaceCreatedAtIdx: index("notifications_workspace_created_at_idx").on(
+      table.workspaceId,
+      table.createdAt,
+    ),
+    projectCreatedAtIdx: index("notifications_project_created_at_idx").on(
+      table.projectId,
+      table.createdAt,
+    ),
+    dedupeKeyUnique: unique("notifications_dedupe_key_unique").on(
+      table.dedupeKey,
+    ),
+  }),
+);
+
 export const feedback = pgTable(
   "feedback",
   {
@@ -891,6 +962,9 @@ export type NewTask = typeof tasks.$inferInsert;
 
 export type ProjectUpdate = typeof projectUpdates.$inferSelect;
 export type NewProjectUpdate = typeof projectUpdates.$inferInsert;
+
+export type Notification = typeof notifications.$inferSelect;
+export type NewNotification = typeof notifications.$inferInsert;
 
 export type Feedback = typeof feedback.$inferSelect;
 export type NewFeedback = typeof feedback.$inferInsert;

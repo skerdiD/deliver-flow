@@ -21,6 +21,7 @@ export const routes = {
     payments: "/admin/payments",
     files: "/admin/files",
     approvals: "/admin/approvals",
+    notifications: "/admin/notifications",
     settings: "/admin/settings",
     workspaceSettings: "/admin/settings/workspace",
     teamSettings: "/admin/settings/team",
@@ -34,5 +35,6 @@ export const routes = {
     feedback: "/client/feedback",
     approvals: "/client/approvals",
     payments: "/client/payments",
+    notifications: "/client/notifications",
   },
 } as const;

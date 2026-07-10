@@ -66,7 +66,9 @@ test.describe("client delivery workflow", () => {
     await page.getByLabel("Paid so far").fill("0");
     await page.getByRole("button", { name: "Save Project" }).click();
 
-    await expect(page.getByRole("heading", { name: projectName })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: projectName }),
+    ).toBeVisible();
     await expect(page.getByLabel("Deliverable file")).toBeVisible();
 
     await page.getByLabel("Approval title").fill(approvalTitle);
@@ -80,7 +82,21 @@ test.describe("client delivery workflow", () => {
     await signIn(page, clientEmail!, clientPassword!);
 
     await expect(page.getByText(projectName)).toBeVisible();
-    await page.getByRole("link", { name: /review approvals/i }).first().click();
+    const clientNotificationsButton = page.getByRole("button", {
+      name: /notifications/i,
+    });
+    await expect(clientNotificationsButton).toBeVisible();
+    await clientNotificationsButton.click();
+    await expect(page.getByText("New approval request")).toBeVisible();
+    await expect(page.getByText(approvalTitle)).toBeVisible();
+    await page.getByRole("button", { name: "Open" }).first().click();
+    await expect(page).toHaveURL(/\/client\/approvals\?projectId=/);
+    await expect(
+      page.getByRole("button", { name: /^Notifications$/ }),
+    ).toBeVisible();
+
+    await page.goto("/client/notifications");
+    await expect(page.getByText("Read").first()).toBeVisible();
     await expect(page.getByText(approvalTitle)).toBeVisible();
     await page.getByLabel("Response note").fill("Approved for final delivery.");
     await page.getByRole("button", { name: "Approve" }).click();
@@ -88,6 +104,12 @@ test.describe("client delivery workflow", () => {
 
     await page.getByRole("button", { name: "Log out" }).click();
     await signIn(page, adminEmail!, adminPassword!);
+    const ownerNotificationsButton = page.getByRole("button", {
+      name: /notifications/i,
+    });
+    await ownerNotificationsButton.click();
+    await expect(page.getByText("Approval accepted")).toBeVisible();
+    await expect(page.getByText(approvalTitle)).toBeVisible();
     await page.goto("/admin/approvals");
 
     await expect(page.getByText(approvalTitle)).toBeVisible();

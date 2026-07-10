@@ -1,5 +1,6 @@
 "use server";
 
+import * as Sentry from "@sentry/nextjs";
 import { revalidatePath } from "next/cache";
 import { and, eq, isNull, ne } from "drizzle-orm";
 import { z } from "zod";
@@ -39,6 +40,14 @@ import {
   type TaskFormValues,
   type UpdateFormValues,
 } from "@/features/admin/projects/project-validation";
+import {
+  getClientApprovalNotificationUrl,
+  getClientUpdateNotificationUrl,
+} from "@/features/notifications/notification-links";
+import {
+  createNotificationsForRecipients,
+  getAssignedClientRecipientProfileIds,
+} from "@/features/notifications/notification-service";
 import {
   buildProjectFileStoragePath,
   formatProjectFileSize,
@@ -164,6 +173,8 @@ function revalidateProjectWorkflow(projectId: string) {
   revalidatePath(routes.client.feedback);
   revalidatePath(routes.client.files);
   revalidatePath(routes.client.payments);
+  revalidatePath(routes.admin.notifications);
+  revalidatePath(routes.client.notifications);
 }
 
 export async function createProjectAction(
@@ -624,9 +635,12 @@ export async function addUpdateAction(
     };
   }
 
-  const project = await addProjectUpdate(idParsed.data.projectId, parsed.data);
+  const createdUpdate = await addProjectUpdate(
+    idParsed.data.projectId,
+    parsed.data,
+  );
 
-  if (!project) {
+  if (!createdUpdate) {
     return {
       success: false,
       message: "Project not found.",
@@ -645,7 +659,42 @@ export async function addUpdateAction(
     },
   });
 
-  revalidatePath(`/admin/projects/${idParsed.data.projectId}`);
+  if (createdUpdate.isVisibleToClient) {
+    try {
+      const recipientProfileIds = await getAssignedClientRecipientProfileIds(
+        idParsed.data.projectId,
+        adminProfile.workspace_id,
+      );
+
+      await createNotificationsForRecipients({
+        workspaceId: adminProfile.workspace_id,
+        recipientProfileIds,
+        actorProfileId: adminProfile.id,
+        projectId: idParsed.data.projectId,
+        type: "project_update_created",
+        title: "New project update",
+        message: `A new project update is ready: ${createdUpdate.title}.`,
+        entityType: "project_update",
+        entityId: createdUpdate.id,
+        actionUrl: getClientUpdateNotificationUrl(idParsed.data.projectId),
+        skipActorRecipient: true,
+      });
+    } catch (error) {
+      Sentry.captureException(error, {
+        tags: {
+          feature: "notifications",
+          operation: "project-update-created",
+        },
+        extra: {
+          projectId: idParsed.data.projectId,
+          updateId: createdUpdate.id,
+          workspaceId: adminProfile.workspace_id,
+        },
+      });
+    }
+  }
+
+  revalidateProjectWorkflow(idParsed.data.projectId);
 
   return {
     success: true,
@@ -739,6 +788,29 @@ export async function requestProjectApprovalAction(
           ),
         );
     }
+
+    const recipientProfileIds = await getAssignedClientRecipientProfileIds(
+      projectIdParsed.data,
+      workspaceId,
+      tx,
+    );
+
+    await createNotificationsForRecipients(
+      {
+        workspaceId,
+        recipientProfileIds,
+        actorProfileId: adminProfile.id,
+        projectId: projectIdParsed.data,
+        type: "approval_requested",
+        title: "New approval request",
+        message: `Review the approval request: ${approval.title}.`,
+        entityType: "approval",
+        entityId: approval.id,
+        actionUrl: getClientApprovalNotificationUrl(projectIdParsed.data),
+        skipActorRecipient: true,
+      },
+      tx,
+    );
 
     return approval;
   });

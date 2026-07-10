@@ -78,6 +78,13 @@
       "when": 1783673328191,
       "tag": "0010_petite_corsair",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1783676271408,
+      "tag": "0011_absurd_quentin_quire",
+      "breakpoints": true
     }
   ]
 }

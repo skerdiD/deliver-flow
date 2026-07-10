@@ -2,11 +2,14 @@ import { AppTopbar } from "@/components/layouts/app-topbar";
 import { ClientSidebar } from "@/components/layouts/client-sidebar";
 import { DemoWorkspaceBanner } from "@/components/layouts/demo-workspace-banner";
 import type { ClientProjectSwitcherProject } from "@/features/client/portal/portal-data";
+import type { NotificationCenterState } from "@/features/notifications/types";
 import type { Profile } from "@/types/database";
 
 type ClientPortalLayoutProps = {
   profile: Profile;
   projects: ClientProjectSwitcherProject[];
+  notificationCenterState: NotificationCenterState;
+  notificationsHref: string;
   isDemoWorkspace?: boolean;
   children: React.ReactNode;
 };
@@ -14,6 +17,8 @@ type ClientPortalLayoutProps = {
 export function ClientPortalLayout({
   profile,
   projects,
+  notificationCenterState,
+  notificationsHref,
   isDemoWorkspace = false,
   children,
 }: ClientPortalLayoutProps) {
@@ -31,6 +36,8 @@ export function ClientPortalLayout({
             clientProjects={projects}
             defaultClientProjectId={projects[0]?.id ?? null}
             mobileNavigationType="client"
+            notificationCenterState={notificationCenterState}
+            notificationsHref={notificationsHref}
           />
 
           {isDemoWorkspace ? <DemoWorkspaceBanner /> : null}

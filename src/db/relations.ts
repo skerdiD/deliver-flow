@@ -7,6 +7,7 @@ import {
   clients,
   feedback,
   milestones,
+  notifications,
   payments,
   profiles,
   projectActivity,
@@ -34,6 +35,7 @@ export const workspacesRelations = relations(workspaces, ({ many }) => ({
   approvals: many(approvals),
   payments: many(payments),
   projectFiles: many(projectFiles),
+  notifications: many(notifications),
   adminNotes: many(adminNotes),
 }));
 
@@ -59,6 +61,12 @@ export const profilesRelations = relations(profiles, ({ one, many }) => ({
   }),
   createdUpdates: many(projectUpdates, {
     relationName: "updateCreator",
+  }),
+  receivedNotifications: many(notifications, {
+    relationName: "notificationRecipient",
+  }),
+  actedNotifications: many(notifications, {
+    relationName: "notificationActor",
   }),
   createdFeedback: many(feedback, {
     relationName: "feedbackCreator",
@@ -148,6 +156,7 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   milestones: many(milestones),
   tasks: many(tasks),
   updates: many(projectUpdates),
+  notifications: many(notifications),
   feedback: many(feedback),
   approvals: many(approvals),
   payments: many(payments),
@@ -292,6 +301,27 @@ export const feedbackRelations = relations(feedback, ({ one }) => ({
     fields: [feedback.createdBy],
     references: [profiles.id],
     relationName: "feedbackCreator",
+  }),
+}));
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  workspace: one(workspaces, {
+    fields: [notifications.workspaceId],
+    references: [workspaces.id],
+  }),
+  recipient: one(profiles, {
+    fields: [notifications.recipientProfileId],
+    references: [profiles.id],
+    relationName: "notificationRecipient",
+  }),
+  actor: one(profiles, {
+    fields: [notifications.actorProfileId],
+    references: [profiles.id],
+    relationName: "notificationActor",
+  }),
+  project: one(projects, {
+    fields: [notifications.projectId],
+    references: [projects.id],
   }),
 }));
 
