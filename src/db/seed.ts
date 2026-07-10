@@ -22,7 +22,14 @@ import {
   tasks,
   workspaces,
 } from "@/db/schema";
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import {
+  DEMO_ADMIN_EMAIL,
+  DEMO_CLIENT_EMAIL,
+  DEMO_SHARED_PASSWORD,
+  DEMO_WORKSPACE_ID,
+  DEMO_WORKSPACE_SLUG,
+} from "@/lib/demo";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin-client";
 
 const connectionString = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
 
@@ -36,30 +43,20 @@ const client = postgres(connectionString, {
 
 const db = drizzle(client);
 
-function getRequiredSeedEnv(name: string) {
-  const value = process.env[name]?.trim();
-
-  if (!value) {
-    throw new Error(`Missing ${name}. Add it to .env.local before seeding.`);
-  }
-
-  return value;
-}
-
 const demoEmails = {
-  owner: getRequiredSeedEnv("DEMO_OWNER_EMAIL").toLowerCase(),
-  client: getRequiredSeedEnv("DEMO_CLIENT_EMAIL").toLowerCase(),
+  owner: DEMO_ADMIN_EMAIL,
+  client: DEMO_CLIENT_EMAIL,
   northwind: "northwind@deliverflow.demo",
 } as const;
 
 const demoPasswords = {
-  owner: getRequiredSeedEnv("DEMO_OWNER_PASSWORD"),
-  client: getRequiredSeedEnv("DEMO_CLIENT_PASSWORD"),
+  owner: DEMO_SHARED_PASSWORD,
+  client: DEMO_SHARED_PASSWORD,
 } as const;
 
 const ids = {
   workspaces: {
-    demo: "00000000-0000-4000-8000-000000000001",
+    demo: DEMO_WORKSPACE_ID,
   },
   clients: {
     acmeStudio: "11111111-1111-4111-8111-111111111111",
@@ -254,7 +251,7 @@ async function main() {
     .values({
       id: ids.workspaces.demo,
       name: "DeliverFlow Demo Workspace",
-      slug: "deliverflow-demo",
+      slug: DEMO_WORKSPACE_SLUG,
     })
     .onConflictDoUpdate({
       target: workspaces.id,

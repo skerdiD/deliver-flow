@@ -6,7 +6,11 @@ import { redirect } from "next/navigation";
 import { routes } from "@/config/routes";
 import { db } from "@/db";
 import { profiles, workspaces } from "@/db/schema";
-import { signupSchema, type SignupValues } from "@/features/auth/auth-validation";
+import {
+  signupSchema,
+  type SignupValues,
+} from "@/features/auth/auth-validation";
+import { getDemoCredentials } from "@/lib/demo";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getDashboardPathForRole } from "@/lib/supabase/route-protection";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -38,21 +42,6 @@ function slugifyWorkspaceName(value: string) {
   return slug || "workspace";
 }
 
-function getDemoCredential(role: UserRole) {
-  const emailKey =
-    role === "owner" ? "DEMO_OWNER_EMAIL" : "DEMO_CLIENT_EMAIL";
-  const passwordKey =
-    role === "owner" ? "DEMO_OWNER_PASSWORD" : "DEMO_CLIENT_PASSWORD";
-  const email = process.env[emailKey]?.trim();
-  const password = process.env[passwordKey]?.trim();
-
-  if (!email || !password) {
-    return null;
-  }
-
-  return { email, password };
-}
-
 function redirectToDemoError(
   error: "demo_unavailable" | "demo_signin_failed",
 ): never {
@@ -67,11 +56,7 @@ export async function demoLoginAction(formData: FormData) {
   }
 
   const role: UserRole = roleValue;
-  const credentials = getDemoCredential(role);
-
-  if (!credentials) {
-    redirectToDemoError("demo_unavailable");
-  }
+  const credentials = getDemoCredentials(role);
 
   const supabase = await createSupabaseServerClient();
   const {
@@ -143,28 +128,27 @@ export async function createOwnerSignupAction(
         throw new Error("profile_email_exists");
       }
 
-      const workspace =
-        existingProfile?.workspaceId
-          ? (
-              await tx
-                .update(workspaces)
-                .set({
-                  name: parsed.data.workspaceName,
-                  slug: `${slugifyWorkspaceName(parsed.data.workspaceName)}-${userId.slice(0, 8)}`,
-                  updatedAt: new Date(),
-                })
-                .where(eq(workspaces.id, existingProfile.workspaceId))
-                .returning({ id: workspaces.id })
-            )[0]
-          : (
-              await tx
-                .insert(workspaces)
-                .values({
-                  name: parsed.data.workspaceName,
-                  slug: `${slugifyWorkspaceName(parsed.data.workspaceName)}-${userId.slice(0, 8)}`,
-                })
-                .returning({ id: workspaces.id })
-            )[0];
+      const workspace = existingProfile?.workspaceId
+        ? (
+            await tx
+              .update(workspaces)
+              .set({
+                name: parsed.data.workspaceName,
+                slug: `${slugifyWorkspaceName(parsed.data.workspaceName)}-${userId.slice(0, 8)}`,
+                updatedAt: new Date(),
+              })
+              .where(eq(workspaces.id, existingProfile.workspaceId))
+              .returning({ id: workspaces.id })
+          )[0]
+        : (
+            await tx
+              .insert(workspaces)
+              .values({
+                name: parsed.data.workspaceName,
+                slug: `${slugifyWorkspaceName(parsed.data.workspaceName)}-${userId.slice(0, 8)}`,
+              })
+              .returning({ id: workspaces.id })
+          )[0];
 
       if (!workspace) {
         throw new Error("workspace_create_failed");

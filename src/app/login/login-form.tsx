@@ -1,7 +1,12 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle, BriefcaseBusiness, Loader2, UserRound } from "lucide-react";
+import {
+  AlertCircle,
+  BriefcaseBusiness,
+  Loader2,
+  UserRound,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -9,10 +14,12 @@ import { useForm } from "react-hook-form";
 
 import { routes } from "@/config/routes";
 import { demoLoginAction } from "@/features/auth/actions";
+import { loginSchema, type LoginValues } from "@/features/auth/auth-validation";
 import {
-  loginSchema,
-  type LoginValues,
-} from "@/features/auth/auth-validation";
+  DEMO_ADMIN_EMAIL,
+  DEMO_CLIENT_EMAIL,
+  DEMO_SHARED_PASSWORD,
+} from "@/lib/demo";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -59,7 +66,7 @@ export function LoginForm() {
     }
 
     if (error === "demo_unavailable") {
-      return "Demo login is not configured yet. Add the demo credentials to the server environment.";
+      return "Demo login is not available right now. Use the credentials below or try the demo buttons again in a moment.";
     }
 
     if (error === "demo_signin_failed") {
@@ -219,11 +226,15 @@ export function LoginForm() {
               Try the demo
             </h2>
             <p className="text-sm leading-6 text-slate-600">
-              Explore DeliverFlow as a workspace owner or as a client.
+              Explore DeliverFlow as an admin or as a client. You can sign in
+              instantly with the buttons or use the credentials below.
             </p>
           </div>
 
-          <form action={demoLoginAction} className="mt-4 grid gap-3 sm:grid-cols-2">
+          <form
+            action={demoLoginAction}
+            className="mt-4 grid gap-3 sm:grid-cols-2"
+          >
             <Button
               type="submit"
               name="role"
@@ -232,7 +243,7 @@ export function LoginForm() {
               className="h-11 border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800"
             >
               <BriefcaseBusiness className="size-4" />
-              View owner demo
+              View admin demo
             </Button>
             <Button
               type="submit"
@@ -245,6 +256,32 @@ export function LoginForm() {
               View client demo
             </Button>
           </form>
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
+                Admin demo credentials
+              </p>
+              <p className="mt-2 break-all text-sm font-medium text-slate-950">
+                {DEMO_ADMIN_EMAIL}
+              </p>
+              <p className="mt-1 text-sm text-slate-600">
+                {DEMO_SHARED_PASSWORD}
+              </p>
+            </div>
+
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
+                Client demo credentials
+              </p>
+              <p className="mt-2 break-all text-sm font-medium text-slate-950">
+                {DEMO_CLIENT_EMAIL}
+              </p>
+              <p className="mt-1 text-sm text-slate-600">
+                {DEMO_SHARED_PASSWORD}
+              </p>
+            </div>
+          </div>
         </div>
       </CardContent>
 

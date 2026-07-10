@@ -23,6 +23,11 @@ import {
   tasks,
   workspaces,
 } from "@/db/schema";
+import {
+  DEMO_ADMIN_EMAIL,
+  DEMO_CLIENT_EMAIL,
+  DEMO_WORKSPACE_SLUG,
+} from "@/lib/demo";
 
 const connectionString = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
 
@@ -42,14 +47,7 @@ const demoProjectSlugs = [
   "demo-ai-support-workflow",
 ];
 
-function getDemoEmail(name: "DEMO_OWNER_EMAIL" | "DEMO_CLIENT_EMAIL") {
-  return process.env[name]?.trim().toLowerCase();
-}
-
-const demoProfileEmails = [
-  getDemoEmail("DEMO_OWNER_EMAIL"),
-  getDemoEmail("DEMO_CLIENT_EMAIL"),
-].filter((email): email is string => Boolean(email));
+const demoProfileEmails = [DEMO_ADMIN_EMAIL, DEMO_CLIENT_EMAIL];
 
 async function main() {
   console.log("Resetting DeliverFlow demo data...");
@@ -126,7 +124,7 @@ async function main() {
     }
   }
 
-  await db.delete(workspaces).where(like(workspaces.slug, "deliverflow-demo"));
+  await db.delete(workspaces).where(like(workspaces.slug, DEMO_WORKSPACE_SLUG));
 
   console.log(
     `Removed ${projectIds.length} demo projects, ${clientIds.length} demo clients, and ${profileIds.length} demo profiles.`,
