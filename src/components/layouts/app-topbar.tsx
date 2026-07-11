@@ -38,7 +38,7 @@ export function AppTopbar({
   const showClientProjectControls = Boolean(clientProjects);
 
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
+    <header className="sticky top-0 z-30 shrink-0 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
       <div className="flex min-h-16 flex-wrap items-center gap-2 px-4 py-2 sm:gap-3 sm:px-6 lg:flex-nowrap lg:px-8">
         <div className="flex min-w-0 flex-1 items-center gap-3">
           {mobileNavigationType ? (
