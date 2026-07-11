@@ -53,6 +53,83 @@ body {
     "calt" 1;
 }
 
+@keyframes landing-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes landing-progress {
+  from {
+    width: 0;
+  }
+  to {
+    width: 82%;
+  }
+}
+
+@keyframes landing-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.55;
+    transform: scale(0.8);
+  }
+}
+
+.landing-reveal {
+  animation: landing-fade-up 550ms ease-out both;
+}
+
+.landing-delay-1 {
+  animation-delay: 100ms;
+}
+
+.landing-delay-2 {
+  animation-delay: 160ms;
+}
+.landing-delay-3 {
+  animation-delay: 220ms;
+}
+.landing-delay-4 {
+  animation-delay: 280ms;
+}
+
+.landing-grid {
+  background-image:
+    linear-gradient(hsl(214 32% 91% / 0.55) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(214 32% 91% / 0.55) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(to bottom, black, transparent 88%);
+}
+
+.landing-progress {
+  animation: landing-progress 900ms 220ms ease-out both;
+}
+
+.landing-pulse {
+  animation: landing-pulse 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-reveal,
+  .landing-progress {
+    animation: none;
+  }
+
+  .landing-pulse {
+    animation: none;
+  }
+}
+
 ::selection {
   background: hsl(221.2 83.2% 53.3% / 0.16);
 }

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { routes } from "@/config/routes";
+import { LandingPage } from "@/features/marketing/landing-page";
 import { getAuthState } from "@/lib/supabase/auth";
 import { getDashboardPathForRole } from "@/lib/supabase/route-protection";
 
@@ -23,5 +24,5 @@ export default async function HomePage() {
     redirect(`${routes.auth.login}?error=role_invalid`);
   }
 
-  redirect(routes.auth.login);
+  return <LandingPage />;
 }
