@@ -54,7 +54,7 @@ export default async function AdminDashboardPage() {
         <PaymentSummaryCard payments={dashboard.paymentSummary} />
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(360px,0.9fr)_minmax(0,1.4fr)]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(420px,0.85fr)] xl:items-start">
         <ActivityTimeline activities={dashboard.activity} />
         <DashboardQuickActions actions={dashboard.quickActions} />
       </div>

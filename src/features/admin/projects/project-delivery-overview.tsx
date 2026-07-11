@@ -2,6 +2,8 @@ import { CheckCircle2, Clock3, MessageSquare, ShieldCheck } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProgressCell } from "@/components/shared/record-cell";
+import { PaymentStatusBadge } from "@/features/admin/projects/payment-status-badge";
+import { ProjectStatusBadge } from "@/features/admin/projects/project-status-badge";
 import type { AdminProject } from "@/features/admin/projects/types";
 import { formatCurrencyFromCents, formatShortDate } from "@/lib/format";
 
@@ -28,10 +30,18 @@ export function ProjectDeliveryOverview({
   return (
     <Card className="rounded-lg border-slate-200 shadow-sm">
       <CardHeader>
-        <CardTitle>Delivery overview</CardTitle>
-        <p className="text-sm text-slate-500">
-          The key signals for this project in one place.
-        </p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <CardTitle>Delivery overview</CardTitle>
+            <p className="mt-1 text-sm text-slate-500">
+              The key signals for this project in one place.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <ProjectStatusBadge status={project.status} />
+            <PaymentStatusBadge status={project.paymentStatus} />
+          </div>
+        </div>
       </CardHeader>
 
       <CardContent className="space-y-5">

@@ -1,6 +1,5 @@
 import { AppTopbar } from "@/components/layouts/app-topbar";
 import { ClientSidebar } from "@/components/layouts/client-sidebar";
-import { DemoWorkspaceBanner } from "@/components/layouts/demo-workspace-banner";
 import type { ClientProjectSwitcherProject } from "@/features/client/portal/portal-data";
 import type { NotificationCenterState } from "@/features/notifications/types";
 import type { Profile } from "@/types/database";
@@ -10,7 +9,6 @@ type ClientPortalLayoutProps = {
   projects: ClientProjectSwitcherProject[];
   notificationCenterState: NotificationCenterState;
   notificationsHref: string;
-  isDemoWorkspace?: boolean;
   children: React.ReactNode;
 };
 
@@ -19,11 +17,10 @@ export function ClientPortalLayout({
   projects,
   notificationCenterState,
   notificationsHref,
-  isDemoWorkspace = false,
   children,
 }: ClientPortalLayoutProps) {
   return (
-    <div className="h-dvh min-h-dvh overflow-hidden bg-slate-50 text-slate-950">
+    <div className="fixed inset-0 h-dvh overflow-hidden bg-slate-50 text-slate-950">
       <div className="flex h-full min-h-0">
         <ClientSidebar />
 
@@ -39,8 +36,6 @@ export function ClientPortalLayout({
             notificationCenterState={notificationCenterState}
             notificationsHref={notificationsHref}
           />
-
-          {isDemoWorkspace ? <DemoWorkspaceBanner /> : null}
 
           <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
             <div className="mx-auto w-full max-w-[1440px] px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">

@@ -1,7 +1,6 @@
 import { AdminSidebar } from "@/components/layouts/admin-sidebar";
 import { AppTopbar } from "@/components/layouts/app-topbar";
 import type { AdminQuickActionProject } from "@/components/layouts/admin-quick-actions";
-import { DemoWorkspaceBanner } from "@/components/layouts/demo-workspace-banner";
 import type { NotificationCenterState } from "@/features/notifications/types";
 import type { Profile } from "@/types/database";
 
@@ -10,7 +9,6 @@ type AdminDashboardLayoutProps = {
   quickActionProjects: AdminQuickActionProject[];
   notificationCenterState: NotificationCenterState;
   notificationsHref: string;
-  isDemoWorkspace?: boolean;
   children: React.ReactNode;
 };
 
@@ -19,11 +17,10 @@ export function AdminDashboardLayout({
   quickActionProjects,
   notificationCenterState,
   notificationsHref,
-  isDemoWorkspace = false,
   children,
 }: AdminDashboardLayoutProps) {
   return (
-    <div className="h-dvh min-h-dvh overflow-hidden bg-slate-50 text-slate-950">
+    <div className="fixed inset-0 h-dvh overflow-hidden bg-slate-50 text-slate-950">
       <div className="flex h-full min-h-0">
         <AdminSidebar />
 
@@ -38,8 +35,6 @@ export function AdminDashboardLayout({
             notificationCenterState={notificationCenterState}
             notificationsHref={notificationsHref}
           />
-
-          {isDemoWorkspace ? <DemoWorkspaceBanner /> : null}
 
           <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
             <div className="mx-auto w-full max-w-none px-4 py-5 sm:px-6 sm:py-6 lg:px-7 lg:py-8 xl:px-8">
