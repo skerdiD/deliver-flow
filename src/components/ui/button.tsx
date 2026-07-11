@@ -38,7 +38,7 @@ export function Button({
   ...props
 }: ButtonProps) {
   const buttonClassName = cn(
-    "inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/20 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+    "inline-flex cursor-pointer items-center justify-center gap-2 rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/20 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
     variants[variant],
     sizes[size],
     className,

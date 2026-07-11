@@ -9,7 +9,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useFormStatus } from "react-dom";
+import { useState, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 
 import { routes } from "@/config/routes";
@@ -44,6 +45,40 @@ function getSafeNextPath(value: string | null) {
   }
 
   return value;
+}
+
+function DemoLoginButton({
+  role,
+  children,
+  className,
+}: {
+  role: "owner" | "client";
+  children: ReactNode;
+  className: string;
+}) {
+  const { data, pending } = useFormStatus();
+  const isSubmitting = pending && data?.get("role") === role;
+
+  return (
+    <Button
+      type="submit"
+      name="role"
+      value={role}
+      variant="outline"
+      className={className}
+      disabled={pending}
+      aria-busy={isSubmitting}
+    >
+      {isSubmitting ? (
+        <>
+          <Loader2 className="size-4 animate-spin" />
+          Opening demo...
+        </>
+      ) : (
+        children
+      )}
+    </Button>
+  );
 }
 
 export function LoginForm() {
@@ -235,26 +270,20 @@ export function LoginForm() {
             action={demoLoginAction}
             className="mt-4 grid gap-3 sm:grid-cols-2"
           >
-            <Button
-              type="submit"
-              name="role"
-              value="owner"
-              variant="outline"
+            <DemoLoginButton
+              role="owner"
               className="h-11 border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800"
             >
               <BriefcaseBusiness className="size-4" />
               View admin demo
-            </Button>
-            <Button
-              type="submit"
-              name="role"
-              value="client"
-              variant="outline"
+            </DemoLoginButton>
+            <DemoLoginButton
+              role="client"
               className="h-11 border-slate-200 text-slate-700 hover:bg-slate-50"
             >
               <UserRound className="size-4" />
               View client demo
-            </Button>
+            </DemoLoginButton>
           </form>
 
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -290,6 +319,7 @@ export function LoginForm() {
           Starting a workspace?{" "}
           <Link
             href={routes.auth.signup}
+            prefetch
             className="font-medium text-blue-700 hover:text-blue-800"
           >
             Create an account.

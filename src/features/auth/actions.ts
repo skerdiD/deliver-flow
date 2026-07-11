@@ -12,7 +12,6 @@ import {
 } from "@/features/auth/auth-validation";
 import { getDemoCredentials } from "@/lib/demo";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { getDashboardPathForRole } from "@/lib/supabase/route-protection";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { UserRole } from "@/types/database";
 
@@ -68,18 +67,16 @@ export async function demoLoginAction(formData: FormData) {
     redirectToDemoError("demo_signin_failed");
   }
 
-  const [profile] = await db
-    .select({ role: profiles.role })
-    .from(profiles)
-    .where(eq(profiles.id, user.id))
-    .limit(1);
-
-  if (!profile || profile.role !== role) {
+  if (user.email?.toLowerCase() !== credentials.email) {
     await supabase.auth.signOut();
     redirectToDemoError("demo_signin_failed");
   }
 
-  redirect(getDashboardPathForRole(profile.role));
+  // Client dashboard is a compatibility redirect to the real overview page.
+  // Sending the demo directly to that page avoids an otherwise unnecessary hop.
+  redirect(
+    role === "owner" ? routes.admin.dashboard : routes.client.overview,
+  );
 }
 
 export async function createOwnerSignupAction(
