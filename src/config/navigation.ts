@@ -1,5 +1,6 @@
 import {
   BarChart3,
+  ChartNoAxesCombined,
   BadgeCheck,
   BriefcaseBusiness,
   CreditCard,
@@ -20,6 +21,11 @@ export const adminNavigation = [
     title: "Dashboard",
     href: routes.admin.dashboard,
     icon: BarChart3,
+  },
+  {
+    title: "Analytics",
+    href: routes.admin.analytics,
+    icon: ChartNoAxesCombined,
   },
   {
     title: "Clients",

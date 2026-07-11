@@ -47,7 +47,9 @@ test("invalid invite route fails safely", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "Invalid invite" }),
   ).toBeVisible();
-  await expect(page.getByRole("link", { name: /back to login/i })).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: /back to login/i }),
+  ).toBeVisible();
 });
 
 test.describe("authenticated route access", () => {
@@ -61,9 +63,14 @@ test.describe("authenticated route access", () => {
     await page.goto("/admin/dashboard");
 
     await expect(page).toHaveURL(/\/client\/overview$/);
-    await expect(
-      page.getByRole("heading", { name: "Overview" }),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
+  });
+
+  test("client cannot access /admin/analytics", async ({ page }) => {
+    await signIn(page, clientEmail!, clientPassword!);
+    await page.goto("/admin/analytics");
+
+    await expect(page).toHaveURL(/\/client\/overview$/);
   });
 
   test("admin can access /admin/dashboard", async ({ page }) => {
@@ -76,13 +83,31 @@ test.describe("authenticated route access", () => {
     ).toBeVisible();
   });
 
+  test("admin can use workspace analytics", async ({ page }) => {
+    await signIn(page, adminEmail!, adminPassword!);
+    await page.goto("/admin/analytics");
+
+    await expect(page).toHaveURL(/\/admin\/analytics$/);
+    await expect(
+      page.getByRole("heading", { name: "Analytics" }),
+    ).toBeVisible();
+    await expect(page.getByRole("link", { name: "Analytics" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Performance metrics" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Project health" }),
+    ).toBeVisible();
+
+    await page.getByRole("button", { name: "90 days" }).click();
+    await expect(page).toHaveURL(/\?range=90d$/);
+  });
+
   test("client can access /client/overview", async ({ page }) => {
     await signIn(page, clientEmail!, clientPassword!);
     await page.goto("/client/overview");
 
     await expect(page).toHaveURL(/\/client\/overview$/);
-    await expect(
-      page.getByRole("heading", { name: "Overview" }),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
   });
 });

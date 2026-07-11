@@ -66,6 +66,7 @@ const ids = {
     websiteRedesign: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
     saasDashboardMvp: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
     aiSupportWorkflow: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+    brandSystemHandoff: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
   },
   milestones: {
     discovery: "10000000-0000-4000-8000-000000000001",
@@ -402,6 +403,21 @@ async function main() {
           archivedAt: null,
           deletedAt: null,
         },
+        {
+          id: ids.projects.brandSystemHandoff,
+          name: "Brand System Handoff",
+          slug: "demo-brand-system-handoff",
+          description:
+            "A completed brand system handoff with reusable templates and implementation notes.",
+          status: "completed",
+          progress: 100,
+          liveDemoUrl: null,
+          repositoryUrl: null,
+          deadline: "2026-03-14",
+          createdBy: ownerId,
+          archivedAt: null,
+          deletedAt: null,
+        },
       ]),
     )
     .onConflictDoUpdate({
@@ -438,6 +454,11 @@ async function main() {
         },
         {
           projectId: ids.projects.aiSupportWorkflow,
+          clientId: ids.clients.northwindDigital,
+          assignedBy: ownerId,
+        },
+        {
+          projectId: ids.projects.brandSystemHandoff,
           clientId: ids.clients.northwindDigital,
           assignedBy: ownerId,
         },
@@ -760,6 +781,7 @@ async function main() {
           archivedAt: null,
           resolvedAt: null,
           deletedAt: null,
+          createdAt: new Date("2026-07-03T09:00:00.000Z"),
         },
         {
           id: ids.feedback.acmeProof,
@@ -775,6 +797,7 @@ async function main() {
           resolvedAt: new Date("2026-06-28T14:00:00.000Z"),
           archivedAt: null,
           deletedAt: null,
+          createdAt: new Date("2026-03-06T10:00:00.000Z"),
         },
         {
           id: ids.feedback.northwindMetrics,
@@ -790,6 +813,7 @@ async function main() {
           archivedAt: null,
           resolvedAt: null,
           deletedAt: null,
+          createdAt: new Date("2026-04-19T13:00:00.000Z"),
         },
         {
           id: ids.feedback.northwindWorkflow,
@@ -804,6 +828,7 @@ async function main() {
           archivedAt: null,
           resolvedAt: null,
           deletedAt: null,
+          createdAt: new Date("2026-06-12T15:00:00.000Z"),
         },
       ]),
     )
@@ -820,6 +845,7 @@ async function main() {
         archivedAt: sql`excluded.archived_at`,
         resolvedAt: sql`excluded.resolved_at`,
         deletedAt: null,
+        createdAt: sql`excluded.created_at`,
         updatedAt: sql`now()`,
       },
     });
@@ -844,6 +870,7 @@ async function main() {
           respondedAt: null,
           cancelledAt: null,
           deletedAt: null,
+          createdAt: new Date("2026-07-03T09:00:00.000Z"),
         },
         {
           id: ids.approvals.dashboardPrototype,
@@ -862,6 +889,7 @@ async function main() {
           respondedAt: new Date("2026-06-28T12:15:00.000Z"),
           cancelledAt: null,
           deletedAt: null,
+          createdAt: new Date("2026-04-20T09:30:00.000Z"),
         },
         {
           id: ids.approvals.workflowPilot,
@@ -880,6 +908,7 @@ async function main() {
           respondedAt: new Date("2026-06-29T08:45:00.000Z"),
           cancelledAt: null,
           deletedAt: null,
+          createdAt: new Date("2026-05-05T11:00:00.000Z"),
         },
       ]),
     )
@@ -899,6 +928,7 @@ async function main() {
         respondedAt: sql`excluded.responded_at`,
         cancelledAt: sql`excluded.cancelled_at`,
         deletedAt: null,
+        createdAt: sql`excluded.created_at`,
         updatedAt: sql`now()`,
       },
     });
@@ -919,6 +949,7 @@ async function main() {
           voidReason: null,
           deletedAt: null,
           notes: "Website redesign deposit.",
+          createdAt: new Date("2026-02-10T10:00:00.000Z"),
         },
         {
           id: ids.payments.websiteFinal,
@@ -932,6 +963,7 @@ async function main() {
           voidReason: null,
           deletedAt: null,
           notes: "Final website redesign payment due before launch.",
+          createdAt: new Date("2026-05-22T10:00:00.000Z"),
         },
         {
           id: ids.payments.dashboardDeposit,
@@ -946,6 +978,7 @@ async function main() {
           deletedAt: null,
           notes:
             "Dashboard MVP build, deposit received with balance remaining.",
+          createdAt: new Date("2026-03-10T10:00:00.000Z"),
         },
         {
           id: ids.payments.dashboardMilestone,
@@ -959,6 +992,7 @@ async function main() {
           voidReason: null,
           deletedAt: null,
           notes: "Reporting integration milestone.",
+          createdAt: new Date("2026-04-17T10:00:00.000Z"),
         },
         {
           id: ids.payments.workflowInvoice,
@@ -972,6 +1006,7 @@ async function main() {
           voidReason: null,
           deletedAt: null,
           notes: "AI support workflow pilot invoice.",
+          createdAt: new Date("2026-06-08T10:00:00.000Z"),
         },
       ]),
     )
@@ -987,6 +1022,7 @@ async function main() {
         voidedAt: sql`excluded.voided_at`,
         voidReason: sql`excluded.void_reason`,
         deletedAt: null,
+        createdAt: sql`excluded.created_at`,
         notes: sql`excluded.notes`,
         updatedAt: sql`now()`,
       },
@@ -1211,7 +1247,7 @@ async function main() {
           userId: clientId,
           targetType: "project",
           targetId: ids.projects.websiteRedesign,
-          viewedAt: new Date("2026-06-29T16:00:00.000Z"),
+          viewedAt: new Date("2026-06-30T16:00:00.000Z"),
         },
         {
           id: ids.views.acmeApproval,
@@ -1220,7 +1256,7 @@ async function main() {
           userId: clientId,
           targetType: "approval",
           targetId: ids.approvals.acmeDesign,
-          viewedAt: new Date("2026-06-29T16:05:00.000Z"),
+          viewedAt: new Date("2026-07-03T16:05:00.000Z"),
         },
         {
           id: ids.views.northwindProject,
@@ -1229,7 +1265,7 @@ async function main() {
           userId: null,
           targetType: "project",
           targetId: ids.projects.aiSupportWorkflow,
-          viewedAt: new Date("2026-06-28T18:30:00.000Z"),
+          viewedAt: new Date("2026-04-22T18:30:00.000Z"),
         },
       ]),
     )
