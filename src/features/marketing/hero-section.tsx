@@ -37,9 +37,8 @@ export function HeroSection() {
             </span>
           </h1>
           <p className="mt-6 max-w-xl text-pretty text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">
-            DeliverFlow brings progress, files, feedback, approvals, milestones,
-            and payments into one shared delivery workspace for you and your
-            clients.
+            DeliverFlow keeps progress, files, feedback, approvals, milestones,
+            and payments in one shared workspace for you and your clients.
           </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -64,7 +63,7 @@ export function HeroSection() {
             {[
               "Owner workspace",
               "Dedicated client portal",
-              "Secure role-based access",
+              "Private client access",
             ].map((item) => (
               <li key={item} className="flex items-center gap-1.5">
                 <CheckCircle2
@@ -114,14 +113,14 @@ function HeroProductPreview() {
           <div className="min-w-0 p-3 sm:p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <p className="text-[0.68rem] font-bold uppercase tracking-[0.12em] text-blue-700">
+                <p className="text-xs font-bold uppercase tracking-[0.12em] text-blue-700">
                   Project overview
                 </p>
                 <p className="mt-1 text-sm font-semibold sm:text-base">
                   Website redesign
                 </p>
               </div>
-              <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[0.68rem] font-semibold text-emerald-700">
+              <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
                 On track
               </span>
             </div>
@@ -129,10 +128,10 @@ function HeroProductPreview() {
             <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-3.5 sm:p-4">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-xs font-semibold text-slate-950">
+                  <p className="text-sm font-semibold text-slate-950">
                     Delivery progress
                   </p>
-                  <p className="mt-1 text-[0.68rem] text-slate-500">
+                  <p className="mt-1 text-xs text-slate-600">
                     4 of 5 milestones complete
                   </p>
                 </div>
@@ -148,7 +147,7 @@ function HeroProductPreview() {
             <div className="mt-3 grid gap-3 sm:grid-cols-[1.08fr_0.92fr]">
               <div className="rounded-2xl border border-blue-100 bg-blue-50/70 p-3.5 sm:p-4">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-[0.68rem] font-bold uppercase tracking-[0.1em] text-blue-700">
+                  <p className="text-xs font-bold uppercase tracking-[0.1em] text-blue-700">
                     Current milestone
                   </p>
                   <StatusDot tone="amber" label="In review" />
@@ -159,14 +158,14 @@ function HeroProductPreview() {
                 <p className="mt-1.5 text-xs leading-5 text-slate-600">
                   Latest direction shared. Client approval is the next step.
                 </p>
-                <div className="mt-4 flex items-center gap-2 rounded-lg border border-blue-100 bg-white/80 px-2.5 py-2 text-[0.68rem] font-medium text-slate-700">
+                <div className="mt-4 flex items-center gap-2 rounded-lg border border-blue-100 bg-white/80 px-2.5 py-2 text-xs font-medium text-slate-700">
                   <FileText className="size-3.5 text-blue-700" />
                   homepage-v3.pdf
                 </div>
               </div>
 
               <div className="rounded-2xl border border-slate-200 bg-white p-3.5 sm:p-4">
-                <p className="text-xs font-semibold">Ready for review</p>
+                <p className="text-sm font-semibold">Ready for review</p>
                 <div className="mt-3 space-y-2.5">
                   <PreviewRow
                     icon={BadgeCheck}
@@ -204,8 +203,8 @@ function HeroProductPreview() {
           <BadgeCheck className="size-4 text-blue-700" />
           <StatusDot tone="amber" label="Waiting" />
         </div>
-        <p className="mt-3 text-xs font-semibold">Homepage approval</p>
-        <p className="mt-1 text-[0.68rem] leading-4 text-slate-500">
+        <p className="mt-3 text-sm font-semibold">Homepage approval</p>
+        <p className="mt-1 text-xs leading-5 text-slate-600">
           One clear decision keeps delivery moving.
         </p>
       </div>
@@ -216,8 +215,8 @@ function HeroProductPreview() {
             <CheckCircle2 className="size-4" />
           </span>
           <div>
-            <p className="text-xs font-semibold">Client viewed update</p>
-            <p className="text-[0.68rem] text-slate-500">A few moments ago</p>
+            <p className="text-sm font-semibold">Client viewed update</p>
+            <p className="text-xs text-slate-600">A few moments ago</p>
           </div>
         </div>
       </div>
@@ -250,10 +249,8 @@ function PreviewRow({
         <Icon className="size-3.5" />
       </span>
       <div className="min-w-0">
-        <p className="truncate text-[0.7rem] font-semibold text-slate-800">
-          {label}
-        </p>
-        <p className="truncate text-[0.65rem] text-slate-500">{meta}</p>
+        <p className="truncate text-xs font-semibold text-slate-800">{label}</p>
+        <p className="truncate text-[0.7rem] text-slate-600">{meta}</p>
       </div>
     </div>
   );

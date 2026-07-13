@@ -33,7 +33,19 @@ test.describe("public landing page", () => {
         name: "Keep every project clear. Keep every client confident.",
       }),
     ).toBeVisible();
-    await expect(page.getByRole("navigation", { name: "Primary navigation" })).toBeVisible();
+    const primaryNavigation = page.getByRole("navigation", {
+      name: "Primary navigation",
+    });
+    await expect(primaryNavigation).toBeVisible();
+    await expect(
+      primaryNavigation.getByRole("link", { name: "How it works" }),
+    ).toHaveAttribute("href", "#how-it-works");
+    await expect(
+      primaryNavigation.getByRole("link", { name: "Product", exact: true }),
+    ).toHaveAttribute("href", "#product");
+    await expect(
+      primaryNavigation.getByRole("link", { name: "Owner & client" }),
+    ).toHaveAttribute("href", "#experiences");
 
     await page.locator("#how-it-works").scrollIntoViewIfNeeded();
     await expect(
@@ -46,16 +58,33 @@ test.describe("public landing page", () => {
     await expect(firstProductCard).toHaveCSS("opacity", "1");
 
     await page.getByRole("tab", { name: "Client portal" }).click();
-    await expect(page.getByRole("tab", { name: "Client portal" })).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
+    await expect(
+      page.getByRole("tab", { name: "Client portal" }),
+    ).toHaveAttribute("aria-selected", "true");
     await expect(
       page.getByRole("tabpanel", { name: "Client portal" }),
-    ).toContainText("Give clients clarity");
+    ).toContainText("Give clients the details they need");
+    const productLinks = page.getByRole("navigation", {
+      name: "Product links",
+    });
     await expect(
-      page.getByRole("link", { name: "Create workspace" }),
+      productLinks.getByRole("link", { name: "Product features" }),
+    ).toHaveAttribute("href", "#product");
+
+    const accessLinks = page.getByRole("navigation", { name: "Access links" });
+    await expect(
+      accessLinks.getByRole("link", { name: "Log in" }),
+    ).toHaveAttribute("href", "/login");
+    await expect(
+      accessLinks.getByRole("link", { name: "Create workspace" }),
     ).toHaveAttribute("href", "/signup");
+
+    const projectLinks = page.getByRole("navigation", {
+      name: "Project links",
+    });
+    await expect(
+      projectLinks.getByRole("link", { name: "Repository" }),
+    ).toHaveAttribute("href", "https://github.com/skerdiD/deliver-flow");
     await expectNoHorizontalOverflow(page);
     expect(consoleErrors).toEqual([]);
   });

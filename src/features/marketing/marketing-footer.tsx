@@ -18,7 +18,7 @@ const productLinks = [
 
 export function MarketingFooter() {
   return (
-    <footer className="border-t border-slate-200 bg-slate-100/75">
+    <footer className="border-t border-slate-300 bg-slate-100">
       <MarketingContainer>
         <div className="grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-[1.45fr_0.8fr_0.8fr_0.95fr] lg:gap-12 lg:py-14">
           <MarketingReveal className="max-w-sm">
@@ -29,13 +29,13 @@ export function MarketingFooter() {
             >
               <BrandLogo subtitle="Client delivery, made clear" />
             </Link>
-            <p className="mt-4 text-sm leading-6 text-slate-600">
+            <p className="mt-4 text-sm leading-6 text-slate-700">
               A shared delivery workspace for freelancers, agencies, and their
               clients.
             </p>
           </MarketingReveal>
 
-          <MarketingReveal delay={60}>
+          <MarketingReveal delay={80}>
             <FooterGroup title="Product">
               {productLinks.map(([href, label]) => (
                 <a key={label} href={href} className="marketing-footer-link">
@@ -45,7 +45,7 @@ export function MarketingFooter() {
             </FooterGroup>
           </MarketingReveal>
 
-          <MarketingReveal delay={120}>
+          <MarketingReveal delay={160}>
             <FooterGroup title="Access">
               <Link href={routes.auth.login} className="marketing-footer-link">
                 Log in
@@ -57,7 +57,7 @@ export function MarketingFooter() {
                 role="owner"
                 variant="ghost"
                 size="default"
-                className="h-auto justify-start p-0 text-sm font-medium text-slate-600 shadow-none hover:bg-transparent hover:text-blue-700 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
+                className="h-auto justify-start p-0 text-sm font-medium text-slate-700 shadow-none hover:bg-transparent hover:text-blue-700 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
               >
                 Explore owner demo
               </DemoAction>
@@ -65,14 +65,14 @@ export function MarketingFooter() {
                 role="client"
                 variant="ghost"
                 size="default"
-                className="h-auto justify-start p-0 text-sm font-medium text-slate-600 shadow-none hover:bg-transparent hover:text-blue-700 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
+                className="h-auto justify-start p-0 text-sm font-medium text-slate-700 shadow-none hover:bg-transparent hover:text-blue-700 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
               >
                 View client demo
               </DemoAction>
             </FooterGroup>
           </MarketingReveal>
 
-          <MarketingReveal delay={180}>
+          <MarketingReveal delay={240}>
             <FooterGroup title="Project">
               <a
                 href="https://github.com/skerdiD/deliver-flow"
@@ -97,7 +97,7 @@ export function MarketingFooter() {
           </MarketingReveal>
         </div>
 
-        <div className="flex flex-col gap-3 border-t border-slate-200 py-6 text-xs leading-5 text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 border-t border-slate-300 py-6 text-xs font-medium leading-5 text-slate-600 sm:flex-row sm:items-center sm:justify-between">
           <p>&copy; {new Date().getFullYear()} DeliverFlow.</p>
           <p className="max-w-2xl sm:text-right">
             DeliverFlow is an independent product project centered on real
@@ -118,7 +118,7 @@ function FooterGroup({
 }) {
   return (
     <nav aria-label={`${title} links`}>
-      <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-slate-950">
+      <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-slate-900">
         {title}
       </h2>
       <div className="mt-4 flex flex-col items-start gap-3">{children}</div>

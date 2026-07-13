@@ -43,13 +43,13 @@ export function MarketingHeader() {
           : "border-transparent bg-[#f8fafc]/65",
       )}
     >
-      <MarketingContainer className="flex h-[4.25rem] items-center gap-5">
+      <MarketingContainer className="flex h-[4.5rem] items-center gap-5 sm:h-[4.75rem]">
         <Link
           href={routes.home}
           aria-label="DeliverFlow home"
           className="shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
         >
-          <BrandLogo subtitle="Client delivery, made clear" />
+          <BrandLogo size="marketing" subtitle="Client delivery, made clear" />
         </Link>
 
         <nav
@@ -60,7 +60,7 @@ export function MarketingHeader() {
             <a
               key={item.href}
               href={item.href}
-              className="rounded-md text-sm font-medium text-slate-600 transition-colors hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-4"
+              className="rounded-md text-base font-medium text-slate-600 transition-colors hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-4"
             >
               {item.label}
             </a>
@@ -70,14 +70,14 @@ export function MarketingHeader() {
         <div className="ml-auto hidden items-center gap-2 sm:flex lg:ml-3">
           <Link
             href={routes.auth.login}
-            className="inline-flex h-10 items-center rounded-md px-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
+            className="inline-flex h-11 items-center rounded-md px-3.5 text-[0.95rem] font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
           >
             Log in
           </Link>
           <DemoAction
             role="owner"
             size="default"
-            className="marketing-cta group bg-blue-600 px-4 hover:bg-blue-700 focus-visible:ring-blue-600"
+            className="marketing-cta group h-11 bg-blue-600 px-4.5 text-[0.95rem] hover:bg-blue-700 focus-visible:ring-blue-600"
           >
             Explore demo
             <ArrowUpRight className="size-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
@@ -87,13 +87,17 @@ export function MarketingHeader() {
         <div className="relative ml-auto sm:hidden">
           <button
             type="button"
-            className="grid size-10 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
+            className="grid size-11 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
             aria-label="Toggle navigation menu"
             aria-expanded={isMenuOpen}
             aria-controls="marketing-mobile-navigation"
             onClick={() => setIsMenuOpen((current) => !current)}
           >
-            {isMenuOpen ? <X className="size-4" /> : <Menu className="size-4" />}
+            {isMenuOpen ? (
+              <X className="size-4.5" />
+            ) : (
+              <Menu className="size-4.5" />
+            )}
           </button>
           <div
             id="marketing-mobile-navigation"

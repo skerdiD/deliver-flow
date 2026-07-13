@@ -150,14 +150,14 @@ export function ProductWindow({
           </span>
           <span
             className={cn(
-              "ml-1 text-[0.68rem] font-semibold",
+              "ml-1 text-xs font-semibold",
               dark ? "text-slate-300" : "text-slate-500",
             )}
           >
             {label}
           </span>
         </div>
-        <span className="truncate text-xs font-semibold">{title}</span>
+        <span className="truncate text-sm font-semibold">{title}</span>
       </div>
       {children}
     </div>
@@ -186,11 +186,11 @@ export function PreviewMetric({
 
   return (
     <div className={cn("rounded-xl p-3", tones[tone], className)}>
-      <div className="flex items-center gap-1.5 text-[0.68rem] font-medium opacity-80">
+      <div className="flex items-center gap-1.5 text-xs font-medium opacity-85">
         {Icon ? <Icon className="size-3.5" /> : null}
         {label}
       </div>
-      <p className="mt-1 text-sm font-semibold text-slate-950">{value}</p>
+      <p className="mt-1 text-base font-semibold text-slate-950">{value}</p>
     </div>
   );
 }
@@ -209,7 +209,7 @@ export function StatusDot({
   } as const;
 
   return (
-    <span className="inline-flex items-center gap-1.5 text-[0.7rem] font-semibold text-slate-600">
+    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600">
       <span className={cn("size-1.5 rounded-full", tones[tone])} />
       {label}
     </span>

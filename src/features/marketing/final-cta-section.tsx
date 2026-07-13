@@ -69,14 +69,14 @@ function WorkflowPreview() {
       <div className="rounded-2xl border border-white/10 bg-slate-950/80 p-4 sm:p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="text-[0.65rem] font-bold uppercase tracking-[0.14em] text-blue-300">
+            <p className="text-[0.72rem] font-bold uppercase tracking-[0.14em] text-blue-300">
               Project
             </p>
             <p className="mt-1.5 text-sm font-semibold sm:text-base">
               Website redesign
             </p>
           </div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-400/10 px-2.5 py-1 text-[0.68rem] font-semibold text-blue-200 ring-1 ring-blue-300/15">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-400/10 px-2.5 py-1 text-xs font-semibold text-blue-200 ring-1 ring-blue-300/15">
             <span className="size-1.5 rounded-full bg-blue-400" />
             In review
           </span>
@@ -84,10 +84,10 @@ function WorkflowPreview() {
 
         <div className="mt-5 flex items-end justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold text-slate-200">
+            <p className="text-sm font-semibold text-slate-200">
               Delivery progress
             </p>
-            <p className="mt-1 text-[0.68rem] text-slate-400">
+            <p className="mt-1 text-xs text-slate-300">
               4 of 5 milestones complete
             </p>
           </div>
@@ -102,12 +102,12 @@ function WorkflowPreview() {
             <BadgeCheck className="size-4" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold">Homepage approval</p>
-            <p className="mt-0.5 text-[0.68rem] text-slate-400">
+            <p className="text-sm font-semibold">Homepage approval</p>
+            <p className="mt-0.5 text-xs text-slate-300">
               Waiting for client decision
             </p>
           </div>
-          <span className="rounded-full bg-amber-300/10 px-2 py-1 text-[0.65rem] font-semibold text-amber-200">
+          <span className="rounded-full bg-amber-300/10 px-2 py-1 text-[0.7rem] font-semibold text-amber-200">
             Waiting
           </span>
         </div>
@@ -154,8 +154,8 @@ function WorkflowSignal({
         <Icon className="size-4" />
       </span>
       <div className="min-w-0">
-        <p className="text-[0.68rem] text-slate-400">{label}</p>
-        <p className="mt-0.5 truncate text-xs font-semibold">{value}</p>
+        <p className="text-xs text-slate-300">{label}</p>
+        <p className="mt-0.5 truncate text-sm font-semibold">{value}</p>
       </div>
     </div>
   );

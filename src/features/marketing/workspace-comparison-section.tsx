@@ -22,12 +22,12 @@ import { MarketingReveal } from "@/features/marketing/marketing-reveal";
 const ownerBenefits = [
   "Manage clients, projects, milestones, and files",
   "See feedback, approvals, and payments needing attention",
-  "Review delivery analytics across the workspace",
+  "Check delivery progress across the workspace",
 ] as const;
 
 const clientBenefits = [
   "Follow progress and the current delivery milestone",
-  "Download files and respond with contextual feedback",
+  "Download files and leave feedback on the work",
   "Approve work, request changes, and review payments",
 ] as const;
 
@@ -47,13 +47,13 @@ export function WorkspaceComparisonSection() {
             <SectionHeading
               eyebrow="Two connected experiences"
               title="The same delivery. The right view for each person."
-              description="Owners get operational control. Clients get a calm, focused portal. Both stay aligned around one source of truth."
+              description="Owners manage the work. Clients get a calm, focused portal. Both see the same project progress and decisions."
               tone="dark"
             />
           </MarketingReveal>
           <p className="max-w-xl text-sm leading-6 text-slate-400 lg:ml-auto lg:text-right">
-            Switch between the views to see how DeliverFlow adapts the same
-            project context to each role.
+            Switch between the views to see how the same project is presented to
+            each role.
           </p>
         </div>
 
@@ -63,8 +63,8 @@ export function WorkspaceComparisonSection() {
               <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-center">
                 <ExperienceCopy
                   eyebrow="Owner workspace"
-                  title="Run delivery from one focused operating view."
-                  description="Spot what needs a decision, follow-up, or payment conversation without opening every project."
+                  title="See what needs attention across every project."
+                  description="Review the next approval, follow-up, or payment without opening every project."
                   benefits={ownerBenefits}
                   tone="dark"
                 />
@@ -75,7 +75,7 @@ export function WorkspaceComparisonSection() {
               <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-center">
                 <ExperienceCopy
                   eyebrow="Client portal"
-                  title="Give clients clarity without exposing internal noise."
+                  title="Give clients the details they need, without the internal noise."
                   description="The portal keeps progress, files, approvals, feedback, and payments easy to understand and act on."
                   benefits={clientBenefits}
                   tone="light"
@@ -106,7 +106,7 @@ function ExperienceCopy({
   return (
     <div>
       <p
-        className={`text-[0.68rem] font-bold uppercase tracking-[0.15em] ${tone === "dark" ? "text-blue-300" : "text-blue-700"}`}
+        className={`text-[0.72rem] font-bold uppercase tracking-[0.15em] ${tone === "dark" ? "text-blue-300" : "text-blue-700"}`}
       >
         {eyebrow}
       </p>
@@ -167,10 +167,8 @@ function OwnerPreview() {
         </div>
         <div className="mt-3 rounded-xl border border-slate-200 bg-white p-3.5">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold">Needs attention</p>
-            <span className="text-[0.68rem] font-semibold text-blue-700">
-              4 items
-            </span>
+            <p className="text-sm font-semibold">Needs attention</p>
+            <span className="text-xs font-semibold text-blue-700">4 items</span>
           </div>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             <OwnerAttention
@@ -192,7 +190,7 @@ function OwnerPreview() {
             <BarChart3 className="size-4" />
           </span>
           <div className="min-w-0 flex-1">
-            <div className="flex justify-between gap-3 text-[0.68rem] font-semibold">
+            <div className="flex justify-between gap-3 text-xs font-semibold">
               <span>Portfolio delivery health</span>
               <span>78%</span>
             </div>
@@ -224,7 +222,7 @@ function ClientPreview() {
           <StatusDot tone="green" label="On track" />
         </div>
         <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3.5">
-          <div className="flex justify-between text-xs font-semibold">
+          <div className="flex justify-between text-sm font-semibold">
             <span>Project progress</span>
             <span>82%</span>
           </div>
@@ -279,8 +277,8 @@ function OwnerAttention({
         <Icon className="size-3.5" />
       </span>
       <div className="min-w-0">
-        <p className="truncate text-[0.68rem] font-semibold">{title}</p>
-        <p className="truncate text-[0.65rem] text-slate-500">{meta}</p>
+        <p className="truncate text-xs font-semibold">{title}</p>
+        <p className="truncate text-[0.7rem] text-slate-600">{meta}</p>
       </div>
     </div>
   );
@@ -307,8 +305,8 @@ function ClientAction({
         <Icon className="size-3.5" />
       </span>
       <div className="min-w-0">
-        <p className="truncate text-xs font-semibold">{title}</p>
-        <p className="truncate text-[0.68rem] text-slate-500">{meta}</p>
+        <p className="truncate text-sm font-semibold">{title}</p>
+        <p className="truncate text-xs text-slate-600">{meta}</p>
       </div>
     </div>
   );
