@@ -29,12 +29,14 @@ export function SectionHeading({
   title,
   description,
   align = "left",
+  tone = "light",
   className,
 }: {
   eyebrow: string;
   title: string;
   description: string;
   align?: "left" | "center";
+  tone?: "light" | "dark";
   className?: string;
 }) {
   return (
@@ -45,13 +47,28 @@ export function SectionHeading({
         className,
       )}
     >
-      <p className="text-[0.7rem] font-bold uppercase tracking-[0.18em] text-blue-700">
+      <p
+        className={cn(
+          "text-[0.7rem] font-bold uppercase tracking-[0.18em]",
+          tone === "dark" ? "text-blue-300" : "text-blue-700",
+        )}
+      >
         {eyebrow}
       </p>
-      <h2 className="mt-3 text-balance text-3xl font-semibold leading-[1.08] tracking-[-0.045em] text-slate-950 sm:text-[2.6rem]">
+      <h2
+        className={cn(
+          "mt-3 text-balance text-3xl font-semibold leading-[1.08] tracking-[-0.045em] sm:text-[2.6rem]",
+          tone === "dark" ? "text-white" : "text-slate-950",
+        )}
+      >
         {title}
       </h2>
-      <p className="mt-4 text-pretty text-base leading-7 text-slate-600 sm:text-[1.05rem]">
+      <p
+        className={cn(
+          "mt-4 text-pretty text-base leading-7 sm:text-[1.05rem]",
+          tone === "dark" ? "text-slate-300" : "text-slate-600",
+        )}
+      >
         {description}
       </p>
     </div>
@@ -97,7 +114,7 @@ export function ProductWindow({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-[1.35rem] border shadow-[0_24px_60px_-34px_rgba(15,23,42,0.4)]",
+        "marketing-panel-shadow overflow-hidden rounded-[1.35rem] border",
         dark
           ? "border-white/10 bg-slate-900 text-white"
           : "border-slate-200/90 bg-white text-slate-950",

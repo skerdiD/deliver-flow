@@ -18,6 +18,13 @@ test.describe("public landing page", () => {
   test("supports navigation, progressive reveals, and experience tabs", async ({
     page,
   }) => {
+    const consoleErrors: string[] = [];
+    page.on("console", (message) => {
+      if (message.type() === "error") {
+        consoleErrors.push(message.text());
+      }
+    });
+
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/");
 
@@ -33,6 +40,11 @@ test.describe("public landing page", () => {
       page.locator("#how-it-works .marketing-scroll-reveal").first(),
     ).toHaveClass(/is-revealed/, { timeout: 10_000 });
 
+    await page.locator("#product").scrollIntoViewIfNeeded();
+    const firstProductCard = page.locator("#product .marketing-card").first();
+    await expect(firstProductCard).toBeVisible();
+    await expect(firstProductCard).toHaveCSS("opacity", "1");
+
     await page.getByRole("tab", { name: "Client portal" }).click();
     await expect(page.getByRole("tab", { name: "Client portal" })).toHaveAttribute(
       "aria-selected",
@@ -41,7 +53,11 @@ test.describe("public landing page", () => {
     await expect(
       page.getByRole("tabpanel", { name: "Client portal" }),
     ).toContainText("Give clients clarity");
+    await expect(
+      page.getByRole("link", { name: "Create workspace" }),
+    ).toHaveAttribute("href", "/signup");
     await expectNoHorizontalOverflow(page);
+    expect(consoleErrors).toEqual([]);
   });
 
   test("mobile navigation is accessible and the page has no overflow", async ({
@@ -73,5 +89,9 @@ test.describe("public landing page", () => {
     const reveal = page.locator(".marketing-scroll-reveal").first();
     await expect(reveal).toHaveCSS("opacity", "1");
     await expect(reveal).toHaveCSS("transition-duration", "0s");
+    await expect(page.locator("#product .marketing-card").first()).toHaveCSS(
+      "opacity",
+      "1",
+    );
   });
 });

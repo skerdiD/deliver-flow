@@ -45,7 +45,7 @@ export function HowItWorksSection() {
   return (
     <section
       id="how-it-works"
-      className="scroll-mt-20 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] py-20 sm:py-24 lg:py-28"
+      className="scroll-mt-20 bg-white py-20 sm:py-24 lg:py-28"
     >
       <MarketingContainer>
         <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-end">
@@ -72,7 +72,7 @@ export function HowItWorksSection() {
             return (
               <li
                 key={step.number}
-                className={`relative px-1 py-5 sm:px-5 lg:min-h-48 lg:py-6 ${index > 0 ? "sm:border-l sm:border-slate-200" : ""}`}
+                className={`relative px-1 py-5 sm:px-5 lg:py-6 ${index > 0 ? "sm:border-l sm:border-slate-200" : ""}`}
               >
                 <MarketingReveal delay={index * 80}>
                   <div className="flex items-center justify-between gap-4">

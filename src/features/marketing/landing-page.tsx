@@ -9,7 +9,7 @@ import { WorkspaceComparisonSection } from "@/features/marketing/workspace-compa
 
 export function LandingPage() {
   return (
-    <div className="min-h-dvh overflow-x-clip bg-[#f8fafc] text-slate-950">
+    <div className="marketing-surface-page min-h-dvh overflow-x-clip text-slate-950">
       <MarketingHeader />
       <main>
         <HeroSection />

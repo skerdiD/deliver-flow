@@ -35,18 +35,23 @@ export function WorkspaceComparisonSection() {
   return (
     <section
       id="experiences"
-      className="scroll-mt-20 bg-[linear-gradient(180deg,#f8fafc_0%,#eff6ff_48%,#f8fafc_100%)] py-20 sm:py-24 lg:py-28"
+      className="marketing-surface-dark relative isolate scroll-mt-20 overflow-hidden border-y border-white/10 py-20 sm:py-24 lg:py-28"
     >
-      <MarketingContainer>
+      <div
+        className="absolute inset-x-0 top-0 -z-10 h-[34rem] bg-[radial-gradient(circle_at_72%_5%,rgba(37,99,235,0.2),transparent_46%)]"
+        aria-hidden="true"
+      />
+      <MarketingContainer className="relative">
         <div className="grid gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-end">
           <MarketingReveal>
             <SectionHeading
               eyebrow="Two connected experiences"
               title="The same delivery. The right view for each person."
               description="Owners get operational control. Clients get a calm, focused portal. Both stay aligned around one source of truth."
+              tone="dark"
             />
           </MarketingReveal>
-          <p className="max-w-xl text-sm leading-6 text-slate-500 lg:ml-auto lg:text-right">
+          <p className="max-w-xl text-sm leading-6 text-slate-400 lg:ml-auto lg:text-right">
             Switch between the views to see how DeliverFlow adapts the same
             project context to each role.
           </p>

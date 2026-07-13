@@ -33,6 +33,14 @@
   --ring: 221.2 83.2% 53.3%;
 
   --radius: 0.875rem;
+
+  --marketing-page: 216 33% 97%;
+  --marketing-card: 0 0% 100%;
+  --marketing-muted: 216 100% 97%;
+  --marketing-navy: 222 74% 9%;
+  --marketing-text: 222 43% 8%;
+  --marketing-muted-text: 215 20% 42%;
+  --marketing-border: 214 32% 88%;
 }
 
 * {
@@ -104,6 +112,24 @@ body {
   mask-image: linear-gradient(to bottom, black, transparent 90%);
 }
 
+.marketing-surface-page {
+  background-color: hsl(var(--marketing-page));
+}
+
+.marketing-surface-muted {
+  background-color: hsl(var(--marketing-muted));
+}
+
+.marketing-surface-dark {
+  background-color: hsl(var(--marketing-navy));
+}
+
+.marketing-panel-shadow {
+  box-shadow:
+    0 1px 2px rgb(15 23 42 / 0.04),
+    0 22px 60px -36px rgb(15 23 42 / 0.34);
+}
+
 .marketing-dark-grid::before {
   position: absolute;
   inset: 0;
@@ -114,6 +140,13 @@ body {
     linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px);
   background-size: 42px 42px;
   mask-image: linear-gradient(to right, transparent, black 55%, transparent);
+}
+
+.marketing-cta-panel {
+  background-color: hsl(var(--marketing-navy));
+  background-image:
+    radial-gradient(circle at 84% 16%, rgb(37 99 235 / 0.28), transparent 34%),
+    linear-gradient(135deg, hsl(222 74% 8%), hsl(220 68% 13%));
 }
 
 .marketing-progress {
@@ -151,24 +184,30 @@ body {
   transform: translate3d(0, 0, 0) scale(1);
 }
 
-.marketing-card-group .marketing-card {
+.marketing-scroll-reveal .marketing-card-group .marketing-card {
   opacity: 0;
   transform: translateY(18px);
 }
 
-.marketing-card-group.is-revealed .marketing-card {
+.marketing-scroll-reveal.is-revealed .marketing-card-group .marketing-card {
   animation: marketing-fade-up 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.marketing-card-group.is-revealed .marketing-card:nth-child(2) {
+.marketing-scroll-reveal.is-revealed
+  .marketing-card-group
+  .marketing-card:nth-child(2) {
   animation-delay: 80ms;
 }
 
-.marketing-card-group.is-revealed .marketing-card:nth-child(3) {
+.marketing-scroll-reveal.is-revealed
+  .marketing-card-group
+  .marketing-card:nth-child(3) {
   animation-delay: 160ms;
 }
 
-.marketing-card-group.is-revealed .marketing-card:nth-child(4) {
+.marketing-scroll-reveal.is-revealed
+  .marketing-card-group
+  .marketing-card:nth-child(4) {
   animation-delay: 240ms;
 }
 
@@ -198,6 +237,13 @@ body {
   transition: transform 220ms ease;
 }
 
+.marketing-card-icon {
+  transition:
+    transform 220ms ease,
+    background-color 220ms ease,
+    color 220ms ease;
+}
+
 .marketing-cta {
   transition:
     transform 220ms ease,
@@ -215,6 +261,10 @@ body {
 
   .marketing-card:hover > :last-child {
     transform: translateY(-2px);
+  }
+
+  .marketing-card:hover .marketing-card-icon {
+    transform: translateY(-1px) scale(1.03);
   }
 
   .marketing-cta:hover {
@@ -263,13 +313,14 @@ body {
     transition: none;
   }
 
-  .marketing-card-group .marketing-card {
+  .marketing-scroll-reveal .marketing-card-group .marketing-card {
     opacity: 1;
     transform: none;
     animation: none;
   }
 
   .marketing-card,
+  .marketing-card-icon,
   .marketing-footer-link,
   .marketing-cta,
   .marketing-card > :last-child {
@@ -278,6 +329,20 @@ body {
 
   .marketing-card:hover {
     transform: none;
+  }
+}
+
+@media (max-width: 639px) and (prefers-reduced-motion: no-preference) {
+  .marketing-scroll-reveal {
+    transform: translate3d(0, 14px, 0);
+  }
+
+  .marketing-scroll-reveal.reveal-fade-left {
+    transform: translate3d(-14px, 0, 0);
+  }
+
+  .marketing-scroll-reveal.reveal-fade-right {
+    transform: translate3d(14px, 0, 0);
   }
 }
 

@@ -18,10 +18,10 @@ import {
 
 export function HeroSection() {
   return (
-    <section className="relative isolate border-b border-slate-200/70 bg-[linear-gradient(180deg,#f8fafc_0%,#ffffff_100%)]">
+    <section className="marketing-surface-page relative isolate border-b border-slate-200/70">
       <div className="marketing-grid absolute inset-x-0 top-0 -z-10 h-[38rem] opacity-70" />
       <div
-        className="absolute left-[8%] top-20 -z-10 size-72 rounded-full bg-blue-200/30 blur-3xl"
+        className="absolute left-[8%] top-16 -z-10 size-80 rounded-full bg-blue-200/35 blur-3xl"
         aria-hidden="true"
       />
       <MarketingContainer className="grid gap-11 pb-16 pt-12 sm:pb-20 sm:pt-16 lg:grid-cols-[minmax(0,0.86fr)_minmax(0,1.14fr)] lg:items-center lg:gap-12 lg:pb-24 lg:pt-18">
@@ -48,7 +48,7 @@ export function HeroSection() {
               className="marketing-cta group h-12 rounded-lg bg-blue-600 px-5 shadow-lg shadow-blue-950/15 hover:bg-blue-700 focus-visible:ring-blue-600"
             >
               Explore owner demo
-              <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+              <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
             </DemoAction>
             <DemoAction
               role="client"
@@ -56,7 +56,7 @@ export function HeroSection() {
               className="marketing-cta group h-12 rounded-lg border-slate-300 bg-white/80 px-5"
             >
               View client portal
-              <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+              <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
             </DemoAction>
           </div>
 
@@ -64,7 +64,7 @@ export function HeroSection() {
             {[
               "Owner workspace",
               "Dedicated client portal",
-              "Role-based access",
+              "Secure role-based access",
             ].map((item) => (
               <li key={item} className="flex items-center gap-1.5">
                 <CheckCircle2

@@ -24,7 +24,7 @@ export function ProductExperienceSection() {
   return (
     <section
       id="product"
-      className="scroll-mt-20 border-y border-slate-200/80 bg-white py-20 sm:py-24 lg:py-28"
+      className="marketing-surface-muted scroll-mt-20 border-y border-blue-100/80 py-20 sm:py-24 lg:py-28"
     >
       <MarketingContainer>
         <MarketingReveal>
@@ -38,7 +38,7 @@ export function ProductExperienceSection() {
 
         <MarketingReveal className="mt-12" variant="scale-fade">
         <div className="marketing-card-group grid auto-rows-auto gap-4 lg:grid-cols-12">
-          <article className="marketing-card relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5 lg:col-span-7 lg:row-span-2 sm:p-7">
+          <article className="marketing-card marketing-panel-shadow relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white p-5 lg:col-span-7 lg:row-span-2 sm:p-7">
             <div className="max-w-lg">
               <p className="text-[0.68rem] font-bold uppercase tracking-[0.15em] text-blue-700">
                 Client portal
@@ -98,7 +98,7 @@ export function ProductExperienceSection() {
             </ProductWindow>
           </article>
 
-          <article className="marketing-card rounded-[1.75rem] border border-blue-200 bg-blue-50/70 p-5 lg:col-span-5 sm:p-7">
+          <article className="marketing-card marketing-panel-shadow rounded-[1.75rem] border border-blue-200 bg-blue-50/80 p-5 lg:col-span-5 sm:p-7">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-[0.68rem] font-bold uppercase tracking-[0.15em] text-blue-700">
@@ -108,7 +108,7 @@ export function ProductExperienceSection() {
                   Decisions stay attached to the work.
                 </h3>
               </div>
-              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-900/15">
+              <span className="marketing-card-icon grid size-10 shrink-0 place-items-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-900/15">
                 <BadgeCheck className="size-5" />
               </span>
             </div>
@@ -134,7 +134,7 @@ export function ProductExperienceSection() {
             </div>
           </article>
 
-          <article className="marketing-card rounded-[1.75rem] border border-slate-200 bg-white p-5 lg:col-span-5 sm:p-7">
+          <article className="marketing-card marketing-panel-shadow rounded-[1.75rem] border border-slate-200 bg-white p-5 lg:col-span-5 sm:p-7">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-[0.68rem] font-bold uppercase tracking-[0.15em] text-blue-700">
@@ -144,7 +144,7 @@ export function ProductExperienceSection() {
                   Context travels with every deliverable.
                 </h3>
               </div>
-              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-700">
+              <span className="marketing-card-icon grid size-10 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-700">
                 <FolderOpen className="size-5" />
               </span>
             </div>
