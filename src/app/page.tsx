@@ -1,9 +1,16 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { routes } from "@/config/routes";
 import { LandingPage } from "@/features/marketing/landing-page";
 import { getAuthState } from "@/lib/supabase/auth";
 import { getDashboardPathForRole } from "@/lib/supabase/route-protection";
+
+export const metadata: Metadata = {
+  title: "Client delivery, made clear",
+  description:
+    "DeliverFlow keeps projects, milestones, files, feedback, approvals, and payments connected in one shared client-delivery workspace.",
+};
 
 export default async function HomePage() {
   const authState = await getAuthState();

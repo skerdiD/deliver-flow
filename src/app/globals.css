@@ -53,7 +53,126 @@ body {
     "calt" 1;
 }
 
-@keyframes landing-fade-up {
+@keyframes marketing-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes marketing-progress {
+  from {
+    width: 0;
+  }
+  to {
+    width: 82%;
+  }
+}
+
+@keyframes marketing-float-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.marketing-reveal {
+  animation: marketing-fade-up 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.marketing-delay-2 {
+  animation-delay: 140ms;
+}
+
+.marketing-delay-3 {
+  animation-delay: 230ms;
+}
+
+.marketing-grid {
+  background-image:
+    linear-gradient(hsl(214 32% 91% / 0.5) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(214 32% 91% / 0.5) 1px, transparent 1px);
+  background-size: 46px 46px;
+  mask-image: linear-gradient(to bottom, black, transparent 90%);
+}
+
+.marketing-dark-grid::before {
+  position: absolute;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: linear-gradient(to right, transparent, black 55%, transparent);
+}
+
+.marketing-progress {
+  animation: marketing-progress 900ms 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.marketing-float-card {
+  animation: marketing-float-in 550ms 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.marketing-scroll-reveal {
+  opacity: 0;
+  transform: translate3d(0, 22px, 0);
+  transition:
+    opacity 650ms cubic-bezier(0.22, 1, 0.36, 1)
+      var(--marketing-reveal-delay, 0ms),
+    transform 650ms cubic-bezier(0.22, 1, 0.36, 1)
+      var(--marketing-reveal-delay, 0ms);
+}
+
+.marketing-scroll-reveal.reveal-fade-left {
+  transform: translate3d(-22px, 0, 0);
+}
+
+.marketing-scroll-reveal.reveal-fade-right {
+  transform: translate3d(22px, 0, 0);
+}
+
+.marketing-scroll-reveal.reveal-scale-fade {
+  transform: translate3d(0, 14px, 0) scale(0.985);
+}
+
+.marketing-scroll-reveal.is-revealed {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+.marketing-card-group .marketing-card {
+  opacity: 0;
+  transform: translateY(18px);
+}
+
+.marketing-card-group.is-revealed .marketing-card {
+  animation: marketing-fade-up 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.marketing-card-group.is-revealed .marketing-card:nth-child(2) {
+  animation-delay: 80ms;
+}
+
+.marketing-card-group.is-revealed .marketing-card:nth-child(3) {
+  animation-delay: 160ms;
+}
+
+.marketing-card-group.is-revealed .marketing-card:nth-child(4) {
+  animation-delay: 240ms;
+}
+
+@keyframes marketing-tab-in {
   from {
     opacity: 0;
     transform: translateY(10px);
@@ -64,69 +183,101 @@ body {
   }
 }
 
-@keyframes landing-progress {
-  from {
-    width: 0;
+.marketing-tab-panel {
+  animation: marketing-tab-in 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.marketing-card {
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease,
+    border-color 220ms ease;
+}
+
+.marketing-card > :last-child {
+  transition: transform 220ms ease;
+}
+
+.marketing-cta {
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease,
+    background-color 220ms ease,
+    border-color 220ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .marketing-card:hover {
+    transform: translateY(-3px);
+    border-color: hsl(214 32% 84%);
+    box-shadow: 0 24px 60px -42px rgb(15 23 42 / 0.5);
   }
-  to {
-    width: 82%;
+
+  .marketing-card:hover > :last-child {
+    transform: translateY(-2px);
+  }
+
+  .marketing-cta:hover {
+    transform: translateY(-2px);
   }
 }
 
-@keyframes landing-pulse {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.55;
-    transform: scale(0.8);
-  }
+.marketing-footer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 0.25rem;
+  color: hsl(215 16% 47%);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: color 160ms ease;
 }
 
-.landing-reveal {
-  animation: landing-fade-up 550ms ease-out both;
+.marketing-footer-link:hover {
+  color: hsl(221 83% 45%);
 }
 
-.landing-delay-1 {
-  animation-delay: 100ms;
-}
-
-.landing-delay-2 {
-  animation-delay: 160ms;
-}
-.landing-delay-3 {
-  animation-delay: 220ms;
-}
-.landing-delay-4 {
-  animation-delay: 280ms;
-}
-
-.landing-grid {
-  background-image:
-    linear-gradient(hsl(214 32% 91% / 0.55) 1px, transparent 1px),
-    linear-gradient(90deg, hsl(214 32% 91% / 0.55) 1px, transparent 1px);
-  background-size: 44px 44px;
-  mask-image: linear-gradient(to bottom, black, transparent 88%);
-}
-
-.landing-progress {
-  animation: landing-progress 900ms 220ms ease-out both;
-}
-
-.landing-pulse {
-  animation: landing-pulse 2.4s ease-in-out infinite;
+.marketing-footer-link:focus-visible {
+  outline: 2px solid hsl(221 83% 53%);
+  outline-offset: 4px;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .landing-reveal,
-  .landing-progress {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .marketing-reveal,
+  .marketing-progress,
+  .marketing-float-card,
+  .marketing-tab-panel {
     animation: none;
   }
 
-  .landing-pulse {
+  .marketing-scroll-reveal,
+  .marketing-scroll-reveal.reveal-fade-left,
+  .marketing-scroll-reveal.reveal-fade-right,
+  .marketing-scroll-reveal.reveal-scale-fade {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .marketing-card-group .marketing-card {
+    opacity: 1;
+    transform: none;
     animation: none;
+  }
+
+  .marketing-card,
+  .marketing-footer-link,
+  .marketing-cta,
+  .marketing-card > :last-child {
+    transition: none;
+  }
+
+  .marketing-card:hover {
+    transform: none;
   }
 }
 
