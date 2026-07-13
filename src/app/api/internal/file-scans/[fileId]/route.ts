@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 
 import { getProjectFileScannerWebhookSecret } from "@/features/projects/file-security.server";
@@ -33,7 +34,26 @@ function hasValidScannerSecret(request: Request) {
   }
 
   const authorization = request.headers.get("authorization");
-  return authorization === `Bearer ${secret}`;
+  const expected = Buffer.from(`Bearer ${secret}`);
+  const received = Buffer.from(authorization ?? "");
+
+  return (
+    expected.length === received.length && timingSafeEqual(expected, received)
+  );
+}
+
+async function parseJsonRequest(request: Request): Promise<unknown | null> {
+  const contentType = request.headers.get("content-type")?.split(";", 1)[0];
+
+  if (contentType !== "application/json") {
+    return null;
+  }
+
+  try {
+    return await request.json();
+  } catch {
+    return null;
+  }
 }
 
 export async function POST(
@@ -50,7 +70,8 @@ export async function POST(
     return jsonError("File not found.", 404);
   }
 
-  const parsedBody = requestBodySchema.safeParse(await request.json());
+  const body = await parseJsonRequest(request);
+  const parsedBody = requestBodySchema.safeParse(body);
 
   if (!parsedBody.success) {
     return jsonError("Scan result is invalid.", 400);

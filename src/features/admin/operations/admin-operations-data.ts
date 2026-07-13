@@ -17,6 +17,7 @@ import {
   workspaces,
 } from "@/db/schema";
 import { requireAdminWorkspace } from "@/lib/supabase/auth";
+import { summarizePaymentAmountsByCurrency } from "@/features/admin/operations/types";
 import type {
   AdminApprovalRecord,
   AdminApprovalsPageData,
@@ -401,14 +402,7 @@ export async function getAdminPaymentsPageData(): Promise<AdminPaymentsPageData>
   return {
     payments: normalizedPayments,
     summary: {
-      totalPaidCents: normalizedPayments
-        .filter((payment) => payment.status === "paid")
-        .reduce((total, payment) => total + payment.amountCents, 0),
-      outstandingCents: normalizedPayments
-        .filter(
-          (payment) => payment.status !== "paid" && payment.status !== "void",
-        )
-        .reduce((total, payment) => total + payment.amountCents, 0),
+      currencyTotals: summarizePaymentAmountsByCurrency(normalizedPayments),
       overdueCount: normalizedPayments.filter(
         (payment) => payment.status === "overdue",
       ).length,

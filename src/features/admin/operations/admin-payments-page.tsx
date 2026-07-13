@@ -39,12 +39,22 @@ export function AdminPaymentsPage({ data }: AdminPaymentsPageProps) {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <SummaryCard
           label="Total paid"
-          value={formatPaymentAmount(data.summary.totalPaidCents, "USD")}
+          value={
+            <CurrencyTotals
+              totals={data.summary.currencyTotals}
+              field="totalPaidCents"
+            />
+          }
           description="Payments already received."
         />
         <SummaryCard
           label="Still open"
-          value={formatPaymentAmount(data.summary.outstandingCents, "USD")}
+          value={
+            <CurrencyTotals
+              totals={data.summary.currencyTotals}
+              field="outstandingCents"
+            />
+          }
           description="Amounts that still need attention."
         />
         <SummaryCard
@@ -231,7 +241,7 @@ export function AdminPaymentsPage({ data }: AdminPaymentsPageProps) {
 
 function SummaryCard(props: {
   label: string;
-  value: string;
+  value: React.ReactNode;
   description: string;
 }) {
   return (
@@ -244,5 +254,26 @@ function SummaryCard(props: {
         <p className="text-sm text-slate-500">{props.description}</p>
       </CardContent>
     </Card>
+  );
+}
+
+function CurrencyTotals(props: {
+  totals: AdminPaymentsPageData["summary"]["currencyTotals"];
+  field: "totalPaidCents" | "outstandingCents";
+}) {
+  const nonZeroTotals = props.totals.filter((total) => total[props.field] > 0);
+
+  if (nonZeroTotals.length === 0) {
+    return "—";
+  }
+
+  return (
+    <span className="flex flex-wrap gap-x-3 gap-y-1">
+      {nonZeroTotals.map((total) => (
+        <span key={total.currency}>
+          {formatPaymentAmount(total[props.field], total.currency)}
+        </span>
+      ))}
+    </span>
   );
 }

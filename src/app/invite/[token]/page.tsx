@@ -16,6 +16,10 @@ type InvitePageProps = {
 
 export const metadata: Metadata = {
   title: "Accept invite",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default async function InvitePage({ params }: InvitePageProps) {

@@ -49,8 +49,30 @@ describe("project validation schemas", () => {
     });
 
     expect(
-      progressFormSchema.safeParse({ progress: "50", status: "draft" })
-        .success,
+      progressFormSchema.safeParse({ progress: "50", status: "draft" }).success,
     ).toBe(false);
+  });
+
+  it("accepts only safe external project URLs", () => {
+    expect(
+      projectFormSchema.safeParse({
+        ...validProjectInput,
+        liveDemoUrl: "javascript:alert(document.domain)",
+      }).success,
+    ).toBe(false);
+
+    expect(
+      projectFormSchema.safeParse({
+        ...validProjectInput,
+        repositoryUrl: "data:text/html,<script>alert(1)</script>",
+      }).success,
+    ).toBe(false);
+
+    expect(
+      projectFormSchema.safeParse({
+        ...validProjectInput,
+        liveDemoUrl: "https://example.com/demo",
+      }).success,
+    ).toBe(true);
   });
 });

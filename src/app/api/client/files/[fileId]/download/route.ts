@@ -136,6 +136,8 @@ export async function GET(
     if (fileDecision.type === "deny") {
       return jsonError(fileDecision.message, fileDecision.status);
     }
+
+    return jsonError("File not found.", 404);
   }
 
   if (

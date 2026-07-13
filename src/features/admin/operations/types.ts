@@ -93,11 +93,45 @@ export type AdminPaymentRecord = AdminProjectContext & {
   notes: string | null;
 };
 
+export type PaymentCurrencyTotal = {
+  currency: string;
+  totalPaidCents: number;
+  outstandingCents: number;
+};
+
+export function summarizePaymentAmountsByCurrency(
+  payments: Array<
+    Pick<AdminPaymentRecord, "amountCents" | "currency" | "status">
+  >,
+): PaymentCurrencyTotal[] {
+  const totals = new Map<string, PaymentCurrencyTotal>();
+
+  for (const payment of payments) {
+    const currency = payment.currency.toUpperCase();
+    const total = totals.get(currency) ?? {
+      currency,
+      totalPaidCents: 0,
+      outstandingCents: 0,
+    };
+
+    if (payment.status === "paid") {
+      total.totalPaidCents += payment.amountCents;
+    } else if (payment.status !== "void") {
+      total.outstandingCents += payment.amountCents;
+    }
+
+    totals.set(currency, total);
+  }
+
+  return Array.from(totals.values()).sort((left, right) =>
+    left.currency.localeCompare(right.currency),
+  );
+}
+
 export type AdminPaymentsPageData = {
   payments: AdminPaymentRecord[];
   summary: {
-    totalPaidCents: number;
-    outstandingCents: number;
+    currencyTotals: PaymentCurrencyTotal[];
     overdueCount: number;
     pendingCount: number;
   };

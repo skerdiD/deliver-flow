@@ -39,43 +39,53 @@ const optionalUrlSchema = z
   .trim()
   .max(500, "URL is too long.")
   .url("Enter a valid URL.")
+  .refine((value) => {
+    try {
+      const protocol = new URL(value).protocol;
+      return protocol === "https:" || protocol === "http:";
+    } catch {
+      return false;
+    }
+  }, "URL must use http or https.")
   .optional()
   .or(z.literal(""));
 
-export const projectFormSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, "Project name is required.")
-    .max(120, "Project name is too long."),
-  clientId: projectRouteIdSchema,
-  description: z
-    .string()
-    .trim()
-    .min(1, "Project description is required.")
-    .max(1200, "Project description is too long."),
-  status: z.enum(projectStatusValues),
-  progress: z.coerce
-    .number()
-    .int("Progress must be a whole number.")
-    .min(0, "Progress cannot be below 0.")
-    .max(100, "Progress cannot be above 100."),
-  deadline: dateInputSchema,
-  liveDemoUrl: optionalUrlSchema,
-  repositoryUrl: optionalUrlSchema,
-  paymentStatus: z.enum(paymentStatusValues),
-  budgetDollars: z.coerce
-    .number()
-    .min(0, "Budget cannot be negative.")
-    .max(10_000_000, "Budget is too large."),
-  paidDollars: z.coerce
-    .number()
-    .min(0, "Paid amount cannot be negative.")
-    .max(10_000_000, "Paid amount is too large."),
-}).refine((values) => values.paidDollars <= values.budgetDollars, {
-  message: "Paid amount cannot exceed the project budget.",
-  path: ["paidDollars"],
-});
+export const projectFormSchema = z
+  .object({
+    name: z
+      .string()
+      .trim()
+      .min(1, "Project name is required.")
+      .max(120, "Project name is too long."),
+    clientId: projectRouteIdSchema,
+    description: z
+      .string()
+      .trim()
+      .min(1, "Project description is required.")
+      .max(1200, "Project description is too long."),
+    status: z.enum(projectStatusValues),
+    progress: z.coerce
+      .number()
+      .int("Progress must be a whole number.")
+      .min(0, "Progress cannot be below 0.")
+      .max(100, "Progress cannot be above 100."),
+    deadline: dateInputSchema,
+    liveDemoUrl: optionalUrlSchema,
+    repositoryUrl: optionalUrlSchema,
+    paymentStatus: z.enum(paymentStatusValues),
+    budgetDollars: z.coerce
+      .number()
+      .min(0, "Budget cannot be negative.")
+      .max(10_000_000, "Budget is too large."),
+    paidDollars: z.coerce
+      .number()
+      .min(0, "Paid amount cannot be negative.")
+      .max(10_000_000, "Paid amount is too large."),
+  })
+  .refine((values) => values.paidDollars <= values.budgetDollars, {
+    message: "Paid amount cannot exceed the project budget.",
+    path: ["paidDollars"],
+  });
 
 export const taskFormSchema = z.object({
   title: z

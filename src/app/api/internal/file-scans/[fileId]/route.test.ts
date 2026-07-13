@@ -73,4 +73,27 @@ describe("internal project file scan webhook", () => {
       status: "infected",
     });
   });
+
+  it("rejects malformed or non-JSON webhook bodies without invoking the scan update", async () => {
+    mocks.getProjectFileScannerWebhookSecret.mockReturnValue("scanner-secret");
+
+    const response = await POST(
+      new Request("http://localhost/api/internal/file-scans/file-id", {
+        body: "not-json",
+        headers: {
+          authorization: "Bearer scanner-secret",
+          "content-type": "application/json",
+        },
+        method: "POST",
+      }),
+      {
+        params: Promise.resolve({
+          fileId: "70000000-0000-4000-8000-000000000001",
+        }),
+      },
+    );
+
+    expect(response.status).toBe(400);
+    expect(mocks.applyProjectFileScanResult).not.toHaveBeenCalled();
+  });
 });

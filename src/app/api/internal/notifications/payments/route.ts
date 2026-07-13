@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { timingSafeEqual } from "node:crypto";
 
 import {
   getNotificationCronSecret,
@@ -25,7 +26,12 @@ function hasValidCronSecret(request: Request) {
   }
 
   const authorization = request.headers.get("authorization");
-  return authorization === `Bearer ${secret}`;
+  const expected = Buffer.from(`Bearer ${secret}`);
+  const received = Buffer.from(authorization ?? "");
+
+  return (
+    expected.length === received.length && timingSafeEqual(expected, received)
+  );
 }
 
 async function handleRequest(request: Request) {
