@@ -1,15 +1,12 @@
 "use client";
 
-import { ArrowUpRight, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { BrandLogo } from "@/components/shared/brand-logo";
 import { routes } from "@/config/routes";
-import {
-  DemoAction,
-  MarketingContainer,
-} from "@/features/marketing/marketing-shared";
+import { MarketingContainer } from "@/features/marketing/marketing-shared";
 import { cn } from "@/lib/utils";
 
 const navigation = [
@@ -53,7 +50,7 @@ export function MarketingHeader() {
         </Link>
 
         <nav
-          className="ml-auto hidden items-center gap-6 lg:flex"
+          className="ml-auto hidden items-center gap-7 lg:flex xl:gap-8"
           aria-label="Primary navigation"
         >
           {navigation.map((item) => (
@@ -67,21 +64,13 @@ export function MarketingHeader() {
           ))}
         </nav>
 
-        <div className="ml-auto hidden items-center gap-2 sm:flex lg:ml-3">
+        <div className="ml-auto hidden items-center sm:flex lg:ml-5">
           <Link
             href={routes.auth.login}
-            className="inline-flex h-11 items-center rounded-md px-3.5 text-[0.95rem] font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
+            className="inline-flex h-11 items-center rounded-md bg-blue-600 px-5 text-[0.95rem] font-medium text-white shadow-sm transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
           >
             Log in
           </Link>
-          <DemoAction
-            role="owner"
-            size="default"
-            className="marketing-cta group h-11 bg-blue-600 px-4.5 text-[0.95rem] hover:bg-blue-700 focus-visible:ring-blue-600"
-          >
-            Explore demo
-            <ArrowUpRight className="size-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-          </DemoAction>
         </div>
 
         <div className="relative ml-auto sm:hidden">
@@ -122,18 +111,10 @@ export function MarketingHeader() {
               <Link
                 href={routes.auth.login}
                 onClick={closeMenu}
-                className="rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
+                className="mt-1 rounded-xl bg-blue-600 px-3 py-2.5 text-center text-sm font-medium text-white transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
               >
                 Log in
               </Link>
-              <DemoAction
-                role="owner"
-                size="default"
-                className="marketing-cta mt-1 w-full rounded-xl bg-blue-600 hover:bg-blue-700 focus-visible:ring-blue-600"
-              >
-                Explore owner demo
-                <ArrowUpRight className="size-4" />
-              </DemoAction>
             </nav>
           </div>
         </div>

@@ -105,4 +105,9 @@ export const clientNavigation = [
     href: routes.client.payments,
     icon: CreditCard,
   },
+  {
+    title: "Settings",
+    href: routes.client.settings,
+    icon: Settings,
+  },
 ] as const;

@@ -37,5 +37,6 @@ export const routes = {
     approvals: "/client/approvals",
     payments: "/client/payments",
     notifications: "/client/notifications",
+    settings: "/client/settings",
   },
 } as const;

@@ -23,14 +23,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { routes } from "@/config/routes";
 import {
   formatDateLabel,
@@ -202,7 +194,7 @@ export function AdminMilestonesPage({ data }: AdminMilestonesPageProps) {
             />
           ) : (
             <>
-              <MobileRecordList>
+              <MobileRecordList className="lg:!block xl:!hidden">
                 {filteredMilestones.map((milestone) => {
                   const statusMeta = getMilestoneStatusMeta(milestone.status);
                   const approvalMeta = getMilestoneApprovalMeta(
@@ -291,117 +283,93 @@ export function AdminMilestonesPage({ data }: AdminMilestonesPageProps) {
                 })}
               </MobileRecordList>
 
-              <div className="hidden lg:block">
-                <Table className="w-full table-fixed">
-                  <colgroup>
-                    <col className="w-[33%]" />
-                    <col className="w-[22%]" />
-                    <col className="w-[15%]" />
-                    <col className="w-[10%]" />
-                    <col className="w-[14%]" />
-                    <col className="w-[6%]" />
-                  </colgroup>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Milestone</TableHead>
-                      <TableHead>Project / Client</TableHead>
-                      <TableHead>Review state</TableHead>
-                      <TableHead>Due date</TableHead>
-                      <TableHead>Client note</TableHead>
-                      <TableHead className="text-right">Action</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredMilestones.map((milestone) => {
-                      const statusMeta = getMilestoneStatusMeta(milestone.status);
-                      const approvalMeta = getMilestoneApprovalMeta(
-                        milestone.approvalStatus,
-                      );
+              <div className="hidden overflow-hidden rounded-lg border border-slate-200 xl:block">
+                <div className="grid grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.9fr)_auto] gap-x-5 border-b border-slate-200 bg-slate-50 px-5 py-3 text-xs font-semibold uppercase tracking-[0.06em] text-slate-500">
+                  <span>Milestone</span>
+                  <span>Project / Client</span>
+                  <span>Review state</span>
+                  <span>Timeline</span>
+                  <span className="text-right">Action</span>
+                </div>
+                <div className="divide-y divide-slate-200">
+                  {filteredMilestones.map((milestone) => {
+                    const statusMeta = getMilestoneStatusMeta(milestone.status);
+                    const approvalMeta = getMilestoneApprovalMeta(
+                      milestone.approvalStatus,
+                    );
 
-                      return (
-                        <TableRow key={milestone.id}>
-                          <TableCell className="whitespace-normal">
-                            <StackedCell>
-                              <div className="flex flex-wrap items-center gap-2">
-                                <p className="line-clamp-1 break-words font-medium text-slate-950">
-                                  {milestone.title}
-                                </p>
-                                {milestone.position ? (
-                                  <StatusBadge
-                                    label={`Step ${milestone.position}`}
-                                    tone="slate"
-                                  />
-                                ) : null}
-                              </div>
-                              <p className="line-clamp-2 break-words text-sm text-slate-500">
-                                {milestone.description ?? "No milestone note added."}
-                              </p>
-                            </StackedCell>
-                          </TableCell>
-                          <TableCell className="whitespace-normal">
-                            <StackedCell>
-                              <Link
-                                href={`${routes.admin.projects}/${milestone.projectId}`}
-                                className="line-clamp-1 break-words font-medium text-slate-950 hover:text-blue-700"
-                              >
-                                {milestone.projectName}
-                              </Link>
-                              <p className="line-clamp-1 break-words text-xs text-slate-500">
-                                {milestone.clientName}
-                              </p>
-                            </StackedCell>
-                          </TableCell>
-                          <TableCell>
-                            <div className="space-y-2">
-                              <BadgeWithMeta
-                                badge={
-                                  <StatusBadge
-                                    label={statusMeta.label}
-                                    tone={statusMeta.tone}
-                                  />
-                                }
-                              />
-                              {approvalMeta ? (
-                                <BadgeWithMeta
-                                  badge={
-                                    <StatusBadge
-                                      label={approvalMeta.label}
-                                      tone={approvalMeta.tone}
-                                    />
-                                  }
-                                  meta={formatDateTimeLabel(
-                                    milestone.respondedAt ??
-                                      milestone.requestedAt,
-                                    "No review yet",
-                                  )}
-                                />
-                              ) : (
-                                <p className="text-xs text-slate-500">
-                                  No review yet
-                                </p>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell className="whitespace-nowrap text-sm">
-                            {formatDateLabel(milestone.dueDate)}
-                          </TableCell>
-                          <TableCell className="whitespace-normal text-sm text-slate-500">
-                            <p className="line-clamp-2 break-words">
-                              {milestone.responseNote ?? "No client note yet."}
+                    return (
+                      <div
+                        key={milestone.id}
+                        className="grid grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.9fr)_auto] items-center gap-x-5 px-5 py-4 transition-colors hover:bg-slate-50/80"
+                      >
+                        <StackedCell>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="line-clamp-1 break-words font-medium text-slate-950">
+                              {milestone.title}
                             </p>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button asChild variant="outline" className="h-9 px-3">
-                              <Link href={`${routes.admin.projects}/${milestone.projectId}`}>
-                                Open
-                              </Link>
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
+                            {milestone.position ? (
+                              <StatusBadge
+                                label={`Step ${milestone.position}`}
+                                tone="slate"
+                              />
+                            ) : null}
+                          </div>
+                          <p className="line-clamp-2 break-words text-sm text-slate-500">
+                            {milestone.description ?? "No milestone note added."}
+                          </p>
+                        </StackedCell>
+
+                        <StackedCell>
+                          <Link
+                            href={`${routes.admin.projects}/${milestone.projectId}`}
+                            className="line-clamp-1 break-words font-medium text-slate-950 hover:text-blue-700"
+                          >
+                            {milestone.projectName}
+                          </Link>
+                          <p className="line-clamp-1 break-words text-xs text-slate-500">
+                            {milestone.clientName}
+                          </p>
+                        </StackedCell>
+
+                        <div className="min-w-0 space-y-2">
+                          <StatusBadge label={statusMeta.label} tone={statusMeta.tone} />
+                          {approvalMeta ? (
+                            <BadgeWithMeta
+                              badge={
+                                <StatusBadge
+                                  label={approvalMeta.label}
+                                  tone={approvalMeta.tone}
+                                />
+                              }
+                              meta={formatDateTimeLabel(
+                                milestone.respondedAt ?? milestone.requestedAt,
+                                "No review yet",
+                              )}
+                            />
+                          ) : (
+                            <p className="text-xs text-slate-500">No review yet</p>
+                          )}
+                        </div>
+
+                        <StackedCell>
+                          <p className="text-sm font-medium text-slate-700">
+                            {formatDateLabel(milestone.dueDate)}
+                          </p>
+                          <p className="line-clamp-2 break-words text-xs text-slate-500">
+                            {milestone.responseNote ?? "No client note yet."}
+                          </p>
+                        </StackedCell>
+
+                        <Button asChild variant="outline" className="h-9 px-3">
+                          <Link href={`${routes.admin.projects}/${milestone.projectId}`}>
+                            Open
+                          </Link>
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </>
           )}
