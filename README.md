@@ -66,49 +66,33 @@ Creating an account through `/signup` creates a new workspace and makes that use
 
 ### Owner Dashboard
 
-High-level delivery overview with active projects, approvals, feedback, and payment visibility.
-
 <img src="./public/screenshots/owner-dashboard-light.png" alt="DeliverFlow owner dashboard in light mode" width="100%" />
 
 ### Owner Project Health
-
-Portfolio-level health signals, project progress, and client activity in dark mode.
 
 <img src="./public/screenshots/owner-project-health-dark.png" alt="DeliverFlow owner project health dashboard in dark mode" width="100%" />
 
 ### Owner Projects
 
-Project delivery list with statuses, progress, payments, deadlines, and actions.
-
 <img src="./public/screenshots/owner-projects-light.png" alt="DeliverFlow owner projects view in light mode" width="100%" />
 
 ### Owner Milestones
-
-Cross-project milestone tracking with delivery stages, review states, and timelines.
 
 <img src="./public/screenshots/owner-milestones-dark.png" alt="DeliverFlow owner milestones view in dark mode" width="100%" />
 
 ### Owner Analytics
 
-Revenue, payment status, and approval performance analytics for the workspace.
-
 <img src="./public/screenshots/owner-analytics-dark.png" alt="DeliverFlow owner analytics view in dark mode" width="100%" />
 
 ### Client Overview
-
-Client attention queue for approvals, files, feedback, and payment updates.
 
 <img src="./public/screenshots/client-overview-dark.png" alt="DeliverFlow client overview in dark mode" width="100%" />
 
 ### Client Project Details
 
-Project progress, milestones, quick actions, and delivery context for a client.
-
 <img src="./public/screenshots/client-project-detail-dark.png" alt="DeliverFlow client project details in dark mode" width="100%" />
 
 ### Client Feedback
-
-Dedicated client feedback workspace with previous feedback and owner responses.
 
 <img src="./public/screenshots/client-feedback-light.png" alt="DeliverFlow client feedback view in light mode" width="100%" />
 
@@ -331,18 +315,6 @@ npm run build
 ```
 
 The GitHub Actions workflow runs the main quality checks for repository changes.
-
----
-
-## Current Product Boundaries
-
-- Payments are tracked inside DeliverFlow but processed externally; no payment gateway is included.
-- The secure file workflow includes a scanner integration point, but a third-party malware scanner must be connected for production quarantine scanning.
-- Notifications are server-rendered and action-driven rather than websocket-based realtime events.
-
-These boundaries keep the project focused on secure client delivery rather than becoming a full agency operating system.
-
----
 
 ## Author
 
