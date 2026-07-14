@@ -1,8 +1,10 @@
 # DeliverFlow
 
-**DeliverFlow** is a full-stack client delivery portal for freelancers and small agencies.
+**DeliverFlow** is a production-style client delivery portal for freelancers and small agencies.
 
-It helps service providers manage clients, projects, notes, milestones, files, payments, feedback, and approvals from one clean Owner workspace, while clients get a private portal to follow project progress and respond to delivery requests.
+It replaces scattered delivery work across email, chat, cloud storage, spreadsheets, and task tools with one organized system for managing clients, projects, tasks, milestones, updates, files, payments, feedback, and approvals.
+
+Owners work from a private delivery dashboard, while each client gets a secure portal that only shows the projects and information assigned to them.
 
 Built with **Next.js**, **React**, **TypeScript**, **Supabase Auth**, **Supabase Postgres**, **Supabase Storage**, **Drizzle ORM**, **Tailwind CSS**, and **shadcn/ui**.
 
@@ -10,12 +12,40 @@ Built with **Next.js**, **React**, **TypeScript**, **Supabase Auth**, **Supabase
 
 ---
 
-## Preview
+## The Problem It Solves
 
-DeliverFlow has two main sides:
+Freelancers and small agencies often manage client delivery across several disconnected tools:
 
-- **Owner workspace** for managing client delivery
-- **Client portal** for project updates, files, feedback, payments, and approvals
+- Tasks and deadlines in one application
+- Files in cloud storage
+- Feedback and approvals in email or chat
+- Payment records in spreadsheets
+- Progress updates sent manually
+
+This makes it difficult for the service provider to stay organized and for the client to understand what is finished, what needs attention, where the latest files are, and what remains unpaid.
+
+DeliverFlow brings the full delivery workflow into one place:
+
+```txt
+Client -> Project -> Tasks and Milestones -> Updates and Files
+       -> Feedback and Approvals -> Payment Tracking -> Final Handoff
+```
+
+---
+
+## Product Areas
+
+### Owner Workspace
+
+A private workspace for managing client delivery, monitoring project health, reviewing activity, and handling work that requires attention.
+
+### Client Portal
+
+A project-scoped portal where clients can follow progress, access files, review payments, submit feedback, and respond to approval requests.
+
+### Public Experience
+
+A responsive marketing landing page, public owner signup, invitation-based client onboarding, and quick owner/client demo access.
 
 ---
 
@@ -25,363 +55,252 @@ Live demo: [https://deliver-flow.vercel.app](https://deliver-flow.vercel.app)
 
 The `/login` page includes two demo modes:
 
-- **Owner demo** opens a populated workspace owner dashboard for managing clients, projects, files, payments, feedback, and approvals.
-- **Client demo** opens the client portal with assigned projects, shared files, payment records, feedback, and approvals.
+- **Owner demo** opens a populated delivery workspace.
+- **Client demo** opens a private portal with assigned project data.
 
-Public signup is separate from demo access. Creating an account on `/signup` starts a new DeliverFlow workspace and makes that user the workspace owner. Clients do not sign up publicly; they are added or invited by the project owner.
+Creating an account through `/signup` creates a new workspace and makes that user its owner. Clients are added or invited by an owner rather than signing up publicly.
 
 ---
 
-## Screenshots
+## Preview
 
 ### Owner Dashboard
 
-Main workspace overview for tracking delivery progress, approvals, feedback, and open payments.
+High-level delivery overview with active projects, approvals, feedback, and payment visibility.
 
-<img src="./public/screenshots/admin-dashboard.png" alt="DeliverFlow Owner Dashboard" width="100%" />
+<img src="./public/screenshots/owner-dashboard-light.png" alt="DeliverFlow owner dashboard in light mode" width="100%" />
 
-### Client management
+### Owner Project Health
 
-Manage client accounts, project access, delivery history, and client information.
+Portfolio-level health signals, project progress, and client activity in dark mode.
 
-<img src="./public/screenshots/admin-client-management.png" alt="DeliverFlow client management" width="100%" />
+<img src="./public/screenshots/owner-project-health-dark.png" alt="DeliverFlow owner project health dashboard in dark mode" width="100%" />
 
-### Project management
+### Owner Projects
 
-Track client projects, progress, payment status, deadlines, and delivery ownership.
+Project delivery list with statuses, progress, payments, deadlines, and actions.
 
-<img src="./public/screenshots/admin-project-management.png" alt="DeliverFlow project management" width="100%" />
+<img src="./public/screenshots/owner-projects-light.png" alt="DeliverFlow owner projects view in light mode" width="100%" />
 
-### Client portal
+### Owner Milestones
 
-Client-facing workspace for project updates, files, feedback, approvals, and payments.
+Cross-project milestone tracking with delivery stages, review states, and timelines.
 
-<img src="./public/screenshots/client-portal.png" alt="DeliverFlow client portal" width="100%" />
+<img src="./public/screenshots/owner-milestones-dark.png" alt="DeliverFlow owner milestones view in dark mode" width="100%" />
 
-### Client project details
+### Owner Analytics
 
-Project-specific client view for progress, milestones, delivery details, and shared information.
+Revenue, payment status, and approval performance analytics for the workspace.
 
-<img src="./public/screenshots/client-project-detail.png" alt="DeliverFlow client project detail" width="100%" />
+<img src="./public/screenshots/owner-analytics-dark.png" alt="DeliverFlow owner analytics view in dark mode" width="100%" />
 
----
+### Client Overview
 
-## Overview
+Client attention queue for approvals, files, feedback, and payment updates.
 
-Most freelance and agency delivery workflows are scattered across email, chat, Google Drive, invoices, spreadsheets, and task tools.
+<img src="./public/screenshots/client-overview-dark.png" alt="DeliverFlow client overview in dark mode" width="100%" />
 
-DeliverFlow brings the delivery process into one organized system.
+### Client Project Details
 
-owners can manage clients, create projects, add notes, track milestones, upload files, record payments, collect feedback, and request approvals.
+Project progress, milestones, quick actions, and delivery context for a client.
 
-Clients get one private place to follow project progress, download shared files, check payment status, submit feedback, and respond to approval requests.
+<img src="./public/screenshots/client-project-detail-dark.png" alt="DeliverFlow client project details in dark mode" width="100%" />
 
-The goal was to build more than a basic CRUD app. DeliverFlow focuses on role-based access, project-scoped client visibility, private file handling, approval workflows, feedback review, and production-style full-stack engineering.
+### Client Feedback
 
----
+Dedicated client feedback workspace with previous feedback and owner responses.
 
-## Business Value
-
-DeliverFlow helps freelancers and small agencies look more professional by giving clients one clear place to follow project delivery.
-
-For clients, it reduces confusion around updates, files, payments, feedback, and approvals.
-
-For service providers, it keeps delivery records organized, protects project scope, and creates a clearer workflow from project start to final handoff.
+<img src="./public/screenshots/client-feedback-light.png" alt="DeliverFlow client feedback view in light mode" width="100%" />
 
 ---
 
-## Key Features
+## Core Features
 
-### Authentication and Roles
+### Owner Dashboard and Analytics
 
-- Supabase email/password authentication
-- Owner and client role support
-- Protected Owner and client route groups
-- Role-based redirects after login
-- Server-side role checks in protected layouts
-- Invite-based client access flow
+- Workspace-scoped delivery dashboard
+- Active project and deadline tracking
+- Pending approvals and recent feedback
+- Attention queue for items requiring action
+- Open and overdue payment visibility
+- Currency-aware payment totals
+- Workspace-scoped analytics for delivery and payment performance
+- Responsive SaaS-style navigation and layouts
 
-### Owner workspace
+### Clients, Projects, and Tasks
 
-- Delivery overview dashboard
-- Active project tracking
-- Open payment summary
-- Pending approval visibility
-- Recent feedback review
-- Delivery items that need attention
-- Clean SaaS-style sidebar navigation
+- Create and manage clients
+- Store contact details and internal notes
+- Create, edit, and archive projects
+- Assign projects to specific clients
+- Track status, progress, deadlines, and delivery ownership
+- Create and manage project tasks
+- Organize project notes and delivery context
+- Track milestones and completion state
+- Publish project updates for clients
+- Maintain project activity and delivery history
 
-### Clients and Projects
+### Files and Deliverables
 
-- Create and manage client accounts
-- Store client contact details and notes
-- Create and edit projects
-- Assign projects to clients
-- Track project status, progress, deadlines, and payments
-- Connect notes, milestones, files, feedback, and approvals to projects
-
-### Notes and Milestones
-
-- Add project notes for delivery context and follow-ups
-- Track milestone progress across client projects
-- Mark milestones as completed or approved
-- Connect milestones to client approval workflows
-- Keep project decisions and delivery progress organized
-
-### Files
-
-- Upload project files
-- Store files in Supabase Storage
-- Keep project files private
-- Generate protected signed downloads
-- Restrict client access to assigned project files
-- Show file metadata such as name, type, size, and upload date
+- Upload files to Supabase Storage
+- Private project file storage
+- Permission-checked signed downloads
+- Client access restricted to assigned projects
+- File metadata including name, type, size, and upload date
+- Scan-aware visibility before files are exposed to clients
+- Cleanup recovery jobs for failed storage deletion
 
 ### Payments
 
 - Create manual payment records
-- Track unpaid, partial, paid, and overdue payments
+- Track unpaid, partial, paid, and overdue states
 - Add due dates and payment notes
-- Mark payments as paid when handled elsewhere
-- Show payment status to both owner and assigned client
-
-### Notifications
-
-- In-app notification bell for both Owner and client layouts
-- Dedicated Owner and client notification pages
-- Unread badge, recent dropdown, relative timestamps, and read state controls
-- Server-created notifications for project updates, approval requests, client feedback, shared files, due payments, overdue payments, approval acceptance, and change requests
-- Idempotent payment reminder scheduling with a protected internal route and Vercel cron support
+- Mark payments as completed when handled externally
+- Show payment information to the assigned client
+- Aggregate totals by currency to avoid mixing monetary values
+- Automated due and overdue payment reminders
 
 ### Feedback and Approvals
 
 - Clients can submit project feedback
-- owners can review and resolve feedback
-- owners can request client approvals
-- Clients can approve or request changes
-- Approval records stay connected to projects and milestones
+- Owners can review and resolve feedback
+- Owners can create approval requests
+- Approvals can be connected to projects and milestones
+- Clients can approve work or request changes
+- Server-side checks protect approval responses from unauthorized access
 
-### Client Portal
+### In-App Notifications
 
-- Client-only dashboard
-- View assigned projects
-- Track project progress and milestones
-- Download shared files
-- Review payment status
-- Submit feedback
-- Respond to approval requests
+- Notification bell in both owner and client layouts
+- Dedicated notification center for each role
+- Unread badge and recent-notification dropdown
+- Relative timestamps and read-state controls
+- Notifications for project updates, files, feedback, approvals, and payments
+- Recipient and workspace-scoped notification queries
+- Idempotent payment reminder generation
+- Protected internal reminder route with Vercel Cron support
 
-### Security and Quality
+### Settings and Account Management
 
-- Protected server actions
-- Server-side authorization checks
-- Project-scoped client data access
-- Private file handling with signed URLs
-- Supabase RLS and storage policy hardening
-- Zod validation for forms and mutations
-- Arcjet protection
-- Sentry monitoring support
-- Unit and end-to-end testing
-- Responsive SaaS-style interface
+- Owner workspace settings
+- Client portal settings
+- Basic client account details
+- Role-aware settings routes
+- Server-side protection for private settings pages
+
+### Authentication and Invitations
+
+- Supabase email/password authentication
+- Owner and client roles
+- Protected owner and client route groups
+- Role-based redirects after login
+- Server-side role checks in protected layouts
+- Invitation-based client onboarding
+- Public signup creates an isolated owner workspace
 
 ---
 
-## Tech Stack
+## Security Model
 
-### Frontend
+DeliverFlow applies authorization at the route, server, database, and storage layers instead of relying on hidden frontend controls.
 
-- Next.js App Router
-- React
-- TypeScript
-- Tailwind CSS
-- shadcn/ui
-- Radix UI
-- Lucide React
-- Recharts
-- TanStack Table
-- React Hook Form
-- Zod
+### Access Control
 
-### Backend and Database
+- Middleware protects private route groups
+- Protected layouts verify authentication and role on the server
+- Server Actions and Route Handlers repeat authorization checks
+- Client access is checked against project assignments
+- Workspace-scoped queries prevent cross-workspace data access
+- Supabase Row Level Security adds database-level isolation
+- Notifications are limited to the authenticated recipient and workspace
 
-- Next.js Server Actions
-- Next.js API Routes
-- Supabase Auth
-- Supabase Storage
-- Supabase Postgres
-- Drizzle ORM
-- Typed database schema
-- Project assignment permissions
-- Protected file download flow
+### File Security
 
-### Tooling
+- Files are stored in a private Supabase bucket
+- Signed download URLs are generated only after authorization
+- Signed URLs expire after a short period (`120` seconds by default)
+- Upload size is limited (`25 MB` by default)
+- MIME type, extension, and file signature are validated server-side
+- Dangerous executable, script, HTML, and installer types are blocked
+- Storage keys use randomized UUID-based paths
+- Original filenames are stored as metadata rather than object keys
+- Workspace storage quota defaults to `1 GB`
+- Files can remain quarantined until a trusted scanner marks them clean
+- Scanner webhook requests are validated before scan state is changed
 
-- Arcjet
-- Sentry
-- Vitest
-- Playwright
-- ESLint
-- Prettier
-- Drizzle Kit
-- GitHub Actions
-- Vercel
+### Application Protection
+
+- Zod validates forms, mutations, and API input
+- Arcjet provides application protection and rate-limiting support
+- Sentry provides production monitoring and error reporting
+- Sensitive service-role keys and database URLs remain server-only
+- Unit, integration, and end-to-end tests cover critical workflows
+
+Detailed security documentation is available in [`docs/security.md`](./docs/security.md).
 
 ---
 
 ## Architecture
 
 ```txt
-Client UI
-  |-- Next.js App Router / React / Tailwind / shadcn UI
-  |-- Login / Owner workspace / Client Portal
+Browser
+  |-- Public landing page, authentication, owner workspace, client portal
+  |-- React, Tailwind CSS, shadcn/ui, TanStack Table, Recharts
 
-Auth and Role Layer
-  |-- Supabase Authentication
-  |-- Owner and client Roles
-  |-- Protected Routes
-  |-- Role-Based Redirects
+Next.js Application Layer
+  |-- App Router, Server Components, Server Actions, Route Handlers
+  |-- Zod validation, role checks, project-assignment checks
+  |-- Arcjet protection and Sentry monitoring
 
-Server Layer
-  |-- Server Actions / API Routes
-  |-- Zod Validation
-  |-- Role Checks / Project Assignment Checks
-  |-- Arcjet Protection / Sentry Logging
+Supabase Platform
+  |-- Authentication
+  |-- PostgreSQL with Row Level Security
+  |-- Private Storage with signed URLs and storage policies
 
-Database Layer
-  |-- Supabase Postgres / Drizzle ORM
-  |-- Profiles / Clients / Projects
-  |-- Notes / Milestones / Files / Payments
-  |-- Feedback / Approvals / Activity
+Data Layer
+  |-- Drizzle ORM and typed schema
+  |-- Workspaces, profiles, clients, projects, assignments, and tasks
+  |-- Notes, milestones, updates, files, payments, and notifications
+  |-- Feedback, approvals, activity records, and cleanup jobs
 ```
-
-Client access is controlled through project assignments, protected routes, and server-side permission checks.
-
-Project files are stored in a private Supabase Storage bucket and downloaded through signed URLs only after authorization.
 
 ---
 
-## Security Model
+## Tech Stack
 
-DeliverFlow uses server-side authorization with Supabase RLS and storage policy hardening.
-
-- Middleware redirects users away from the wrong route group
-- Owner and client layouts check user roles on the server
-- Server Actions and Route Handlers re-check role or project assignment
-- Client-facing queries are scoped to assigned projects
-- Project files use a private Supabase Storage bucket
-- Signed URLs are generated only after permission checks
-- Uploads use server-side MIME, extension, signature, quota, and scan-state checks
-- Client-visible files must be both assigned and scan-clean
-- Notifications are scoped to the authenticated recipient and workspace only
-- Service role keys and database URLs stay server-only
-- `NEXT_PUBLIC_*` variables are limited to browser-safe public values
-
-RLS and storage policies are included in:
-
-```txt
-supabase/migrations/0001_security_rls_storage.sql
-supabase/migrations/0002_activity_invitation_rls.sql
-supabase/migrations/0003_workspace_rls.sql
-supabase/migrations/0005_file_security_hardening.sql
-supabase/migrations/0006_notifications_rls.sql
-```
-
-Full security documentation:
-
-```txt
-docs/security.md
-```
-
-### File Security Controls
-
-- Maximum single upload size defaults to `25 MB`
-- Signed download URLs default to `120` seconds and are generated server-side only
-- Workspace storage quota defaults to `1 GB`
-- Allowed file types: `PDF`, `PNG`, `JPG`, `JPEG`, `GIF`, `WEBP`, `DOCX`, `XLSX`, `CSV`, `TXT`, and `ZIP`
-- Dangerous executable, script, HTML, and installer extensions are blocked
-- Storage keys are randomized under `workspaces/{workspaceId}/projects/{projectId}/{uuid}/file.ext`
-- Original file names are kept as metadata only and never used as permanent object keys
-- New uploads start in scan-aware flow:
-  - `development-noop` mode marks files clean immediately for local work
-  - `quarantine` mode keeps files pending until a trusted scanner calls the internal webhook
-- Failed storage cleanup is recorded in `project_file_cleanup_jobs` for later recovery
-
-Known limitation: DeliverFlow includes a production integration point for malware scanning, but it does not ship with a real third-party scanner. In production, do not mark files clean automatically unless your scanner webhook is wired up.
-
-### Notifications
-
-- Supported notification events:
-  - `project_update_created`
-  - `approval_requested`
-  - `feedback_submitted`
-  - `project_file_uploaded`
-  - `payment_due`
-  - `payment_overdue`
-  - `approval_accepted`
-  - `approval_changes_requested`
-- Payment reminders are created by the protected internal route at `/api/internal/notifications/payments`
-- `vercel.json` includes a daily cron schedule for that route at `09:00 UTC`
-- Manual test example:
-
-```bash
-curl -H "Authorization: Bearer $CRON_SECRET" \
-  http://localhost:3000/api/internal/notifications/payments
-```
-
-Known limitation: the notification center is intentionally server-rendered and action-driven. It refreshes on navigation and mutation results, but it does not use websocket-based realtime delivery yet.
+| Area | Technologies |
+| --- | --- |
+| Frontend | Next.js App Router, React, TypeScript, Tailwind CSS, shadcn/ui, Radix UI |
+| Forms and UI | React Hook Form, Zod, TanStack Table, Recharts, Lucide React |
+| Backend | Next.js Server Actions and Route Handlers |
+| Data | Supabase Postgres, Drizzle ORM |
+| Authentication and Storage | Supabase Auth, Supabase Storage |
+| Security and Monitoring | Supabase RLS, Arcjet, Sentry |
+| Testing and Delivery | Vitest, Playwright, ESLint, Prettier, GitHub Actions, Vercel |
 
 ---
 
 ## Getting Started
 
-### 1. Clone the repository
+### 1. Clone and Install
 
 ```bash
 git clone https://github.com/skerdiD/deliver-flow.git
 cd deliver-flow
-```
-
-### 2. Install dependencies
-
-```bash
 npm install
 ```
 
-### 3. Create environment variables
+### 2. Configure Environment Variables
 
-Create a `.env.local` file in the project root:
+Copy the example environment file and provide your Supabase, database, security, monitoring, demo, and test credentials:
 
-```env
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-DATABASE_URL=
-DIRECT_URL=
-PROJECT_FILE_MAX_UPLOAD_BYTES=26214400
-PROJECT_FILE_SIGNED_URL_TTL_SECONDS=120
-PROJECT_FILE_WORKSPACE_QUOTA_BYTES=1073741824
-PROJECT_FILE_SCAN_MODE=development-noop
-PROJECT_FILE_SCAN_WEBHOOK_SECRET=
-CRON_SECRET=
-NOTIFICATION_PAYMENT_DUE_WINDOW_DAYS=3
-DEMO_OWNER_EMAIL=
-DEMO_OWNER_PASSWORD=
-DEMO_CLIENT_EMAIL=
-DEMO_CLIENT_PASSWORD=
-ARCJET_KEY=
-NEXT_PUBLIC_SENTRY_DSN=
-SENTRY_AUTH_TOKEN=
-E2E_ADMIN_EMAIL=
-E2E_ADMIN_PASSWORD=
-E2E_CLIENT_EMAIL=
-E2E_CLIENT_PASSWORD=
-E2E_UNASSIGNED_CLIENT_EMAIL=
-E2E_UNASSIGNED_CLIENT_PASSWORD=
+```bash
+cp .env.example .env.local
 ```
 
-Keep `SUPABASE_SERVICE_ROLE_KEY`, `DATABASE_URL`, `DIRECT_URL`, and `SENTRY_AUTH_TOKEN` server-only.
+Never expose `SUPABASE_SERVICE_ROLE_KEY`, `DATABASE_URL`, `DIRECT_URL`, scanner secrets, cron secrets, or `SENTRY_AUTH_TOKEN` to the browser.
 
-### 4. Run database setup
+### 3. Prepare the Database
 
 ```bash
 npm run db:generate
@@ -389,35 +308,39 @@ npm run db:migrate
 npm run db:seed
 ```
 
-If you apply Supabase SQL policies separately from Drizzle migrations, also run the files hardening SQL from:
+Apply the Supabase RLS and storage policies from `supabase/migrations/` when setting up a new Supabase project.
 
-```txt
-supabase/migrations/0005_file_security_hardening.sql
-supabase/migrations/0006_notifications_rls.sql
-```
-
-### 5. Start the development server
+### 4. Start Development
 
 ```bash
 npm run dev
 ```
 
-Open:
+Open [http://localhost:3000](http://localhost:3000).
 
-```txt
-http://localhost:3000
-```
+---
 
-### Test Commands
+## Quality Checks
 
 ```bash
 npm run lint
 npm run typecheck
 npm run test
-npm run test -- src/features/notifications src/app/api/internal/notifications/payments/route.test.ts
 npm run test:e2e
 npm run build
 ```
+
+The GitHub Actions workflow runs the main quality checks for repository changes.
+
+---
+
+## Current Product Boundaries
+
+- Payments are tracked inside DeliverFlow but processed externally; no payment gateway is included.
+- The secure file workflow includes a scanner integration point, but a third-party malware scanner must be connected for production quarantine scanning.
+- Notifications are server-rendered and action-driven rather than websocket-based realtime events.
+
+These boundaries keep the project focused on secure client delivery rather than becoming a full agency operating system.
 
 ---
 
