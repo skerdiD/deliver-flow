@@ -5,7 +5,7 @@ import { getThemeToggleState, themeProviderConfig } from "@/lib/theme";
 describe("theme configuration", () => {
   it("defaults to light without following the operating system", () => {
     expect(themeProviderConfig).toMatchObject({
-      attribute: "class",
+      attribute: "data-theme",
       defaultTheme: "light",
       disableTransitionOnChange: true,
       enableSystem: false,

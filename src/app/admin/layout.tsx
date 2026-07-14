@@ -1,4 +1,6 @@
 import { AdminDashboardLayout } from "@/components/layouts/admin-dashboard-layout";
+import { DashboardTheme } from "@/components/theme/dashboard-theme";
+import { ThemeProvider } from "@/components/theme/theme-provider";
 import type { Metadata } from "next";
 import { routes } from "@/config/routes";
 import { getAdminQuickActionProjects } from "@/features/admin/projects/projects-data";
@@ -26,13 +28,17 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
   ]);
 
   return (
-    <AdminDashboardLayout
-      profile={profile}
-      quickActionProjects={quickActionProjects}
-      notificationCenterState={notificationCenterState}
-      notificationsHref={routes.admin.notifications}
-    >
-      {children}
-    </AdminDashboardLayout>
+    <ThemeProvider>
+      <DashboardTheme>
+        <AdminDashboardLayout
+          profile={profile}
+          quickActionProjects={quickActionProjects}
+          notificationCenterState={notificationCenterState}
+          notificationsHref={routes.admin.notifications}
+        >
+          {children}
+        </AdminDashboardLayout>
+      </DashboardTheme>
+    </ThemeProvider>
   );
 }

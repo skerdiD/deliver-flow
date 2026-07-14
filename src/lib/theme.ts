@@ -1,5 +1,5 @@
 export const themeProviderConfig = {
-  attribute: "class",
+  attribute: "data-theme",
   defaultTheme: "light",
   disableTransitionOnChange: true,
   enableSystem: false,

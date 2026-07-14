@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:is(.dashboard-theme.dark *));
 
 @theme inline {
   --color-background: hsl(var(--background));
@@ -87,7 +87,7 @@
   --marketing-border: 214 32% 88%;
 }
 
-.dark {
+.dashboard-theme.dark {
   --background: 222 29% 10%;
   --foreground: 210 40% 96%;
   --card: 222 26% 13%;
@@ -155,25 +155,25 @@ body {
     "calt" 1;
 }
 
-.dark .bg-white {
+.dashboard-theme.dark .bg-white {
   background-color: hsl(var(--card));
 }
 
-.dark .bg-white\/80 {
+.dashboard-theme.dark .bg-white\/80 {
   background-color: hsl(var(--card) / 0.8);
 }
 
-.dark .bg-white\/90 {
+.dashboard-theme.dark .bg-white\/90 {
   background-color: hsl(var(--card) / 0.9);
 }
 
-.dark .bg-white\/95 {
+.dashboard-theme.dark .bg-white\/95 {
   background-color: hsl(var(--card) / 0.95);
 }
 
-.dark [class*="text-slate-800"],
-.dark [class*="text-slate-900"],
-.dark [class*="text-slate-950"] {
+.dashboard-theme.dark [class*="text-slate-800"],
+.dashboard-theme.dark [class*="text-slate-900"],
+.dashboard-theme.dark [class*="text-slate-950"] {
   color: hsl(var(--foreground));
 }
 

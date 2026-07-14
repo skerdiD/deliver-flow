@@ -4,6 +4,7 @@ import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
+import { useDocumentTheme } from "@/components/theme/use-document-theme";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -14,7 +15,8 @@ import {
 import { getThemeToggleState } from "@/lib/theme";
 
 export function ThemeToggle() {
-  const { resolvedTheme, setTheme } = useTheme();
+  const { setTheme } = useTheme();
+  const theme = useDocumentTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -23,7 +25,7 @@ export function ThemeToggle() {
     return () => window.clearTimeout(timer);
   }, []);
 
-  const { icon, label, nextTheme } = getThemeToggleState(resolvedTheme);
+  const { icon, label, nextTheme } = getThemeToggleState(theme);
 
   return (
     <TooltipProvider>
