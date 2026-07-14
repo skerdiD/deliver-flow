@@ -29,7 +29,7 @@ export function BrandLogo({
     >
       <div
         className={cn(
-          "grid shrink-0 place-items-center rounded-lg bg-white shadow-sm ring-1 ring-slate-200",
+          "grid shrink-0 place-items-center rounded-lg bg-card shadow-sm ring-1 ring-border",
           isMarketing ? "size-10" : "size-9",
           iconClassName,
         )}
@@ -48,7 +48,7 @@ export function BrandLogo({
         <div className="min-w-0">
           <p
             className={cn(
-              "truncate font-semibold text-slate-950",
+              "truncate font-semibold text-foreground",
               isMarketing ? "text-base leading-5" : "text-sm leading-5",
             )}
           >
@@ -57,7 +57,7 @@ export function BrandLogo({
           {subtitle ? (
             <p
               className={cn(
-                "truncate leading-4 text-slate-500",
+                "truncate leading-4 text-muted-foreground",
                 isMarketing ? "text-[0.8rem]" : "text-xs",
               )}
             >

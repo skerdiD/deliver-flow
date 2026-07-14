@@ -75,13 +75,13 @@ const initialUploadState: ProjectActionResult = {
 };
 
 const quickActionDialogClassName =
-  "gap-0 overflow-hidden border-slate-300 bg-white p-0 shadow-2xl sm:max-w-2xl";
+  "gap-0 overflow-hidden border-border bg-popover p-0 shadow-2xl sm:max-w-2xl";
 const quickActionHeaderClassName =
-  "border-b border-slate-200 bg-white px-6 py-5 pr-14";
-const quickActionFormClassName = "space-y-5 bg-white px-6 py-5";
+  "border-b border-border bg-popover px-6 py-5 pr-14";
+const quickActionFormClassName = "space-y-5 bg-popover px-6 py-5";
 const quickActionFieldClassName =
-  "h-12 border-slate-300 bg-white text-base shadow-sm focus-visible:border-slate-500 focus-visible:ring-slate-950/15";
-const quickActionLabelClassName = "text-sm font-semibold text-slate-900";
+  "h-12 border-input bg-background text-base shadow-sm focus-visible:border-ring focus-visible:ring-ring/15";
+const quickActionLabelClassName = "text-sm font-semibold text-foreground";
 
 export function AdminQuickActions({ projects }: AdminQuickActionsProps) {
   const [uploadOpen, setUploadOpen] = useState(false);
@@ -96,7 +96,7 @@ export function AdminQuickActions({ projects }: AdminQuickActionsProps) {
             variant="outline"
             size="icon"
             aria-label="Open quick actions"
-            className="size-11 border-slate-200 bg-white/80 text-slate-700 hover:bg-slate-50 hover:text-slate-950"
+            className="size-11 border-border bg-card/80 text-muted-foreground hover:bg-muted hover:text-foreground"
           >
             <Plus className="size-5" />
           </Button>
@@ -177,7 +177,7 @@ function UploadDeliverableDialog({
       <DialogContent className={quickActionDialogClassName}>
         <DialogHeader className={quickActionHeaderClassName}>
           <div className="flex items-start gap-3">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-slate-950 text-white">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
               <UploadCloud className="size-5" />
             </span>
             <div className="min-w-0">
@@ -241,7 +241,7 @@ function UploadDeliverableDialog({
                 type="file"
                 accept={PROJECT_FILE_ACCEPT_ATTRIBUTE}
                 disabled={isUploading || projects.length === 0}
-                className="h-12 border-slate-300 bg-white text-base shadow-sm file:mr-3 file:rounded-md file:bg-slate-950 file:px-3 file:py-1.5 file:text-white hover:border-slate-400 focus-visible:border-slate-500"
+                className="h-12 border-input bg-background text-base shadow-sm file:mr-3 file:rounded-md file:bg-primary file:px-3 file:py-1.5 file:text-primary-foreground hover:border-ring focus-visible:border-ring"
               />
               <p className="text-xs text-slate-500">
                 Allowed: {getProjectFileAllowedTypeLabels().join(", ")}.
@@ -251,7 +251,7 @@ function UploadDeliverableDialog({
             <ActionMessage result={uploadState} />
           </div>
 
-          <DialogFooter className="m-0 rounded-none border-t border-slate-200 bg-slate-50 px-6 py-4">
+          <DialogFooter className="m-0 rounded-none border-t border-border bg-muted px-6 py-4">
             <Button
               type="button"
               variant="outline"
@@ -323,7 +323,7 @@ function RequestApprovalDialog({
       <DialogContent className={quickActionDialogClassName}>
         <DialogHeader className={quickActionHeaderClassName}>
           <div className="flex items-start gap-3">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-slate-950 text-white">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
               <BadgeCheck className="size-5" />
             </span>
             <div className="min-w-0">
@@ -405,7 +405,7 @@ function RequestApprovalDialog({
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
                 placeholder="Please review the latest deliverable and approve it or request changes."
-                className="min-h-36 border-slate-300 bg-white text-base shadow-sm focus-visible:border-slate-500 focus-visible:ring-slate-950/15"
+                className="min-h-36 border-input bg-background text-base shadow-sm focus-visible:border-ring focus-visible:ring-ring/15"
                 disabled={isPending}
               />
             </div>
@@ -413,7 +413,7 @@ function RequestApprovalDialog({
             <ActionMessage result={result} />
           </div>
 
-          <DialogFooter className="m-0 rounded-none border-t border-slate-200 bg-slate-50 px-6 py-4">
+          <DialogFooter className="m-0 rounded-none border-t border-border bg-muted px-6 py-4">
             <Button
               type="button"
               variant="outline"

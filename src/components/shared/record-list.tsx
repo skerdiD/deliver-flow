@@ -12,7 +12,7 @@ export function RecordList({ children, className }: RecordListProps) {
   return (
     <div
       className={cn(
-        "space-y-3 px-4 pb-4 sm:px-5 xl:space-y-0 xl:border-t xl:border-slate-200 xl:px-0 xl:pb-0",
+        "space-y-3 px-4 pb-4 sm:px-5 xl:space-y-0 xl:border-t xl:border-border xl:px-0 xl:pb-0",
         className,
       )}
     >
@@ -30,7 +30,7 @@ export function RecordHeader({ columns, className }: RecordHeaderProps) {
   return (
     <div
       className={cn(
-        "hidden border-b border-slate-200 bg-slate-50 px-5 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-slate-500 sm:px-6 xl:grid xl:items-center",
+        "hidden border-b border-border bg-muted px-5 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground sm:px-6 xl:grid xl:items-center",
         className,
       )}
     >
@@ -58,7 +58,7 @@ export function RecordRow({ children, className }: RecordRowProps) {
   return (
     <div
       className={cn(
-        "grid gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm xl:rounded-none xl:border-x-0 xl:border-t-0 xl:px-5 xl:py-5 xl:shadow-none xl:last:border-b-0",
+        "grid gap-4 rounded-lg border border-border bg-card p-4 shadow-sm xl:rounded-none xl:border-x-0 xl:border-t-0 xl:px-5 xl:py-5 xl:shadow-none xl:last:border-b-0",
         className,
       )}
     >
@@ -86,13 +86,13 @@ export function RecordField({
     <div className={cn("min-w-0 space-y-1.5", className)}>
       <p
         className={cn(
-          "text-xs font-semibold uppercase tracking-[0.14em] text-slate-500",
+          "text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground",
           labelClassName,
         )}
       >
         {label}
       </p>
-      <div className={cn("min-w-0 text-sm text-slate-700", valueClassName)}>
+      <div className={cn("min-w-0 text-sm text-foreground", valueClassName)}>
         {children}
       </div>
     </div>
@@ -119,7 +119,7 @@ export function ProgressField({
       labelClassName={labelClassName}
     >
       <div className="w-full min-w-0 max-w-40 space-y-2">
-        <p className="font-semibold text-slate-950">{value}%</p>
+        <p className="font-semibold text-foreground">{value}%</p>
         <Progress value={value} />
       </div>
     </RecordField>
@@ -152,7 +152,7 @@ export function BadgeMetaField({
       <div className="flex min-w-0 flex-col items-start gap-1.5">
         {badge}
         {meta !== undefined && meta !== null ? (
-          <span className={cn("text-xs text-slate-500", metaClassName)}>
+          <span className={cn("text-xs text-muted-foreground", metaClassName)}>
             {meta}
           </span>
         ) : null}
@@ -176,7 +176,7 @@ export function RowActions({
     <div className={cn("min-w-0 space-y-1.5 xl:text-right", className)}>
       <p
         className={cn(
-          "text-xs font-semibold uppercase tracking-[0.14em] text-slate-500",
+          "text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground",
           labelClassName,
         )}
       >

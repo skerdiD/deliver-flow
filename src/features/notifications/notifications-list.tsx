@@ -31,7 +31,9 @@ function ReadStateBadge({ isRead }: { isRead: boolean }) {
     <span
       className={cn(
         "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.08em]",
-        isRead ? "bg-slate-100 text-slate-500" : "bg-blue-50 text-blue-700",
+        isRead
+          ? "bg-muted text-muted-foreground"
+          : "bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300",
       )}
     >
       {isRead ? "Read" : "Unread"}
@@ -75,7 +77,9 @@ function NotificationRow({
     <div
       className={cn(
         "rounded-xl border p-3 transition-colors",
-        isRead ? "border-slate-200 bg-white" : "border-blue-100 bg-blue-50/50",
+        isRead
+          ? "border-border bg-card"
+          : "border-blue-100 bg-blue-50/50 dark:border-blue-400/20 dark:bg-blue-500/10",
       )}
     >
       <div className="flex gap-3">
@@ -83,22 +87,22 @@ function NotificationRow({
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-sm font-semibold text-slate-950">
+            <p className="text-sm font-semibold text-foreground">
               {notification.title}
             </p>
             <ReadStateBadge isRead={isRead} />
-            <span className="text-xs text-slate-500">
+            <span className="text-xs text-muted-foreground">
               {formatRelativeTime(notification.createdAt)}
             </span>
           </div>
 
           {notification.projectName ? (
-            <p className="mt-1 text-xs font-medium uppercase tracking-[0.08em] text-slate-500">
+            <p className="mt-1 text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
               {notification.projectName}
             </p>
           ) : null}
 
-          <p className="mt-2 break-words text-sm leading-6 text-slate-600">
+          <p className="mt-2 break-words text-sm leading-6 text-muted-foreground">
             {notification.message}
           </p>
 

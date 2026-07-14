@@ -26,7 +26,7 @@ export function MobileRecordCard({
   return (
     <div
       className={cn(
-        "rounded-lg border border-slate-200 bg-white p-4 shadow-sm",
+        "rounded-lg border border-border bg-card p-4 shadow-sm",
         className,
       )}
     >
@@ -48,10 +48,10 @@ export function MobileRecordMeta({
 }: MobileRecordMetaProps) {
   return (
     <div className={cn("min-w-0", className)}>
-      <p className="text-xs font-medium uppercase tracking-[0.06em] text-slate-500">
+      <p className="text-xs font-medium uppercase tracking-[0.06em] text-muted-foreground">
         {label}
       </p>
-      <div className="mt-1 min-w-0 text-sm text-slate-700">{children}</div>
+      <div className="mt-1 min-w-0 text-sm text-foreground">{children}</div>
     </div>
   );
 }

@@ -3,6 +3,38 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-sidebar: hsl(var(--sidebar));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+}
+
 :root {
   --background: 0 0% 100%;
   --foreground: 222.2 84% 4.9%;
@@ -34,6 +66,18 @@
 
   --radius: 0.875rem;
 
+  --sidebar: 0 0% 100%;
+  --sidebar-foreground: 222.2 47.4% 11.2%;
+  --sidebar-border: 214.3 31.8% 91.4%;
+  --sidebar-accent: 221.2 83.2% 53.3%;
+  --sidebar-accent-foreground: 210 40% 98%;
+
+  --chart-1: 221.2 83.2% 53.3%;
+  --chart-2: 160 84% 39%;
+  --chart-3: 38 92% 50%;
+  --chart-4: 262 83% 58%;
+  --chart-5: 0 72% 51%;
+
   --marketing-page: 216 33% 97%;
   --marketing-card: 0 0% 100%;
   --marketing-muted: 216 100% 97%;
@@ -41,6 +85,56 @@
   --marketing-text: 222 43% 8%;
   --marketing-muted-text: 215 20% 42%;
   --marketing-border: 214 32% 88%;
+}
+
+.dark {
+  --background: 222 29% 10%;
+  --foreground: 210 40% 96%;
+  --card: 222 26% 13%;
+  --card-foreground: 210 40% 96%;
+  --popover: 222 25% 15%;
+  --popover-foreground: 210 40% 96%;
+  --primary: 217 91% 65%;
+  --primary-foreground: 222 47% 11%;
+  --secondary: 217 22% 19%;
+  --secondary-foreground: 210 30% 92%;
+  --muted: 217 22% 18%;
+  --muted-foreground: 215 20% 70%;
+  --accent: 217 24% 22%;
+  --accent-foreground: 210 40% 96%;
+  --destructive: 0 72% 58%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 217 21% 23%;
+  --input: 217 21% 25%;
+  --ring: 217 91% 65%;
+  --sidebar: 222 29% 11%;
+  --sidebar-foreground: 215 25% 88%;
+  --sidebar-border: 217 21% 22%;
+  --sidebar-accent: 217 91% 65%;
+  --sidebar-accent-foreground: 222 47% 11%;
+  --chart-1: 217 91% 65%;
+  --chart-2: 160 70% 50%;
+  --chart-3: 38 92% 58%;
+  --chart-4: 262 83% 72%;
+  --chart-5: 0 72% 65%;
+  --marketing-page: 222 29% 10%;
+  --marketing-card: 222 26% 13%;
+  --marketing-muted: 217 22% 18%;
+  --marketing-navy: 222 34% 7%;
+  --marketing-text: 210 40% 96%;
+  --marketing-muted-text: 215 20% 70%;
+  --marketing-border: 217 21% 23%;
+  --color-slate-50: hsl(222 29% 10%);
+  --color-slate-100: hsl(217 22% 16%);
+  --color-slate-200: hsl(217 21% 23%);
+  --color-slate-300: hsl(217 18% 32%);
+  --color-slate-400: hsl(215 16% 55%);
+  --color-slate-500: hsl(215 20% 70%);
+  --color-slate-600: hsl(215 24% 77%);
+  --color-slate-700: hsl(215 27% 84%);
+  --color-slate-800: hsl(217 33% 17%);
+  --color-slate-900: hsl(222 47% 11%);
+  --color-slate-950: hsl(222.2 84% 4.9%);
 }
 
 * {
@@ -54,11 +148,33 @@ html {
 
 body {
   min-height: 100dvh;
-  background: hsl(210 40% 98%);
+  background: hsl(var(--background));
   color: hsl(var(--foreground));
   font-feature-settings:
     "rlig" 1,
     "calt" 1;
+}
+
+.dark .bg-white {
+  background-color: hsl(var(--card));
+}
+
+.dark .bg-white\/80 {
+  background-color: hsl(var(--card) / 0.8);
+}
+
+.dark .bg-white\/90 {
+  background-color: hsl(var(--card) / 0.9);
+}
+
+.dark .bg-white\/95 {
+  background-color: hsl(var(--card) / 0.95);
+}
+
+.dark [class*="text-slate-800"],
+.dark [class*="text-slate-900"],
+.dark [class*="text-slate-950"] {
+  color: hsl(var(--foreground));
 }
 
 @keyframes marketing-fade-up {

@@ -21,20 +21,20 @@ export function MetricCard({
   className,
 }: MetricCardProps) {
   return (
-    <Card className={cn("border-slate-200", className)}>
+    <Card className={cn("border-border", className)}>
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <p className="text-sm font-medium leading-5 text-slate-500">
+            <p className="text-sm font-medium leading-5 text-muted-foreground">
               {title}
             </p>
-            <p className="mt-2 truncate text-2xl font-semibold leading-8 text-slate-950 sm:text-[1.625rem]">
+            <p className="mt-2 truncate text-2xl font-semibold leading-8 text-foreground sm:text-[1.625rem]">
               {value}
             </p>
           </div>
 
           {Icon ? (
-            <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-700">
+            <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-muted text-foreground">
               <Icon className="size-5" />
             </div>
           ) : null}
@@ -43,7 +43,9 @@ export function MetricCard({
         {description || trend ? (
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
             {description ? (
-              <p className="text-sm leading-5 text-slate-500">{description}</p>
+              <p className="text-sm leading-5 text-muted-foreground">
+                {description}
+              </p>
             ) : null}
 
             {trend ? (

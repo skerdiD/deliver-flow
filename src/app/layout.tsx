@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+
+import { ThemeProvider } from "@/components/theme/theme-provider";
+
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -16,8 +19,10 @@ type RootLayoutProps = {
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="en" data-scroll-behavior="smooth">
-      <body>{children}</body>
+    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
+      <body>
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
     </html>
   );
 }

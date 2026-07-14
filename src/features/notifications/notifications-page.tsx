@@ -123,14 +123,14 @@ export function NotificationsPage({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4 shadow-sm">
         <div>
-          <p className="text-sm font-semibold text-slate-950">
+          <p className="text-sm font-semibold text-foreground">
             {hasUnread
               ? "Unread notifications need attention"
               : "Everything is up to date"}
           </p>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="mt-1 text-sm text-muted-foreground">
             Open a notification to jump to the relevant project surface, or mark
             it as read here.
           </p>

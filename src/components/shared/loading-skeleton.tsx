@@ -13,7 +13,7 @@ export function LoadingSkeleton({ rows = 4 }: LoadingSkeletonProps) {
         <Skeleton className="h-32 rounded-lg" />
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-white p-5">
+      <div className="rounded-lg border border-border bg-card p-5">
         <Skeleton className="h-5 w-48" />
         <div className="mt-5 space-y-3">
           {Array.from({ length: rows }).map((_, index) => (

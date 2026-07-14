@@ -23,12 +23,18 @@ import {
   workspaces,
 } from "@/db/schema";
 
-const email = process.env.SCREENSHOT_SEED_EMAIL?.trim().toLowerCase();
-const connectionString = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
+function getRequiredEnv(name: string) {
+  const value = process.env[name]?.trim();
 
-if (!email) {
-  throw new Error("Missing SCREENSHOT_SEED_EMAIL.");
+  if (!value) {
+    throw new Error(`Missing ${name}.`);
+  }
+
+  return value;
 }
+
+const email = getRequiredEnv("SCREENSHOT_SEED_EMAIL").toLowerCase();
+const connectionString = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
 
 if (!connectionString) {
   throw new Error("Missing DIRECT_URL or DATABASE_URL.");

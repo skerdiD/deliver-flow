@@ -60,13 +60,13 @@ export function DashboardSidebar({
     <TooltipProvider>
       <aside
         className={cn(
-          "dashboard-sidebar-shell h-dvh shrink-0 flex-col overflow-hidden border-r border-slate-200 bg-white transition-[width] duration-300 ease-in-out",
+          "dashboard-sidebar-shell h-dvh shrink-0 flex-col overflow-hidden border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width] duration-300 ease-in-out",
           isCollapsed ? "w-24" : expandedWidthClass,
         )}
       >
         <div
           className={cn(
-            "flex h-16 shrink-0 items-center gap-2 border-b border-slate-200",
+            "flex h-16 shrink-0 items-center gap-2 border-b border-sidebar-border",
             isCollapsed ? "justify-between px-3" : "px-5",
           )}
         >
@@ -91,7 +91,7 @@ export function DashboardSidebar({
             variant="ghost"
             size="icon-sm"
             aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className="size-8 shrink-0 rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950"
+            className="size-8 shrink-0 rounded-full border border-sidebar-border bg-sidebar text-muted-foreground shadow-sm transition-all duration-200 hover:bg-muted hover:text-foreground"
             onClick={() => setIsCollapsed((current) => !current)}
           >
             {isCollapsed ? (
@@ -106,7 +106,9 @@ export function DashboardSidebar({
           <nav
             className={cn(
               "flex-1 py-4",
-              isCollapsed ? "flex flex-col items-center gap-1.5 px-0" : "space-y-1 px-3",
+              isCollapsed
+                ? "flex flex-col items-center gap-1.5 px-0"
+                : "space-y-1 px-3",
             )}
             aria-label={subtitle}
           >
@@ -123,13 +125,13 @@ export function DashboardSidebar({
                   aria-label={item.title}
                   aria-current={isActive ? "page" : undefined}
                   className={cn(
-                    "group flex items-center text-sm font-medium transition-all duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/20 focus-visible:ring-offset-2",
+                    "group flex items-center text-sm font-medium transition-all duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
                     isCollapsed
                       ? "size-12 justify-center rounded-2xl"
                       : "min-h-10 gap-3 rounded-xl px-3 py-2.5",
                     isActive
-                      ? "bg-slate-950 text-white shadow-sm"
-                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-950",
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
                 >
                   <Icon
@@ -137,8 +139,8 @@ export function DashboardSidebar({
                       "shrink-0 transition-colors duration-200",
                       isCollapsed ? "size-5" : "size-4",
                       isActive
-                        ? "text-white"
-                        : "text-slate-400 group-hover:text-slate-700",
+                        ? "text-sidebar-accent-foreground"
+                        : "text-slate-400 group-hover:text-foreground",
                     )}
                   />
 
@@ -168,15 +170,15 @@ export function DashboardSidebar({
 
           <div
             className={cn(
-              "border-t border-slate-200",
+              "border-t border-sidebar-border",
               isCollapsed ? "hidden" : "px-4 py-4",
             )}
           >
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-              <p className="text-sm font-semibold text-slate-950">
+            <div className="rounded-lg border border-sidebar-border bg-muted p-4">
+              <p className="text-sm font-semibold text-foreground">
                 {footerTitle}
               </p>
-              <p className="mt-2 text-sm leading-5 text-slate-600">
+              <p className="mt-2 text-sm leading-5 text-muted-foreground">
                 {footerDescription}
               </p>
             </div>

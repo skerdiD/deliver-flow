@@ -20,18 +20,18 @@ export function ActionCard({
   actionLabel = "Open",
 }: ActionCardProps) {
   const content = (
-    <Card className="group transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md">
+    <Card className="group transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md">
       <CardContent className="p-5">
         <div className="flex items-start gap-4">
           {Icon ? (
-            <div className="grid size-11 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-700">
+            <div className="grid size-11 shrink-0 place-items-center rounded-lg bg-muted text-foreground">
               <Icon className="size-5" />
             </div>
           ) : null}
 
           <div className="min-w-0 flex-1">
-            <h3 className="font-semibold text-slate-950">{title}</h3>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
+            <h3 className="font-semibold text-foreground">{title}</h3>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
               {description}
             </p>
 

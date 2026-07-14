@@ -13,10 +13,10 @@ type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const variants: Record<ButtonVariant, string> = {
   default:
-    "bg-slate-950 text-white shadow-sm hover:bg-slate-800 focus-visible:ring-slate-950",
+    "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 focus-visible:ring-primary",
   outline:
-    "border border-slate-200 bg-white text-slate-950 shadow-sm hover:border-slate-300 hover:bg-slate-50 focus-visible:ring-slate-950",
-  ghost: "text-slate-700 hover:bg-slate-100 hover:text-slate-950",
+    "border border-border bg-card text-foreground shadow-sm hover:border-primary/25 hover:bg-muted focus-visible:ring-primary",
+  ghost: "text-muted-foreground hover:bg-muted hover:text-foreground",
   destructive:
     "bg-red-600 text-white shadow-sm hover:bg-red-700 focus-visible:ring-red-600",
 };
@@ -38,7 +38,7 @@ export function Button({
   ...props
 }: ButtonProps) {
   const buttonClassName = cn(
-    "inline-flex cursor-pointer items-center justify-center gap-2 rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950/20 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+    "inline-flex cursor-pointer items-center justify-center gap-2 rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50",
     variants[variant],
     sizes[size],
     className,

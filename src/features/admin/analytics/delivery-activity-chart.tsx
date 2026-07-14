@@ -28,10 +28,10 @@ export function DeliveryActivityChart({
       item.approvalResponses,
   );
   return (
-    <Card className="border-slate-200 shadow-sm">
+    <Card className="border-border shadow-sm">
       <CardHeader>
         <CardTitle>Delivery activity</CardTitle>
-        <p className="mt-1 text-sm leading-6 text-slate-500">
+        <p className="mt-1 text-sm leading-6 text-muted-foreground">
           Client feedback and approval milestones by their recorded timestamps.
         </p>
       </CardHeader>
@@ -49,46 +49,59 @@ export function DeliveryActivityChart({
                 data={data}
                 margin={{ top: 8, right: 4, bottom: 0, left: 0 }}
               >
-                <CartesianGrid vertical={false} stroke="#e2e8f0" />
+                <CartesianGrid vertical={false} stroke="hsl(var(--border))" />
                 <XAxis
                   dataKey="label"
                   tickLine={false}
                   axisLine={false}
                   minTickGap={24}
-                  tick={{ fill: "#64748b", fontSize: 12 }}
+                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
                 />
                 <YAxis
                   allowDecimals={false}
                   tickLine={false}
                   axisLine={false}
-                  tick={{ fill: "#64748b", fontSize: 12 }}
+                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
                 />
                 <Tooltip
-                  contentStyle={{ borderRadius: 10, borderColor: "#e2e8f0" }}
+                  contentStyle={{
+                    borderRadius: 10,
+                    borderColor: "hsl(var(--border))",
+                    backgroundColor: "hsl(var(--popover))",
+                    color: "hsl(var(--popover-foreground))",
+                  }}
+                  labelStyle={{ color: "hsl(var(--popover-foreground))" }}
+                  itemStyle={{ color: "hsl(var(--popover-foreground))" }}
                 />
-                <Legend wrapperStyle={{ fontSize: 12, paddingTop: 12 }} />
+                <Legend
+                  wrapperStyle={{
+                    color: "hsl(var(--muted-foreground))",
+                    fontSize: 12,
+                    paddingTop: 12,
+                  }}
+                />
                 <Bar
                   dataKey="feedbackSubmitted"
                   name="Feedback submitted"
-                  fill="#475569"
+                  fill="hsl(var(--chart-2))"
                   radius={[3, 3, 0, 0]}
                 />
                 <Bar
                   dataKey="feedbackResolved"
                   name="Feedback resolved"
-                  fill="#16a34a"
+                  fill="hsl(var(--chart-3))"
                   radius={[3, 3, 0, 0]}
                 />
                 <Bar
                   dataKey="approvalRequests"
                   name="Approval requests"
-                  fill="#d97706"
+                  fill="hsl(var(--chart-4))"
                   radius={[3, 3, 0, 0]}
                 />
                 <Bar
                   dataKey="approvalResponses"
                   name="Approval responses"
-                  fill="#2563eb"
+                  fill="hsl(var(--chart-1))"
                   radius={[3, 3, 0, 0]}
                 />
               </BarChart>

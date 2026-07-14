@@ -24,11 +24,11 @@ export function RevenueOverviewChart({
   const [currency, setCurrency] = useState(data[0]?.currency ?? "");
   const series = data.find((item) => item.currency === currency) ?? data[0];
   return (
-    <Card className="border-slate-200 shadow-sm">
+    <Card className="border-border shadow-sm">
       <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3">
         <div>
           <CardTitle>Revenue overview</CardTitle>
-          <p className="mt-1 text-sm leading-6 text-slate-500">
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">
             Invoice creation and fully paid revenue over the selected period.
           </p>
         </div>
@@ -37,7 +37,7 @@ export function RevenueOverviewChart({
             aria-label="Revenue chart currency"
             value={series?.currency ?? ""}
             onChange={(event) => setCurrency(event.target.value)}
-            className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus-visible:ring-2 focus-visible:ring-slate-950/20"
+            className="h-9 rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
           >
             <option value="">Select currency</option>
             {data.map((item) => (
@@ -62,13 +62,13 @@ export function RevenueOverviewChart({
                 data={series.buckets}
                 margin={{ top: 8, right: 4, bottom: 0, left: 0 }}
               >
-                <CartesianGrid vertical={false} stroke="#e2e8f0" />
+                <CartesianGrid vertical={false} stroke="hsl(var(--border))" />
                 <XAxis
                   dataKey="label"
                   tickLine={false}
                   axisLine={false}
                   minTickGap={24}
-                  tick={{ fill: "#64748b", fontSize: 12 }}
+                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
                 />
                 <YAxis
                   tickFormatter={(value: number) =>
@@ -77,25 +77,38 @@ export function RevenueOverviewChart({
                   width={74}
                   tickLine={false}
                   axisLine={false}
-                  tick={{ fill: "#64748b", fontSize: 12 }}
+                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
                 />
                 <Tooltip
                   formatter={(value) =>
                     formatCurrencyFromCents(Number(value), series.currency)
                   }
-                  contentStyle={{ borderRadius: 10, borderColor: "#e2e8f0" }}
+                  contentStyle={{
+                    borderRadius: 10,
+                    borderColor: "hsl(var(--border))",
+                    backgroundColor: "hsl(var(--popover))",
+                    color: "hsl(var(--popover-foreground))",
+                  }}
+                  labelStyle={{ color: "hsl(var(--popover-foreground))" }}
+                  itemStyle={{ color: "hsl(var(--popover-foreground))" }}
                 />
-                <Legend wrapperStyle={{ fontSize: 12, paddingTop: 12 }} />
+                <Legend
+                  wrapperStyle={{
+                    color: "hsl(var(--muted-foreground))",
+                    fontSize: 12,
+                    paddingTop: 12,
+                  }}
+                />
                 <Bar
                   dataKey="invoicedCents"
                   name="Invoiced"
-                  fill="#334155"
+                  fill="hsl(var(--chart-2))"
                   radius={[4, 4, 0, 0]}
                 />
                 <Bar
                   dataKey="paidCents"
                   name="Paid"
-                  fill="#2563eb"
+                  fill="hsl(var(--chart-1))"
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>
@@ -109,7 +122,7 @@ export function RevenueOverviewChart({
 
 export function EmptyChart({ message }: { message: string }) {
   return (
-    <div className="grid h-72 place-items-center rounded-lg border border-dashed border-slate-200 bg-slate-50 px-6 text-center text-sm leading-6 text-slate-500">
+    <div className="grid h-72 place-items-center rounded-lg border border-dashed border-border bg-muted px-6 text-center text-sm leading-6 text-muted-foreground">
       {message}
     </div>
   );

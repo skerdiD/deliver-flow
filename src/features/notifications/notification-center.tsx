@@ -155,7 +155,7 @@ export function NotificationCenter({
           aria-label={
             hasUnread ? `${unreadCount} unread notifications` : "Notifications"
           }
-          className="relative rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950"
+          className="relative rounded-full border border-border bg-card text-muted-foreground shadow-sm hover:border-primary/30 hover:bg-muted hover:text-foreground"
         >
           {isNavigating ? (
             <Loader2 className="size-4 animate-spin" />
@@ -163,7 +163,7 @@ export function NotificationCenter({
             <Bell className="size-4" />
           )}
           {hasUnread ? (
-            <span className="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-slate-950 px-1.5 py-0.5 text-[11px] font-semibold leading-none text-white">
+            <span className="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-primary px-1.5 py-0.5 text-[11px] font-semibold leading-none text-primary-foreground">
               {visibleUnreadCount}
             </span>
           ) : null}

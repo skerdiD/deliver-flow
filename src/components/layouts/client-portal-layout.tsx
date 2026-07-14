@@ -20,7 +20,7 @@ export function ClientPortalLayout({
   children,
 }: ClientPortalLayoutProps) {
   return (
-    <div className="fixed inset-0 h-dvh overflow-hidden bg-slate-50 text-slate-950">
+    <div className="fixed inset-0 h-dvh overflow-hidden bg-background text-foreground">
       <div className="flex h-full min-h-0">
         <ClientSidebar />
 

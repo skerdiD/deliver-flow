@@ -40,7 +40,7 @@ export function AnalyticsRangeFilter({ value }: { value: AnalyticsRange }) {
           className={cn(
             "h-8 flex-1 px-2.5 text-xs sm:flex-none",
             value === option.value &&
-              "bg-slate-950 text-white hover:bg-slate-800 hover:text-white",
+              "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground",
           )}
         >
           {option.label}
