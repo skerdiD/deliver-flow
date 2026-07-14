@@ -93,7 +93,7 @@ export function ClientForm({
   }
 
   return (
-    <Card className="max-w-3xl rounded-lg border-slate-200 shadow-sm">
+    <Card className="w-full max-w-[72rem] rounded-lg border-slate-200 shadow-sm">
       <CardHeader>
         <CardTitle>
           {mode === "create" ? "Add Client" : "Edit Client"}
@@ -107,7 +107,7 @@ export function ClientForm({
 
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-7">
             {form.formState.errors.root?.message ? (
               <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {form.formState.errors.root.message}
@@ -135,7 +135,7 @@ export function ClientForm({
               )}
             />
 
-            <div className="grid gap-5 md:grid-cols-2">
+            <div className="grid gap-x-7 gap-y-7 md:grid-cols-2">
               <FormField
                 control={form.control}
                 name="email"
@@ -210,7 +210,7 @@ export function ClientForm({
               )}
             />
 
-            <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
+            <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:justify-end">
               <Button
                 type="button"
                 variant="outline"
@@ -224,7 +224,9 @@ export function ClientForm({
                 {isPending ? (
                   <>
                     <Loader2 className="mr-2 size-4 animate-spin" />
-                    {mode === "create" ? "Creating client..." : "Saving client..."}
+                    {mode === "create"
+                      ? "Creating client..."
+                      : "Saving client..."}
                   </>
                 ) : (
                   "Save Client"
