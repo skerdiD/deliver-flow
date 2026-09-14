@@ -1,56 +1,27 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
-const adminEmail = process.env.E2E_ADMIN_EMAIL;
-const adminPassword = process.env.E2E_ADMIN_PASSWORD;
-const assignedClientEmail = process.env.E2E_CLIENT_EMAIL;
-const assignedClientPassword = process.env.E2E_CLIENT_PASSWORD;
-const unassignedClientEmail = process.env.E2E_UNASSIGNED_CLIENT_EMAIL;
-const unassignedClientPassword = process.env.E2E_UNASSIGNED_CLIENT_PASSWORD;
-
-async function signIn(page: Page, email: string, password: string) {
-  await page.goto("/login");
-  await page.getByLabel("Email address").fill(email);
-  await page.getByLabel("Password").fill(password);
-  await page.getByRole("button", { name: "Sign in" }).click();
-}
-
-async function signOut(page: Page) {
-  await page.getByRole("button", { name: "Log out" }).click();
-}
-
-function getClientOptionName(email: string) {
-  const normalizedEmail = email.toLowerCase();
-
-  if (normalizedEmail === "sarah@novaagency.com") {
-    return "Nova Agency";
-  }
-
-  if (normalizedEmail === "michael@retailco.com") {
-    return "RetailCo";
-  }
-
-  if (normalizedEmail === "james@creativehub.co") {
-    return "Creative Hub";
-  }
-
-  return null;
-}
+import {
+  e2eAuth,
+  getSeededClientOptionName,
+  hasCredentials,
+  signIn,
+  signOut,
+} from "./support/auth";
 
 test.describe("project file security workflow", () => {
   test.skip(
-    !adminEmail ||
-      !adminPassword ||
-      !assignedClientEmail ||
-      !assignedClientPassword ||
-      !unassignedClientEmail ||
-      !unassignedClientPassword,
+    !hasCredentials(e2eAuth.owner) ||
+      !hasCredentials(e2eAuth.client) ||
+      !hasCredentials(e2eAuth.unassignedClient),
     "Set the admin, assigned client, and unassigned client E2E credentials to run the file security workflow test.",
   );
 
   test("owner upload, client visibility, cross-client denial, replacement, and deletion", async ({
     page,
   }) => {
-    const assignedClientOptionName = getClientOptionName(assignedClientEmail!);
+    const assignedClientOptionName = getSeededClientOptionName(
+      e2eAuth.client.email,
+    );
 
     test.skip(
       !assignedClientOptionName,
@@ -62,7 +33,7 @@ test.describe("project file security workflow", () => {
     const initialFileName = `Delivery packet ${unique}.pdf`;
     const replacementFileName = `Delivery packet revision ${unique}.pdf`;
 
-    await signIn(page, adminEmail!, adminPassword!);
+    await signIn(page, e2eAuth.owner);
     await page.goto("/admin/projects/new");
 
     await page.getByLabel("Project name").fill(projectName);
@@ -94,7 +65,7 @@ test.describe("project file security workflow", () => {
     await expect(page.getByText(initialFileName)).toBeVisible();
 
     await signOut(page);
-    await signIn(page, assignedClientEmail!, assignedClientPassword!);
+    await signIn(page, e2eAuth.client);
     await page.goto("/client/files");
     await expect(page.getByText(initialFileName)).toBeVisible();
 
@@ -108,12 +79,12 @@ test.describe("project file security workflow", () => {
     expect(downloadHref).toContain("/api/client/files/");
 
     await signOut(page);
-    await signIn(page, unassignedClientEmail!, unassignedClientPassword!);
+    await signIn(page, e2eAuth.unassignedClient);
     await page.goto(downloadHref);
     await expect(page.locator("body")).toContainText("File not found.");
 
     await signOut(page);
-    await signIn(page, adminEmail!, adminPassword!);
+    await signIn(page, e2eAuth.owner);
     await page.goto("/admin/files");
 
     const initialFileCard = page
@@ -138,13 +109,13 @@ test.describe("project file security workflow", () => {
     await expect(page.getByText(initialFileName)).toHaveCount(0);
 
     await signOut(page);
-    await signIn(page, assignedClientEmail!, assignedClientPassword!);
+    await signIn(page, e2eAuth.client);
     await page.goto("/client/files");
     await expect(page.getByText(replacementFileName)).toBeVisible();
     await expect(page.getByText(initialFileName)).toHaveCount(0);
 
     await signOut(page);
-    await signIn(page, adminEmail!, adminPassword!);
+    await signIn(page, e2eAuth.owner);
     await page.goto("/admin/files");
 
     const replacementFileCard = page
@@ -156,7 +127,7 @@ test.describe("project file security workflow", () => {
     await expect(page.getByText(replacementFileName)).toHaveCount(0);
 
     await signOut(page);
-    await signIn(page, assignedClientEmail!, assignedClientPassword!);
+    await signIn(page, e2eAuth.client);
     await page.goto("/client/files");
     await expect(page.getByText(replacementFileName)).toHaveCount(0);
   });

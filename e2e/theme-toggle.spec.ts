@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-const demoLoginAvailable = process.env.E2E_DEMO_LOGIN_AVAILABLE !== "false";
+const demoLoginAvailable = process.env.E2E_DEMO_LOGIN_AVAILABLE === "true";
 
 async function enterDemo(page: Page, role: "admin" | "client") {
   await page.goto("/login");

@@ -1,14 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-const adminEmail = process.env.E2E_ADMIN_EMAIL;
-const adminPassword = process.env.E2E_ADMIN_PASSWORD;
-
-async function signIn(page: Page, email: string, password: string) {
-  await page.goto("/login");
-  await page.getByLabel("Email address").fill(email);
-  await page.getByLabel("Password").fill(password);
-  await page.getByRole("button", { name: "Sign in" }).click();
-}
+import { e2eAuth, hasCredentials, signIn } from "./support/auth";
 
 async function expectNoDesktopTableOverflow(page: Page) {
   const overflow = await page.evaluate(() => {
@@ -50,14 +42,14 @@ test.describe("admin desktop table overflow", () => {
   test.use({ viewport: { width: 1440, height: 1000 } });
 
   test.skip(
-    !adminEmail || !adminPassword,
+    !hasCredentials(e2eAuth.owner),
     "Set E2E_ADMIN_EMAIL and E2E_ADMIN_PASSWORD to run authenticated admin desktop overflow checks.",
   );
 
   test("admin table pages fit without horizontal scrolling", async ({
     page,
   }) => {
-    await signIn(page, adminEmail!, adminPassword!);
+    await signIn(page, e2eAuth.owner);
 
     const adminRoutes = [
       "/admin/dashboard",

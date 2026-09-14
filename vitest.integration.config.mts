@@ -6,7 +6,10 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    exclude: ["e2e/**", "tests/integration/**", "node_modules/**", ".next/**"],
+    include: ["tests/integration/**/*.test.ts"],
+    testTimeout: 30_000,
+    hookTimeout: 30_000,
     globals: false,
+    fileParallelism: false,
   },
 });

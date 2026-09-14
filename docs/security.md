@@ -39,18 +39,26 @@ Route params and hidden form fields are treated as untrusted. They are validated
 
 RLS policy SQL exists in `supabase/migrations/`.
 
+`0007_current_security_baseline.sql` is the canonical current-state policy
+baseline. Earlier files document incremental historical states and include the
+retired `admin` role, so they must not be replayed after today's complete
+Drizzle history. The local/CI bootstrap applies the Drizzle history (while
+leaving Supabase's owned `auth` schema intact) and then applies this baseline.
+
 The policies:
 
 - Enable RLS on application tables.
 - Allow owners to manage workspace records through the owner RLS helper functions.
 - Allow clients to read records only when `public.is_client_assigned_to_project(project_id)` passes.
 - Limit visible client reads for tasks, milestones, updates, feedback, and files.
+- Limit feedback reads to the current client even when multiple clients share a project.
 - Keep direct `project_files` access read-only for authenticated Supabase users; browser-driven inserts, updates, and deletes are revoked.
 - Keep approval responses behind the `public.respond_to_approval(...)` RPC.
 - Create a private `project-files` storage bucket when possible.
 - Remove direct `storage.objects` file-object policies so all downloads go through server-generated signed URLs.
 
-Because this repository cannot inspect your Supabase Dashboard directly, verify that these migrations have been applied in the live project.
+Because this repository cannot inspect your Supabase Dashboard directly, verify
+that the current baseline has been applied in the live project.
 
 ## Storage Security
 
@@ -93,4 +101,6 @@ Because this repository cannot inspect your Supabase Dashboard directly, verify 
 - Monitor authorization failures and signed URL failures in Sentry.
 - Keep permission tests close to data-access helpers, route handlers, and server actions.
 - Add a scheduled worker or script that processes `project_file_cleanup_jobs` and retries failed storage deletions.
-- Add a disposable Supabase integration environment if you want automated tests for live RLS, storage policies, and signed URL expiry.
+- Keep the disposable Supabase integration suite in CI; it verifies real Auth
+  profile creation, owner/client and workspace isolation, assignment and
+  visibility policies, private Storage denial, and signed URL expiry.

@@ -294,6 +294,19 @@ npm run db:seed
 
 Apply the Supabase RLS and storage policies from `supabase/migrations/` when setting up a new Supabase project.
 
+The application schema is owned by Drizzle. The Supabase SQL files are the
+Auth/RLS/Storage layer and must be applied after the matching Drizzle schema.
+For a fresh disposable local Supabase stack, the repository provides a guarded
+bootstrap that preserves Supabase's own `auth` schema:
+
+```bash
+supabase start
+# Export API_URL, ANON_KEY, SERVICE_ROLE_KEY, and DB_URL from `supabase status -o env`.
+npm run db:bootstrap:supabase
+npm run db:seed
+npm run db:seed:e2e
+```
+
 ### 4. Start Development
 
 ```bash
@@ -310,11 +323,20 @@ Open [http://localhost:3000](http://localhost:3000).
 npm run lint
 npm run typecheck
 npm run test
+npm run test:integration
 npm run test:e2e
 npm run build
 ```
 
-The GitHub Actions workflow runs the main quality checks for repository changes.
+`test:integration` expects a disposable Supabase stack and deliberately fails
+when its local credentials are absent. The normal unit suite does not require
+external services. Authenticated Playwright groups remain credential-gated for
+developers using an external backend; CI supplies deterministic local accounts
+and runs every browser test against the disposable stack.
+
+The GitHub Actions workflow starts local Supabase, applies the current schema
+and security baseline, seeds deterministic users, and runs the full set of
+quality and security checks without production secrets.
 
 ## Author
 

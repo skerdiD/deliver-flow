@@ -1,16 +1,6 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
-const adminEmail = process.env.E2E_ADMIN_EMAIL;
-const adminPassword = process.env.E2E_ADMIN_PASSWORD;
-const clientEmail = process.env.E2E_CLIENT_EMAIL;
-const clientPassword = process.env.E2E_CLIENT_PASSWORD;
-
-async function signIn(page: Page, email: string, password: string) {
-  await page.goto("/login");
-  await page.getByLabel("Email address").fill(email);
-  await page.getByLabel("Password").fill(password);
-  await page.getByRole("button", { name: "Sign in" }).click();
-}
+import { e2eAuth, hasCredentials, signIn } from "./support/auth";
 
 test("login page loads with the sign-in form", async ({ page }) => {
   await page.goto("/login");
@@ -54,12 +44,12 @@ test("invalid invite route fails safely", async ({ page }) => {
 
 test.describe("authenticated route access", () => {
   test.skip(
-    !adminEmail || !adminPassword || !clientEmail || !clientPassword,
+    !hasCredentials(e2eAuth.owner) || !hasCredentials(e2eAuth.client),
     "Set E2E_ADMIN_EMAIL, E2E_ADMIN_PASSWORD, E2E_CLIENT_EMAIL, and E2E_CLIENT_PASSWORD to run authenticated e2e tests.",
   );
 
   test("client cannot access /admin/dashboard", async ({ page }) => {
-    await signIn(page, clientEmail!, clientPassword!);
+    await signIn(page, e2eAuth.client);
     await page.goto("/admin/dashboard");
 
     await expect(page).toHaveURL(/\/client\/overview$/);
@@ -67,14 +57,14 @@ test.describe("authenticated route access", () => {
   });
 
   test("client cannot access /admin/analytics", async ({ page }) => {
-    await signIn(page, clientEmail!, clientPassword!);
+    await signIn(page, e2eAuth.client);
     await page.goto("/admin/analytics");
 
     await expect(page).toHaveURL(/\/client\/overview$/);
   });
 
   test("admin can access /admin/dashboard", async ({ page }) => {
-    await signIn(page, adminEmail!, adminPassword!);
+    await signIn(page, e2eAuth.owner);
     await page.goto("/admin/dashboard");
 
     await expect(page).toHaveURL(/\/admin\/dashboard$/);
@@ -84,7 +74,7 @@ test.describe("authenticated route access", () => {
   });
 
   test("admin can use workspace analytics", async ({ page }) => {
-    await signIn(page, adminEmail!, adminPassword!);
+    await signIn(page, e2eAuth.owner);
     await page.goto("/admin/analytics");
 
     await expect(page).toHaveURL(/\/admin\/analytics$/);
@@ -104,7 +94,7 @@ test.describe("authenticated route access", () => {
   });
 
   test("client can access /client/overview", async ({ page }) => {
-    await signIn(page, clientEmail!, clientPassword!);
+    await signIn(page, e2eAuth.client);
     await page.goto("/client/overview");
 
     await expect(page).toHaveURL(/\/client\/overview$/);

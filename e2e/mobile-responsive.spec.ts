@@ -1,16 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-const adminEmail = process.env.E2E_ADMIN_EMAIL;
-const adminPassword = process.env.E2E_ADMIN_PASSWORD;
-const clientEmail = process.env.E2E_CLIENT_EMAIL;
-const clientPassword = process.env.E2E_CLIENT_PASSWORD;
-
-async function signIn(page: Page, email: string, password: string) {
-  await page.goto("/login");
-  await page.getByLabel("Email address").fill(email);
-  await page.getByLabel("Password").fill(password);
-  await page.getByRole("button", { name: "Sign in" }).click();
-}
+import { e2eAuth, hasCredentials, signIn } from "./support/auth";
 
 async function expectNoHorizontalOverflow(page: Page) {
   const overflow = await page.evaluate(() => {
@@ -40,14 +30,14 @@ test.describe("mobile responsive protected routes", () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
   test.skip(
-    !adminEmail || !adminPassword || !clientEmail || !clientPassword,
+    !hasCredentials(e2eAuth.owner) || !hasCredentials(e2eAuth.client),
     "Set E2E_ADMIN_EMAIL, E2E_ADMIN_PASSWORD, E2E_CLIENT_EMAIL, and E2E_CLIENT_PASSWORD to run authenticated mobile e2e tests.",
   );
 
   test("admin routes do not create horizontal overflow on mobile", async ({
     page,
   }) => {
-    await signIn(page, adminEmail!, adminPassword!);
+    await signIn(page, e2eAuth.owner);
 
     const adminRoutes = [
       "/admin/dashboard",
@@ -85,7 +75,7 @@ test.describe("mobile responsive protected routes", () => {
   test("client routes do not create horizontal overflow on mobile", async ({
     page,
   }) => {
-    await signIn(page, clientEmail!, clientPassword!);
+    await signIn(page, e2eAuth.client);
 
     const clientRoutes = [
       "/client/overview",

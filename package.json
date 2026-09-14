@@ -9,6 +9,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:integration": "vitest run --config vitest.integration.config.mts",
     "test:watch": "vitest",
     "test:auth": "vitest run src/lib/supabase/route-protection.test.ts",
     "test:e2e": "playwright test",
@@ -19,6 +20,8 @@
     "db:seed": "tsx -r tsconfig-paths/register src/db/seed.ts",
     "db:seed:screenshots": "tsx -r tsconfig-paths/register src/db/seed-screenshot-account.ts",
     "db:reset-demo": "tsx -r tsconfig-paths/register src/db/reset-demo.ts",
+    "db:bootstrap:supabase": "tsx -r tsconfig-paths/register scripts/bootstrap-local-supabase.ts",
+    "db:seed:e2e": "tsx -r tsconfig-paths/register scripts/seed-e2e.ts",
     "format": "prettier --write ."
   },
   "dependencies": {

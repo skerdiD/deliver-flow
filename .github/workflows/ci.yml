@@ -11,12 +11,15 @@ jobs:
     env:
       NEXT_PUBLIC_SITE_URL: http://localhost:3000
       NEXT_PUBLIC_APP_URL: http://localhost:3000
-      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder
-      SUPABASE_SERVICE_ROLE_KEY: ci-placeholder
       ARCJET_KEY: ci-placeholder
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
-      E2E_DEMO_LOGIN_AVAILABLE: "false"
+      PROJECT_FILE_SCAN_MODE: development-noop
+      E2E_DEMO_LOGIN_AVAILABLE: "true"
+      E2E_ADMIN_EMAIL: admin@deliverflow.demo
+      E2E_ADMIN_PASSWORD: Demo123456!
+      E2E_CLIENT_EMAIL: client@deliverflow.demo
+      E2E_CLIENT_PASSWORD: Demo123456!
+      E2E_UNASSIGNED_CLIENT_EMAIL: unassigned@deliverflow.test
+      E2E_UNASSIGNED_CLIENT_PASSWORD: E2eUnassigned123!
 
     steps:
       - name: Checkout
@@ -31,6 +34,40 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.117.0
+
+      - name: Start disposable Supabase
+        run: supabase start
+
+      - name: Export local Supabase environment
+        shell: bash
+        run: |
+          supabase status -o env > /tmp/supabase.env
+          while IFS='=' read -r name value; do
+            value="${value%\"}"
+            value="${value#\"}"
+            case "$name" in
+              API_URL) echo "NEXT_PUBLIC_SUPABASE_URL=$value" >> "$GITHUB_ENV" ;;
+              ANON_KEY) echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$value" >> "$GITHUB_ENV" ;;
+              SERVICE_ROLE_KEY) echo "SUPABASE_SERVICE_ROLE_KEY=$value" >> "$GITHUB_ENV" ;;
+              DB_URL)
+                echo "DATABASE_URL=$value" >> "$GITHUB_ENV"
+                echo "DIRECT_URL=$value" >> "$GITHUB_ENV"
+                ;;
+            esac
+          done < /tmp/supabase.env
+
+      - name: Bootstrap schema and security policies
+        run: npm run db:bootstrap:supabase
+
+      - name: Seed browser test identities and data
+        run: |
+          npm run db:seed
+          npm run db:seed:e2e
+
       - name: Lint
         run: npm run lint
 
@@ -39,6 +76,9 @@ jobs:
 
       - name: Test
         run: npm run test
+
+      - name: Supabase Auth, RLS, and Storage integration tests
+        run: npm run test:integration
 
       - name: Build
         run: npm run build
@@ -58,3 +98,7 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+      - name: Stop disposable Supabase
+        if: always()
+        run: supabase stop --no-backup

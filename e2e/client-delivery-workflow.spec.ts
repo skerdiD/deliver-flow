@@ -1,43 +1,20 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
-const adminEmail = process.env.E2E_ADMIN_EMAIL;
-const adminPassword = process.env.E2E_ADMIN_PASSWORD;
-const clientEmail = process.env.E2E_CLIENT_EMAIL;
-const clientPassword = process.env.E2E_CLIENT_PASSWORD;
-
-async function signIn(page: Page, email: string, password: string) {
-  await page.goto("/login");
-  await page.getByLabel("Email address").fill(email);
-  await page.getByLabel("Password").fill(password);
-  await page.getByRole("button", { name: "Sign in" }).click();
-}
-
-function getClientOptionName(email: string) {
-  const normalizedEmail = email.toLowerCase();
-
-  if (normalizedEmail === "sarah@novaagency.com") {
-    return "Nova Agency";
-  }
-
-  if (normalizedEmail === "michael@retailco.com") {
-    return "RetailCo";
-  }
-
-  if (normalizedEmail === "james@creativehub.co") {
-    return "Creative Hub";
-  }
-
-  return null;
-}
+import {
+  e2eAuth,
+  getSeededClientOptionName,
+  hasCredentials,
+  signIn,
+} from "./support/auth";
 
 test.describe("client delivery workflow", () => {
   test.skip(
-    !adminEmail || !adminPassword || !clientEmail || !clientPassword,
+    !hasCredentials(e2eAuth.owner) || !hasCredentials(e2eAuth.client),
     "Set E2E_ADMIN_EMAIL, E2E_ADMIN_PASSWORD, E2E_CLIENT_EMAIL, and E2E_CLIENT_PASSWORD to run the delivery workflow e2e test.",
   );
 
   test("admin requests approval and client approves it", async ({ page }) => {
-    const clientOptionName = getClientOptionName(clientEmail!);
+    const clientOptionName = getSeededClientOptionName(e2eAuth.client.email);
 
     test.skip(
       !clientOptionName,
@@ -48,7 +25,7 @@ test.describe("client delivery workflow", () => {
     const projectName = `Workflow QA ${unique}`;
     const approvalTitle = `Final approval ${unique}`;
 
-    await signIn(page, adminEmail!, adminPassword!);
+    await signIn(page, e2eAuth.owner);
     await page.goto("/admin/projects/new");
 
     await page.getByLabel("Project name").fill(projectName);
@@ -79,7 +56,7 @@ test.describe("client delivery workflow", () => {
     await expect(page.getByText("Approval requested.")).toBeVisible();
 
     await page.getByRole("button", { name: "Log out" }).click();
-    await signIn(page, clientEmail!, clientPassword!);
+    await signIn(page, e2eAuth.client);
 
     await expect(page.getByText(projectName)).toBeVisible();
     const clientNotificationsButton = page.getByRole("button", {
@@ -103,7 +80,7 @@ test.describe("client delivery workflow", () => {
     await expect(page.getByText("Approved")).toBeVisible();
 
     await page.getByRole("button", { name: "Log out" }).click();
-    await signIn(page, adminEmail!, adminPassword!);
+    await signIn(page, e2eAuth.owner);
     const ownerNotificationsButton = page.getByRole("button", {
       name: /notifications/i,
     });
