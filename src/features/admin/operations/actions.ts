@@ -606,6 +606,7 @@ export async function replaceFileAction(
     }
 
     await runInitialProjectFileScan({
+      checksumSha256,
       fileId: updatedFile.id,
       projectId: updatedFile.projectId,
       workspaceId,

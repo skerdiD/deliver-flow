@@ -87,8 +87,8 @@ export async function GET(
     return jsonError("File not found.", 404);
   }
 
-  if (file.scanStatus === "infected") {
-    return jsonError("This file has been blocked by security scanning.", 409);
+  if (file.scanStatus !== "clean") {
+    return jsonError("This file is not available until scanning is clean.", 409);
   }
 
   const supabase = createSupabaseAdminClient();

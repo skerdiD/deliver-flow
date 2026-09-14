@@ -412,6 +412,12 @@ with check (
   workspace_id = public.current_workspace_id()
   and created_by = auth.uid()
   and client_id = public.current_client_id()
+  and status = 'open'
+  and admin_response is null
+  and is_visible_to_client = true
+  and archived_at is null
+  and resolved_at is null
+  and deleted_at is null
   and public.is_client_assigned_to_project(project_id)
 );
 

@@ -1174,6 +1174,7 @@ export async function uploadProjectFileAction(
   }
 
   const scanResult = await runInitialProjectFileScan({
+    checksumSha256,
     fileId: createdFile.id,
     projectId: projectIdParsed.data,
     workspaceId,

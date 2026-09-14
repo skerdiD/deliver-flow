@@ -6,6 +6,7 @@ import { getProjectFileScannerWebhookSecret } from "@/features/projects/file-sec
 import { applyProjectFileScanResult } from "@/features/projects/project-files.server";
 
 const requestBodySchema = z.object({
+  checksumSha256: z.string().regex(/^[a-f0-9]{64}$/),
   reason: z.string().trim().max(1000).optional(),
   status: z.enum(["clean", "failed", "infected"]),
 });
@@ -78,6 +79,7 @@ export async function POST(
   }
 
   const result = await applyProjectFileScanResult({
+    checksumSha256: parsedBody.data.checksumSha256,
     fileId: parsedParams.data.fileId,
     reason: parsedBody.data.reason,
     status: parsedBody.data.status,

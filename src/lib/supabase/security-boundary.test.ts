@@ -37,7 +37,7 @@ describe("Supabase security boundaries", () => {
     expect(source).toContain("isNull(projects.archivedAt)");
     expect(source).toContain("isNull(projects.deletedAt)");
     expect(source).toContain("signedUrlExpiresInSeconds");
-    expect(source).toContain('file.scanStatus === "infected"');
+    expect(source).toContain('file.scanStatus !== "clean"');
   });
 
   it("guards admin direct project mutations and uploads", () => {
@@ -68,7 +68,9 @@ describe("Supabase security boundaries", () => {
     );
 
     expect(routeSource).toContain('eq(projectFiles.scanStatus, "clean")');
-    expect(portalSource).toContain('eq(projectFiles.scanStatus, "clean")');
+    expect(
+      portalSource.match(/eq\(projectFiles\.scanStatus, "clean"\)/g),
+    ).toHaveLength(3);
   });
 
   it("does not expose internal storage paths in the owner files UI", () => {

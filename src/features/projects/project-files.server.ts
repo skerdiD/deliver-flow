@@ -1,7 +1,7 @@
 import "server-only";
 
 import * as Sentry from "@sentry/nextjs";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 
 import { db } from "@/db";
 import { projectFileCleanupJobs, projectFiles, workspaces } from "@/db/schema";
@@ -163,6 +163,7 @@ export async function removeProjectFileStorageObject(input: {
 }
 
 export async function applyProjectFileScanResult(input: {
+  checksumSha256: string;
   fileId: string;
   reason?: string | null;
   status: "clean" | "failed" | "infected";
@@ -175,7 +176,14 @@ export async function applyProjectFileScanResult(input: {
       scanStatus: input.status,
       updatedAt: new Date(),
     })
-    .where(eq(projectFiles.id, input.fileId))
+    .where(
+      and(
+        eq(projectFiles.id, input.fileId),
+        eq(projectFiles.checksumSha256, input.checksumSha256),
+        eq(projectFiles.scanStatus, "pending"),
+        isNull(projectFiles.deletedAt),
+      ),
+    )
     .returning({
       bucketName: projectFiles.bucketName,
       id: projectFiles.id,
@@ -253,6 +261,7 @@ export async function applyProjectFileScanResult(input: {
 }
 
 export async function runInitialProjectFileScan(input: {
+  checksumSha256: string;
   fileId: string;
   projectId: string;
   workspaceId: string;
@@ -267,6 +276,7 @@ export async function runInitialProjectFileScan(input: {
   }
 
   await applyProjectFileScanResult({
+    checksumSha256: input.checksumSha256,
     fileId: input.fileId,
     status: "clean",
   });

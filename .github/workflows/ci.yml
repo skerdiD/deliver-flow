@@ -12,7 +12,8 @@ jobs:
       NEXT_PUBLIC_SITE_URL: http://localhost:3000
       NEXT_PUBLIC_APP_URL: http://localhost:3000
       ARCJET_KEY: ci-placeholder
-      PROJECT_FILE_SCAN_MODE: development-noop
+      PROJECT_FILE_SCAN_MODE: quarantine
+      PROJECT_FILE_SCAN_WEBHOOK_SECRET: ci-local-scanner-secret
       E2E_DEMO_LOGIN_AVAILABLE: "true"
       E2E_ADMIN_EMAIL: admin@deliverflow.demo
       E2E_ADMIN_PASSWORD: Demo123456!

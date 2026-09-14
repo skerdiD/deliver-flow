@@ -286,6 +286,27 @@ describe("Supabase Auth and RLS integration", () => {
 
     expect(result.error).not.toBeNull();
   });
+
+  it("prevents clients from forging resolved feedback or owner responses", async () => {
+    const assigned = users.get("assigned")!;
+    const { data: userData, error: userError } = await assigned.auth.getUser();
+
+    expect(userError).toBeNull();
+    expect(userData.user).not.toBeNull();
+
+    const result = await assigned.from("feedback").insert({
+      workspace_id: ids.workspaceA,
+      project_id: ids.projectA,
+      client_id: ids.assignedClient,
+      created_by: userData.user!.id,
+      message: "Forged resolved feedback",
+      status: "resolved",
+      admin_response: "Forged owner response",
+      resolved_at: new Date().toISOString(),
+    });
+
+    expect(result.error).not.toBeNull();
+  });
 });
 
 describe("private Supabase Storage integration", () => {

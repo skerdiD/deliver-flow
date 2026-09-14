@@ -76,11 +76,12 @@ that the current baseline has been applied in the live project.
 ## Scan Status
 
 - New uploads start with `scan_status = 'pending'`.
-- In local development, `PROJECT_FILE_SCAN_MODE=development-noop` marks uploads clean immediately to preserve the authoring workflow.
-- In production, use `PROJECT_FILE_SCAN_MODE=quarantine` and wire a trusted scanner to `POST /api/internal/file-scans/[fileId]` with `Authorization: Bearer $PROJECT_FILE_SCAN_WEBHOOK_SECRET`.
+- In local development, `PROJECT_FILE_SCAN_MODE=development-noop` marks uploads clean immediately to preserve the authoring workflow. The application rejects this mode when `NODE_ENV=production`.
+- In production, use `PROJECT_FILE_SCAN_MODE=quarantine` and wire a trusted scanner to `POST /api/internal/file-scans/[fileId]` with `Authorization: Bearer $PROJECT_FILE_SCAN_WEBHOOK_SECRET`. The callback must include the exact uploaded file's SHA-256 checksum, and only the first matching result can transition a pending file.
 - Supported scan states are `pending`, `clean`, `infected`, and `failed`.
-- Pending, infected, and failed files are blocked from client visibility and client downloads.
-- This repository does not include a real antivirus engine. Production malware detection depends on an external scanner calling the webhook.
+- Pending, infected, and failed files are blocked from both owner and client downloads; clients also cannot list them.
+- This repository does not include a real antivirus engine or a scan-dispatch worker. Production malware detection depends on separately configured infrastructure scanning the private object and calling the webhook. In quarantine mode, a file remains pending until that happens.
+- Infected objects are removed from Storage. A failed removal creates a `project_file_cleanup_jobs` row, but this repository does not yet include the worker that retries those jobs.
 
 ## Environment Variables
 
@@ -101,6 +102,7 @@ that the current baseline has been applied in the live project.
 - Monitor authorization failures and signed URL failures in Sentry.
 - Keep permission tests close to data-access helpers, route handlers, and server actions.
 - Add a scheduled worker or script that processes `project_file_cleanup_jobs` and retries failed storage deletions.
+- Add a production scanner adapter or queue worker with retry, timeout, and failed/pending recovery handling before treating malware scanning as operational.
 - Keep the disposable Supabase integration suite in CI; it verifies real Auth
   profile creation, owner/client and workspace isolation, assignment and
   visibility policies, private Storage denial, and signed URL expiry.

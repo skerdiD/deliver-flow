@@ -16,6 +16,8 @@ vi.mock("@/features/projects/project-files.server", () => ({
 import { POST } from "@/app/api/internal/file-scans/[fileId]/route";
 
 describe("internal project file scan webhook", () => {
+  const checksumSha256 = "a".repeat(64);
+
   beforeEach(() => {
     mocks.getProjectFileScannerWebhookSecret.mockReset();
     mocks.applyProjectFileScanResult.mockReset();
@@ -26,7 +28,7 @@ describe("internal project file scan webhook", () => {
 
     const response = await POST(
       new Request("http://localhost/api/internal/file-scans/file-id", {
-        body: JSON.stringify({ status: "clean" }),
+        body: JSON.stringify({ checksumSha256, status: "clean" }),
         headers: {
           "content-type": "application/json",
         },
@@ -52,7 +54,11 @@ describe("internal project file scan webhook", () => {
 
     const response = await POST(
       new Request("http://localhost/api/internal/file-scans/file-id", {
-        body: JSON.stringify({ status: "infected", reason: "EICAR test" }),
+        body: JSON.stringify({
+          checksumSha256,
+          status: "infected",
+          reason: "EICAR test",
+        }),
         headers: {
           authorization: "Bearer scanner-secret",
           "content-type": "application/json",
@@ -68,6 +74,7 @@ describe("internal project file scan webhook", () => {
 
     expect(response.status).toBe(200);
     expect(mocks.applyProjectFileScanResult).toHaveBeenCalledWith({
+      checksumSha256,
       fileId: "70000000-0000-4000-8000-000000000001",
       reason: "EICAR test",
       status: "infected",
@@ -80,6 +87,29 @@ describe("internal project file scan webhook", () => {
     const response = await POST(
       new Request("http://localhost/api/internal/file-scans/file-id", {
         body: "not-json",
+        headers: {
+          authorization: "Bearer scanner-secret",
+          "content-type": "application/json",
+        },
+        method: "POST",
+      }),
+      {
+        params: Promise.resolve({
+          fileId: "70000000-0000-4000-8000-000000000001",
+        }),
+      },
+    );
+
+    expect(response.status).toBe(400);
+    expect(mocks.applyProjectFileScanResult).not.toHaveBeenCalled();
+  });
+
+  it("rejects scan results that are not bound to an object checksum", async () => {
+    mocks.getProjectFileScannerWebhookSecret.mockReturnValue("scanner-secret");
+
+    const response = await POST(
+      new Request("http://localhost/api/internal/file-scans/file-id", {
+        body: JSON.stringify({ status: "clean" }),
         headers: {
           authorization: "Bearer scanner-secret",
           "content-type": "application/json",

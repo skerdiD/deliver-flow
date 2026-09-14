@@ -66,6 +66,15 @@ function getProjectFileScanMode(): ProjectFileScanMode {
   }
 
   if (rawValue === "development-noop" || rawValue === "quarantine") {
+    if (
+      rawValue === "development-noop" &&
+      process.env.NODE_ENV === "production"
+    ) {
+      throw new Error(
+        "PROJECT_FILE_SCAN_MODE=development-noop is not allowed in production.",
+      );
+    }
+
     return rawValue;
   }
 
