@@ -106,13 +106,6 @@ export const projectFileCategoryEnum = pgEnum("project_file_category", [
   "other",
 ]);
 
-export const projectFileScanStatusEnum = pgEnum("project_file_scan_status", [
-  "pending",
-  "clean",
-  "infected",
-  "failed",
-]);
-
 export const projectFileCleanupStatusEnum = pgEnum(
   "project_file_cleanup_status",
   ["pending", "completed", "failed"],
@@ -849,11 +842,6 @@ export const projectFiles = pgTable(
     fileExtension: text("file_extension").notNull(),
     checksumSha256: text("checksum_sha256"),
     category: projectFileCategoryEnum("category").notNull().default("other"),
-    scanStatus: projectFileScanStatusEnum("scan_status")
-      .notNull()
-      .default("pending"),
-    scanCompletedAt: timestamp("scan_completed_at", { withTimezone: true }),
-    scanFailureReason: text("scan_failure_reason"),
     isVisibleToClient: boolean("is_visible_to_client").notNull().default(true),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -873,11 +861,6 @@ export const projectFiles = pgTable(
       table.workspaceId,
     ),
     deletedAtIdx: index("project_files_deleted_at_idx").on(table.deletedAt),
-    scanStatusIdx: index("project_files_scan_status_idx").on(table.scanStatus),
-    workspaceScanStatusIdx: index("project_files_workspace_scan_status_idx").on(
-      table.workspaceId,
-      table.scanStatus,
-    ),
     projectVisibleCreatedAtIdx: index(
       "project_files_project_visible_created_at_idx",
     ).on(table.projectId, table.isVisibleToClient, table.createdAt),

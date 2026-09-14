@@ -54,7 +54,6 @@ export async function GET(
       projectId: projectFiles.projectId,
       fileName: projectFiles.fileName,
       bucketName: projectFiles.bucketName,
-      scanStatus: projectFiles.scanStatus,
       storagePath: projectFiles.storagePath,
       workspaceId: projectFiles.workspaceId,
     })
@@ -85,10 +84,6 @@ export async function GET(
     })
   ) {
     return jsonError("File not found.", 404);
-  }
-
-  if (file.scanStatus !== "clean") {
-    return jsonError("This file is not available until scanning is clean.", 409);
   }
 
   const supabase = createSupabaseAdminClient();

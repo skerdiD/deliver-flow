@@ -64,7 +64,7 @@ import {
   releaseWorkspaceStorageBytes,
   removeProjectFileStorageObject,
   reserveWorkspaceStorageBytes,
-  runInitialProjectFileScan,
+  notifyProjectFileAvailable,
 } from "@/features/projects/project-files.server";
 import { logProjectActivity } from "@/features/projects/activity";
 import { isDemoWorkspaceId } from "@/lib/demo";
@@ -1131,7 +1131,6 @@ export async function uploadProjectFileAction(
         fileExtension: validation.value.extension,
         checksumSha256,
         category: categoryParsed.data,
-        scanStatus: "pending",
         isVisibleToClient: visibleToClient,
       })
       .returning({
@@ -1173,10 +1172,8 @@ export async function uploadProjectFileAction(
     };
   }
 
-  const scanResult = await runInitialProjectFileScan({
-    checksumSha256,
+  await notifyProjectFileAvailable({
     fileId: createdFile.id,
-    projectId: projectIdParsed.data,
     workspaceId,
   });
 
@@ -1192,7 +1189,6 @@ export async function uploadProjectFileAction(
       fileName: createdFile.fileName,
       category: createdFile.category,
       isVisibleToClient: visibleToClient,
-      scanStatus: scanResult.status,
     },
   });
 
@@ -1200,12 +1196,7 @@ export async function uploadProjectFileAction(
 
   return {
     success: true,
-    message:
-      scanResult.status === "clean"
-        ? "File uploaded."
-        : `File uploaded and held for scanning. Allowed types: ${getProjectFileAllowedTypeLabels().join(
-            ", ",
-          )}.`,
+    message: "File uploaded.",
     projectId: projectIdParsed.data,
   };
 }

@@ -29,7 +29,7 @@ import {
   releaseWorkspaceStorageBytes,
   removeProjectFileStorageObject,
   reserveWorkspaceStorageBytes,
-  runInitialProjectFileScan,
+  notifyProjectFileAvailable,
 } from "@/features/projects/project-files.server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireAdminWorkspace } from "@/lib/supabase/auth";
@@ -575,9 +575,6 @@ export async function replaceFileAction(
         fileSize: nextFileBytes.byteLength,
         fileType: validation.value.validatedMimeType,
         originalFileName: validation.value.originalFileName,
-        scanCompletedAt: null,
-        scanFailureReason: null,
-        scanStatus: "pending",
         storagePath: nextStoragePath,
         updatedAt: new Date(),
         uploadedBy: profile.id,
@@ -605,10 +602,8 @@ export async function replaceFileAction(
       });
     }
 
-    await runInitialProjectFileScan({
-      checksumSha256,
+    await notifyProjectFileAvailable({
       fileId: updatedFile.id,
-      projectId: updatedFile.projectId,
       workspaceId,
     });
   } catch {

@@ -19,7 +19,6 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 type CleanupReason =
   | "delete_failed"
-  | "infected_file"
   | "project_deleted"
   | "replacement_old_object"
   | "upload_db_failed";
@@ -162,129 +161,66 @@ export async function removeProjectFileStorageObject(input: {
   };
 }
 
-export async function applyProjectFileScanResult(input: {
-  checksumSha256: string;
+export async function notifyProjectFileAvailable(input: {
   fileId: string;
-  reason?: string | null;
-  status: "clean" | "failed" | "infected";
+  workspaceId: string;
 }) {
   const [file] = await db
-    .update(projectFiles)
-    .set({
-      scanCompletedAt: new Date(),
-      scanFailureReason: input.reason?.trim() || null,
-      scanStatus: input.status,
-      updatedAt: new Date(),
-    })
-    .where(
-      and(
-        eq(projectFiles.id, input.fileId),
-        eq(projectFiles.checksumSha256, input.checksumSha256),
-        eq(projectFiles.scanStatus, "pending"),
-        isNull(projectFiles.deletedAt),
-      ),
-    )
-    .returning({
-      bucketName: projectFiles.bucketName,
+    .select({
       id: projectFiles.id,
       fileName: projectFiles.fileName,
       isVisibleToClient: projectFiles.isVisibleToClient,
       projectId: projectFiles.projectId,
-      storagePath: projectFiles.storagePath,
       uploadedBy: projectFiles.uploadedBy,
       workspaceId: projectFiles.workspaceId,
+    })
+    .from(projectFiles)
+    .where(
+      and(
+        eq(projectFiles.id, input.fileId),
+        eq(projectFiles.workspaceId, input.workspaceId),
+        isNull(projectFiles.deletedAt),
+      ),
+    )
+    .limit(1);
+
+  if (!file?.isVisibleToClient) {
+    return;
+  }
+
+  try {
+    const recipientProfileIds = await getAssignedClientRecipientProfileIds(
+      file.projectId,
+      file.workspaceId,
+    );
+
+    await createNotificationsForRecipients({
+      workspaceId: file.workspaceId,
+      recipientProfileIds,
+      actorProfileId: file.uploadedBy ?? null,
+      projectId: file.projectId,
+      type: "project_file_uploaded",
+      title: "New project file available",
+      message: `A new file is ready: ${file.fileName}.`,
+      entityType: "project_file",
+      entityId: file.id,
+      actionUrl: getClientFileNotificationUrl(file.projectId),
+      dedupeKey: `project_file_uploaded:${file.id}`,
+      skipActorRecipient: true,
     });
-
-  if (!file) {
-    return {
-      cleanupQueued: false,
-      found: false,
-    };
-  }
-
-  if (input.status === "clean" && file.isVisibleToClient) {
-    try {
-      const recipientProfileIds = await getAssignedClientRecipientProfileIds(
-        file.projectId,
-        file.workspaceId,
-      );
-
-      await createNotificationsForRecipients({
-        workspaceId: file.workspaceId,
-        recipientProfileIds,
-        actorProfileId: file.uploadedBy ?? null,
+  } catch (error) {
+    Sentry.captureException(error, {
+      tags: {
+        feature: "notifications",
+        operation: "project-file-uploaded",
+      },
+      extra: {
+        fileId: file.id,
         projectId: file.projectId,
-        type: "project_file_uploaded",
-        title: "New project file available",
-        message: `A new file is ready: ${file.fileName}.`,
-        entityType: "project_file",
-        entityId: file.id,
-        actionUrl: getClientFileNotificationUrl(file.projectId),
-        dedupeKey: `project_file_uploaded:${file.id}`,
-        skipActorRecipient: true,
-      });
-    } catch (error) {
-      Sentry.captureException(error, {
-        tags: {
-          feature: "notifications",
-          operation: "project-file-uploaded",
-        },
-        extra: {
-          fileId: file.id,
-          projectId: file.projectId,
-          workspaceId: file.workspaceId,
-        },
-      });
-    }
+        workspaceId: file.workspaceId,
+      },
+    });
   }
-
-  if (input.status !== "infected") {
-    return {
-      cleanupQueued: false,
-      found: true,
-    };
-  }
-
-  const cleanupOutcome = await removeProjectFileStorageObject({
-    bucketName: file.bucketName,
-    fileId: file.id,
-    projectId: file.projectId,
-    reason: "infected_file",
-    storagePath: file.storagePath,
-    workspaceId: file.workspaceId,
-  });
-
-  return {
-    cleanupQueued: cleanupOutcome.cleanupQueued,
-    found: true,
-  };
-}
-
-export async function runInitialProjectFileScan(input: {
-  checksumSha256: string;
-  fileId: string;
-  projectId: string;
-  workspaceId: string;
-}) {
-  const config = getProjectFileSecurityConfig();
-
-  if (config.scanMode !== "development-noop") {
-    return {
-      mode: config.scanMode,
-      status: "pending" as const,
-    };
-  }
-
-  await applyProjectFileScanResult({
-    checksumSha256: input.checksumSha256,
-    fileId: input.fileId,
-    status: "clean",
-  });
-
-  return {
-    mode: config.scanMode,
-    status: "clean" as const,
-  };
 }
 
 export function getProjectFileSecuritySummary(
@@ -293,7 +229,6 @@ export function getProjectFileSecuritySummary(
   return {
     maxFilesPerUpload: config.maxFilesPerUpload,
     maxUploadBytes: config.maxUploadBytes,
-    scanMode: config.scanMode,
     signedUrlExpiresInSeconds: config.signedUrlExpiresInSeconds,
     workspaceQuotaBytes: config.workspaceQuotaBytes,
   };

@@ -11,12 +11,9 @@ import {
   PROJECT_FILE_MAX_FILES_PER_UPLOAD,
 } from "@/features/projects/file-security";
 
-type ProjectFileScanMode = "development-noop" | "quarantine";
-
 export type ProjectFileSecurityConfig = {
   maxFilesPerUpload: number;
   maxUploadBytes: number;
-  scanMode: ProjectFileScanMode;
   signedUrlExpiresInSeconds: number;
   workspaceQuotaBytes: number;
 };
@@ -56,33 +53,6 @@ function readPositiveIntegerEnv(
   return parsed;
 }
 
-function getProjectFileScanMode(): ProjectFileScanMode {
-  const rawValue = process.env.PROJECT_FILE_SCAN_MODE?.trim().toLowerCase();
-
-  if (!rawValue) {
-    return process.env.NODE_ENV === "production"
-      ? "quarantine"
-      : "development-noop";
-  }
-
-  if (rawValue === "development-noop" || rawValue === "quarantine") {
-    if (
-      rawValue === "development-noop" &&
-      process.env.NODE_ENV === "production"
-    ) {
-      throw new Error(
-        "PROJECT_FILE_SCAN_MODE=development-noop is not allowed in production.",
-      );
-    }
-
-    return rawValue;
-  }
-
-  throw new Error(
-    "Environment variable PROJECT_FILE_SCAN_MODE must be development-noop or quarantine.",
-  );
-}
-
 export function getProjectFileSecurityConfig(): ProjectFileSecurityConfig {
   return {
     maxFilesPerUpload: PROJECT_FILE_MAX_FILES_PER_UPLOAD,
@@ -90,7 +60,6 @@ export function getProjectFileSecurityConfig(): ProjectFileSecurityConfig {
       "PROJECT_FILE_MAX_UPLOAD_BYTES",
       PROJECT_FILE_DEFAULT_MAX_UPLOAD_BYTES,
     ),
-    scanMode: getProjectFileScanMode(),
     signedUrlExpiresInSeconds: readPositiveIntegerEnv(
       "PROJECT_FILE_SIGNED_URL_TTL_SECONDS",
       PROJECT_FILE_DEFAULT_SIGNED_URL_TTL_SECONDS,
@@ -104,11 +73,6 @@ export function getProjectFileSecurityConfig(): ProjectFileSecurityConfig {
       PROJECT_FILE_DEFAULT_WORKSPACE_QUOTA_BYTES,
     ),
   };
-}
-
-export function getProjectFileScannerWebhookSecret() {
-  const value = process.env.PROJECT_FILE_SCAN_WEBHOOK_SECRET?.trim();
-  return value && value.length > 0 ? value : null;
 }
 
 export function getProjectFileClientPolicy() {

@@ -93,7 +93,6 @@ export async function GET(
       clientId: clients.id,
       fileName: projectFiles.fileName,
       bucketName: projectFiles.bucketName,
-      scanStatus: projectFiles.scanStatus,
       storagePath: projectFiles.storagePath,
       workspaceId: projectFiles.workspaceId,
     })
@@ -108,7 +107,6 @@ export async function GET(
       and(
         eq(projectFiles.id, parsed.data.fileId),
         eq(projectFiles.isVisibleToClient, true),
-        eq(projectFiles.scanStatus, "clean"),
         isNull(projectFiles.deletedAt),
         ne(projects.status, "archived"),
         eq(projectFiles.workspaceId, profile.workspace_id),
