@@ -1,5 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
-import { createHash } from "node:crypto";
+import { expect, test } from "@playwright/test";
 
 import {
   e2eAuth,
@@ -8,55 +7,6 @@ import {
   signIn,
   signOut,
 } from "./support/auth";
-
-const scannerSecret = process.env.PROJECT_FILE_SCAN_WEBHOOK_SECRET;
-
-async function submitCleanScanResult(
-  page: Page,
-  fileName: string,
-  bytes: Buffer,
-) {
-  if (!scannerSecret) {
-    return;
-  }
-
-  const fileContainer = page
-    .getByText(fileName, { exact: true })
-    .first()
-    .locator(
-      "xpath=ancestor::*[.//button[@aria-label='File actions']][1]",
-    );
-  await fileContainer.getByLabel("File actions").click();
-  const downloadHref = await page
-    .getByRole("menuitem", { name: "Download" })
-    .getAttribute("href");
-  await page.keyboard.press("Escape");
-
-  const fileId = downloadHref?.match(
-    /^\/api\/admin\/files\/([0-9a-f-]+)\/download$/i,
-  )?.[1];
-  expect(fileId).toBeTruthy();
-
-  const pendingDownload = await page.request.get(downloadHref!, {
-    maxRedirects: 0,
-  });
-  expect(pendingDownload.status()).toBe(409);
-
-  const response = await page.request.post(
-    `/api/internal/file-scans/${fileId}`,
-    {
-      data: {
-        checksumSha256: createHash("sha256").update(bytes).digest("hex"),
-        status: "clean",
-      },
-      headers: {
-        authorization: `Bearer ${scannerSecret}`,
-      },
-    },
-  );
-  expect(response.ok()).toBe(true);
-  await page.reload();
-}
 
 test.describe("project file security workflow", () => {
   test.skip(
@@ -117,7 +67,6 @@ test.describe("project file security workflow", () => {
     });
     await page.getByRole("button", { name: "Upload file" }).click();
     await expect(page.getByText(initialFileName)).toBeVisible();
-    await submitCleanScanResult(page, initialFileName, initialFileBytes);
 
     await signOut(page);
     await signIn(page, e2eAuth.client);
@@ -162,11 +111,6 @@ test.describe("project file security workflow", () => {
     await page.getByRole("button", { name: "Replace file" }).click();
     await expect(page.getByText(replacementFileName)).toBeVisible();
     await expect(page.getByText(initialFileName)).toHaveCount(0);
-    await submitCleanScanResult(
-      page,
-      replacementFileName,
-      replacementFileBytes,
-    );
 
     await signOut(page);
     await signIn(page, e2eAuth.client);

@@ -628,7 +628,6 @@ async function buildClientPortalProject(
           eq(projectFiles.projectId, assignment.projectId),
           eq(projectFiles.workspaceId, assignment.workspaceId),
           eq(projectFiles.isVisibleToClient, true),
-          eq(projectFiles.scanStatus, "clean"),
           isNull(projectFiles.deletedAt),
         ),
       )
@@ -981,7 +980,6 @@ async function buildClientPortalDashboardProjects(
           inArray(projectFiles.projectId, projectIds),
           inArray(projectFiles.workspaceId, workspaceIds),
           eq(projectFiles.isVisibleToClient, true),
-          eq(projectFiles.scanStatus, "clean"),
           isNull(projectFiles.deletedAt),
         ),
       )
@@ -1324,7 +1322,6 @@ export const getClientPortalProjectFilesById = cache(
           eq(projectFiles.projectId, assignment.projectId),
           eq(projectFiles.workspaceId, assignment.workspaceId),
           eq(projectFiles.isVisibleToClient, true),
-          eq(projectFiles.scanStatus, "clean"),
           isNull(projectFiles.deletedAt),
         ),
       )

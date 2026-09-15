@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/select";
 import { uploadProjectFileAction } from "@/features/admin/projects/actions";
 import { FileRecordActions } from "@/features/admin/operations/record-actions";
-import { getFileScanStatusMeta } from "@/features/admin/operations/types";
 import type { AdminProjectFile } from "@/features/admin/projects/types";
 import {
   getProjectFileAllowedTypeLabels,
@@ -223,16 +222,6 @@ export function ProjectFilesCard({ projectId, files }: ProjectFilesCardProps) {
                       />
                     }
                     meta={formatShortDate(file.createdAt)}
-                  />
-                  <BadgeWithMeta
-                    className="sm:items-end"
-                    badge={
-                      <StatusBadge
-                        label={getFileScanStatusMeta(file.scanStatus).label}
-                        tone={getFileScanStatusMeta(file.scanStatus).tone}
-                      />
-                    }
-                    meta={file.uploadedByName ?? "Unknown uploader"}
                   />
                   <FileRecordActions
                     fileId={file.id}

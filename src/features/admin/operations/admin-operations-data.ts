@@ -427,7 +427,6 @@ export async function getAdminFilesPageData(): Promise<AdminFilesPageData> {
       fileType: projectFiles.fileType,
       fileSize: projectFiles.fileSize,
       category: projectFiles.category,
-      scanStatus: projectFiles.scanStatus,
       uploadedByName: profiles.fullName,
       uploadedByEmail: profiles.email,
       isVisibleToClient: projectFiles.isVisibleToClient,
@@ -464,7 +463,6 @@ export async function getAdminFilesPageData(): Promise<AdminFilesPageData> {
     fileType: row.fileType,
     fileSize: row.fileSize,
     category: row.category,
-    scanStatus: row.scanStatus,
     uploadedByName: row.uploadedByName?.trim() || row.uploadedByEmail,
     isVisibleToClient: row.isVisibleToClient,
     createdAt: toIsoString(row.createdAt),
@@ -490,13 +488,6 @@ export async function getAdminFilesPageData(): Promise<AdminFilesPageData> {
         .length,
       internalOnly: normalizedFiles.filter((file) => !file.isVisibleToClient)
         .length,
-      pendingScan: normalizedFiles.filter(
-        (file) => file.scanStatus === "pending",
-      ).length,
-      totalSizeBytes: normalizedFiles.reduce(
-        (total, file) => total + (file.fileSize ?? 0),
-        0,
-      ),
       usagePercent:
         workspaceQuotaBytes > 0
           ? Math.min(

@@ -131,7 +131,7 @@ Creating an account through `/signup` creates a new workspace and makes that use
 - Permission-checked signed downloads
 - Client access restricted to assigned projects
 - File metadata including name, type, size, and upload date
-- Scan-aware visibility before files are exposed to clients
+- Server-side file-size, extension, MIME, and signature validation
 - Cleanup recovery jobs for failed storage deletion
 
 ### Payments
@@ -209,8 +209,8 @@ DeliverFlow applies authorization at the route, server, database, and storage la
 - Storage keys use randomized UUID-based paths
 - Original filenames are stored as metadata rather than object keys
 - Workspace storage quota defaults to `1 GB`
-- Files can remain quarantined until a trusted scanner marks them clean
-- Scanner webhook requests are validated before scan state is changed
+- File-type allowlisting and dangerous double-extension blocking
+- SHA-256 checksums retained for file integrity and auditing
 
 ### Application Protection
 
@@ -252,15 +252,15 @@ Data Layer
 
 ## Tech Stack
 
-| Area | Technologies |
-| --- | --- |
-| Frontend | Next.js App Router, React, TypeScript, Tailwind CSS, shadcn/ui, Radix UI |
-| Forms and UI | React Hook Form, Zod, TanStack Table, Recharts, Lucide React |
-| Backend | Next.js Server Actions and Route Handlers |
-| Data | Supabase Postgres, Drizzle ORM |
-| Authentication and Storage | Supabase Auth, Supabase Storage |
-| Security and Monitoring | Supabase RLS, Arcjet, Sentry |
-| Testing and Delivery | Vitest, Playwright, ESLint, Prettier, GitHub Actions, Vercel |
+| Area                       | Technologies                                                             |
+| -------------------------- | ------------------------------------------------------------------------ |
+| Frontend                   | Next.js App Router, React, TypeScript, Tailwind CSS, shadcn/ui, Radix UI |
+| Forms and UI               | React Hook Form, Zod, TanStack Table, Recharts, Lucide React             |
+| Backend                    | Next.js Server Actions and Route Handlers                                |
+| Data                       | Supabase Postgres, Drizzle ORM                                           |
+| Authentication and Storage | Supabase Auth, Supabase Storage                                          |
+| Security and Monitoring    | Supabase RLS, Arcjet, Sentry                                             |
+| Testing and Delivery       | Vitest, Playwright, ESLint, Prettier, GitHub Actions, Vercel             |
 
 ---
 
@@ -282,7 +282,7 @@ Copy the example environment file and provide your Supabase, database, security,
 cp .env.example .env.local
 ```
 
-Never expose `SUPABASE_SERVICE_ROLE_KEY`, `DATABASE_URL`, `DIRECT_URL`, scanner secrets, cron secrets, or `SENTRY_AUTH_TOKEN` to the browser.
+Never expose `SUPABASE_SERVICE_ROLE_KEY`, `DATABASE_URL`, `DIRECT_URL`, cron secrets, or `SENTRY_AUTH_TOKEN` to the browser.
 
 ### 3. Prepare the Database
 
@@ -324,6 +324,7 @@ npm run lint
 npm run typecheck
 npm run test
 npm run test:integration
+npm run security:verify-rls
 npm run test:e2e
 npm run build
 ```
@@ -333,6 +334,10 @@ when its local credentials are absent. The normal unit suite does not require
 external services. Authenticated Playwright groups remain credential-gated for
 developers using an external backend; CI supplies deterministic local accounts
 and runs every browser test against the disposable stack.
+
+`security:verify-rls` is read-only. It uses `DIRECT_URL` or `DATABASE_URL` to
+check the deployed PostgreSQL catalogs, policy inventory, grants, security
+helpers, and private `project-files` bucket, and exits non-zero on drift.
 
 The GitHub Actions workflow starts local Supabase, applies the current schema
 and security baseline, seeds deterministic users, and runs the full set of

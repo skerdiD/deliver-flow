@@ -51,7 +51,6 @@ import {
 import {
   buildProjectFileStoragePath,
   formatProjectFileSize,
-  getProjectFileAllowedTypeLabels,
   PROJECT_FILES_BUCKET,
   validateProjectFileSelection,
 } from "@/features/projects/file-security";

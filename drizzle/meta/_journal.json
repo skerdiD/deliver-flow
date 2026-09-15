@@ -85,6 +85,13 @@
       "when": 1783676271408,
       "tag": "0011_absurd_quentin_quire",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1789466863734,
+      "tag": "0012_majestic_mentallo",
+      "breakpoints": true
     }
   ]
 }

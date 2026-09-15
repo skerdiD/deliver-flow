@@ -25,7 +25,6 @@ import {
   formatDateTimeLabel,
   formatFileSize,
   getFileCategoryLabel,
-  getFileScanStatusMeta,
   getFileVisibilityMeta,
   type AdminFilesPageData,
 } from "@/features/admin/operations/types";
@@ -44,14 +43,14 @@ export function AdminFilesPage({ data }: AdminFilesPageProps) {
           description="Files saved across client workspaces."
         />
         <SummaryCard
-          label="Available"
-          value={String(data.summary.totalFiles - data.summary.pendingScan)}
-          description="Files that are not waiting on scan review."
+          label="Client visible"
+          value={String(data.summary.visibleToClients)}
+          description="Files available to assigned clients."
         />
         <SummaryCard
-          label="Pending scan"
-          value={String(data.summary.pendingScan)}
-          description="Files held back until they become available."
+          label="Internal only"
+          value={String(data.summary.internalOnly)}
+          description="Files restricted to workspace owners."
         />
         <SummaryCard
           label="Storage usage"
@@ -83,8 +82,6 @@ export function AdminFilesPage({ data }: AdminFilesPageProps) {
                   const visibilityMeta = getFileVisibilityMeta(
                     file.isVisibleToClient,
                   );
-                  const scanMeta = getFileScanStatusMeta(file.scanStatus);
-
                   return (
                     <MobileRecordCard key={file.id}>
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -100,10 +97,6 @@ export function AdminFilesPage({ data }: AdminFilesPageProps) {
                         <StatusBadge
                           label={visibilityMeta.label}
                           tone={visibilityMeta.tone}
-                        />
-                        <StatusBadge
-                          label={scanMeta.label}
-                          tone={scanMeta.tone}
                         />
                       </div>
 
@@ -172,8 +165,6 @@ export function AdminFilesPage({ data }: AdminFilesPageProps) {
                       const visibilityMeta = getFileVisibilityMeta(
                         file.isVisibleToClient,
                       );
-                      const scanMeta = getFileScanStatusMeta(file.scanStatus);
-
                       return (
                         <TableRow key={file.id}>
                           <TableCell className="whitespace-normal">
@@ -211,7 +202,7 @@ export function AdminFilesPage({ data }: AdminFilesPageProps) {
                                   tone={visibilityMeta.tone}
                                 />
                               }
-                              meta={`${scanMeta.label} - ${file.fileType ?? "Unknown type"}`}
+                              meta={file.fileType ?? "Unknown type"}
                             />
                           </TableCell>
                           <TableCell className="whitespace-nowrap">

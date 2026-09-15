@@ -37,7 +37,6 @@ describe("Supabase security boundaries", () => {
     expect(source).toContain("isNull(projects.archivedAt)");
     expect(source).toContain("isNull(projects.deletedAt)");
     expect(source).toContain("signedUrlExpiresInSeconds");
-    expect(source).toContain('file.scanStatus !== "clean"');
   });
 
   it("guards admin direct project mutations and uploads", () => {
@@ -51,10 +50,10 @@ describe("Supabase security boundaries", () => {
     expect(source).toContain("isNull(projects.archivedAt)");
     expect(source).toContain("validateProjectFileSelection");
     expect(source).toContain("reserveWorkspaceStorageBytes");
-    expect(source).toContain("runInitialProjectFileScan");
+    expect(source).toContain("notifyProjectFileAvailable");
   });
 
-  it("keeps client file reads behind clean scan status checks", () => {
+  it("keeps client file reads behind visibility and assignment checks", () => {
     const routeSource = readFileSync(
       join(
         workspaceRoot,
@@ -62,15 +61,10 @@ describe("Supabase security boundaries", () => {
       ),
       "utf8",
     );
-    const portalSource = readFileSync(
-      join(workspaceRoot, "src/features/client/portal/portal-data.ts"),
-      "utf8",
-    );
-
-    expect(routeSource).toContain('eq(projectFiles.scanStatus, "clean")');
-    expect(
-      portalSource.match(/eq\(projectFiles\.scanStatus, "clean"\)/g),
-    ).toHaveLength(3);
+    expect(routeSource).toContain("eq(projectFiles.isVisibleToClient, true)");
+    expect(routeSource).toContain("eq(clients.profileId, profile.id)");
+    expect(routeSource).toContain('eq(clients.status, "active")');
+    expect(routeSource).toContain("createSignedUrl");
   });
 
   it("does not expose internal storage paths in the owner files UI", () => {

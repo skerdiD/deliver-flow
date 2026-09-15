@@ -4,31 +4,29 @@ vi.mock("server-only", () => ({}));
 
 import { getProjectFileSecurityConfig } from "@/features/projects/file-security.server";
 
-describe("project file scan configuration", () => {
+describe("project file security configuration", () => {
   afterEach(() => {
     vi.unstubAllEnvs();
   });
 
-  it("defaults production to quarantine", () => {
-    vi.stubEnv("NODE_ENV", "production");
-    vi.stubEnv("PROJECT_FILE_SCAN_MODE", "");
+  it("uses secure bounded defaults", () => {
+    vi.stubEnv("PROJECT_FILE_MAX_UPLOAD_BYTES", "");
+    vi.stubEnv("PROJECT_FILE_SIGNED_URL_TTL_SECONDS", "");
+    vi.stubEnv("PROJECT_FILE_WORKSPACE_QUOTA_BYTES", "");
 
-    expect(getProjectFileSecurityConfig().scanMode).toBe("quarantine");
+    expect(getProjectFileSecurityConfig()).toEqual({
+      maxFilesPerUpload: 1,
+      maxUploadBytes: 25 * 1024 * 1024,
+      signedUrlExpiresInSeconds: 120,
+      workspaceQuotaBytes: 1024 * 1024 * 1024,
+    });
   });
 
-  it("rejects the development no-op scanner in production", () => {
-    vi.stubEnv("NODE_ENV", "production");
-    vi.stubEnv("PROJECT_FILE_SCAN_MODE", "development-noop");
+  it("rejects signed URL lifetimes outside the allowed range", () => {
+    vi.stubEnv("PROJECT_FILE_SIGNED_URL_TTL_SECONDS", "301");
 
     expect(() => getProjectFileSecurityConfig()).toThrow(
-      "PROJECT_FILE_SCAN_MODE=development-noop is not allowed in production.",
+      "PROJECT_FILE_SIGNED_URL_TTL_SECONDS must be at most 300",
     );
-  });
-
-  it("allows the no-op scanner during local development", () => {
-    vi.stubEnv("NODE_ENV", "development");
-    vi.stubEnv("PROJECT_FILE_SCAN_MODE", "development-noop");
-
-    expect(getProjectFileSecurityConfig().scanMode).toBe("development-noop");
   });
 });

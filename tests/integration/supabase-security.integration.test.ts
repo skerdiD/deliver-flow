@@ -33,8 +33,10 @@ const ids = {
   hiddenTask: randomUUID(),
   ownFeedback: randomUUID(),
   peerFeedback: randomUUID(),
-  cleanFile: randomUUID(),
-  pendingFile: randomUUID(),
+  visibleFile: randomUUID(),
+  secondFile: randomUUID(),
+  ownerTask: randomUUID(),
+  clientFeedback: randomUUID(),
 };
 const emails = {
   ownerA: `owner-a-${runId}@deliverflow.test`,
@@ -159,18 +161,21 @@ beforeAll(async () => {
       insert into public.project_files (
         id, workspace_id, project_id, uploaded_by, file_name, original_file_name,
         bucket_name, storage_path, file_type, file_size, file_extension,
-        category, scan_status, is_visible_to_client
+        category, is_visible_to_client
       ) values
-        (${ids.cleanFile}, ${ids.workspaceA}, ${ids.projectA}, ${ownerAId}, 'Clean file.txt', 'Clean file.txt',
-         'project-files', ${objectPath}, 'text/plain', ${objectBody.length}, '.txt', 'deliverable', 'clean', true),
-        (${ids.pendingFile}, ${ids.workspaceA}, ${ids.projectA}, ${ownerAId}, 'Pending file.txt', 'Pending file.txt',
-         'project-files', ${`integration/${runId}/pending.txt`}, 'text/plain', 7, '.txt', 'deliverable', 'pending', true)
+        (${ids.visibleFile}, ${ids.workspaceA}, ${ids.projectA}, ${ownerAId}, 'Visible file.txt', 'Visible file.txt',
+         'project-files', ${objectPath}, 'text/plain', ${objectBody.length}, '.txt', 'deliverable', true),
+        (${ids.secondFile}, ${ids.workspaceA}, ${ids.projectA}, ${ownerAId}, 'Second file.txt', 'Second file.txt',
+         'project-files', ${`integration/${runId}/second.txt`}, 'text/plain', 7, '.txt', 'deliverable', true)
     `;
   });
 
   const { error: uploadError } = await admin.storage
     .from("project-files")
-    .upload(objectPath, objectBody, { contentType: "text/plain", upsert: true });
+    .upload(objectPath, objectBody, {
+      contentType: "text/plain",
+      upsert: true,
+    });
   if (uploadError) throw uploadError;
 });
 
@@ -215,16 +220,14 @@ describe("Supabase Auth and RLS integration", () => {
       .eq("email", emails.assigned);
 
     expect(ownerResult.error).toBeNull();
-    expect(ownerResult.data).toEqual([
-      { email: emails.ownerA, role: "owner" },
-    ]);
+    expect(ownerResult.data).toEqual([{ email: emails.ownerA, role: "owner" }]);
     expect(clientResult.error).toBeNull();
     expect(clientResult.data).toEqual([
       { email: emails.assigned, role: "client" },
     ]);
   });
 
-  it("isolates owners by workspace", async () => {
+  it("isolates owner reads and writes by workspace", async () => {
     const ownerA = users.get("ownerA")!;
     const { data, error } = await ownerA.from("projects").select("id");
 
@@ -237,6 +240,72 @@ describe("Supabase Auth and RLS integration", () => {
       slug: `cross-tenant-${runId}`,
     });
     expect(crossTenantInsert.error).not.toBeNull();
+
+    const crossLinkedTask = await ownerA.from("tasks").insert({
+      workspace_id: ids.workspaceA,
+      project_id: ids.projectB,
+      title: "Cross-linked task",
+    });
+    expect(crossLinkedTask.error).not.toBeNull();
+
+    const crossLinkedAssignment = await ownerA
+      .from("project_assignments")
+      .insert({
+        workspace_id: ids.workspaceA,
+        project_id: ids.projectA,
+        client_id: ids.tenantBClient,
+      });
+    expect(crossLinkedAssignment.error).not.toBeNull();
+
+    const crossTenantUpdate = await ownerA
+      .from("projects")
+      .update({ name: "Forged update" })
+      .eq("id", ids.projectB)
+      .select("id");
+    expect(crossTenantUpdate.error).toBeNull();
+    expect(crossTenantUpdate.data).toEqual([]);
+
+    const crossTenantDelete = await ownerA
+      .from("projects")
+      .delete()
+      .eq("id", ids.projectB)
+      .select("id");
+    expect(crossTenantDelete.error).toBeNull();
+    expect(crossTenantDelete.data).toEqual([]);
+  });
+
+  it("allows owner CRUD only with consistent same-workspace relationships", async () => {
+    const ownerA = users.get("ownerA")!;
+    const inserted = await ownerA
+      .from("tasks")
+      .insert({
+        id: ids.ownerTask,
+        workspace_id: ids.workspaceA,
+        project_id: ids.projectA,
+        title: "Owner RLS task",
+      })
+      .select("id, status")
+      .single();
+    expect(inserted.error).toBeNull();
+    expect(inserted.data).toEqual({ id: ids.ownerTask, status: "todo" });
+
+    const updated = await ownerA
+      .from("tasks")
+      .update({ status: "completed" })
+      .eq("id", ids.ownerTask)
+      .select("status")
+      .single();
+    expect(updated.error).toBeNull();
+    expect(updated.data?.status).toBe("completed");
+
+    const deleted = await ownerA
+      .from("tasks")
+      .delete()
+      .eq("id", ids.ownerTask)
+      .select("id")
+      .single();
+    expect(deleted.error).toBeNull();
+    expect(deleted.data?.id).toBe(ids.ownerTask);
   });
 
   it("limits client reads to assignments, visible rows, and their own feedback", async () => {
@@ -253,7 +322,10 @@ describe("Supabase Auth and RLS integration", () => {
     expect(projectsResult.data).toEqual([{ id: ids.projectA }]);
     expect(tasksResult.data).toEqual([{ id: ids.visibleTask }]);
     expect(feedbackResult.data).toEqual([{ id: ids.ownFeedback }]);
-    expect(filesResult.data).toEqual([{ id: ids.cleanFile }]);
+    expect(filesResult.data).toEqual(
+      expect.arrayContaining([{ id: ids.visibleFile }, { id: ids.secondFile }]),
+    );
+    expect(filesResult.data).toHaveLength(2);
   });
 
   it("denies unassigned and cross-tenant project access", async () => {
@@ -272,17 +344,30 @@ describe("Supabase Auth and RLS integration", () => {
     expect(tenantBResult.data).toEqual([{ id: ids.projectB }]);
   });
 
+  it("allows a client to read only their active client record without internal notes", async () => {
+    const assigned = users.get("assigned")!;
+    const ownRecord = await assigned.from("clients").select("id");
+    const internalNotes = await assigned.from("clients").select("notes");
+
+    expect(ownRecord.error).toBeNull();
+    expect(ownRecord.data).toEqual([{ id: ids.assignedClient }]);
+    expect(internalNotes.error).not.toBeNull();
+    expect(internalNotes.data).toBeNull();
+  });
+
   it("prevents browser clients from mutating protected file metadata", async () => {
-    const result = await users.get("ownerA")!.from("project_files").insert({
-      workspace_id: ids.workspaceA,
-      project_id: ids.projectA,
-      file_name: "Browser bypass.txt",
-      original_file_name: "Browser bypass.txt",
-      bucket_name: "project-files",
-      storage_path: `integration/${runId}/bypass.txt`,
-      file_extension: ".txt",
-      scan_status: "clean",
-    });
+    const result = await users
+      .get("ownerA")!
+      .from("project_files")
+      .insert({
+        workspace_id: ids.workspaceA,
+        project_id: ids.projectA,
+        file_name: "Browser bypass.txt",
+        original_file_name: "Browser bypass.txt",
+        bucket_name: "project-files",
+        storage_path: `integration/${runId}/bypass.txt`,
+        file_extension: ".txt",
+      });
 
     expect(result.error).not.toBeNull();
   });
@@ -306,6 +391,54 @@ describe("Supabase Auth and RLS integration", () => {
     });
 
     expect(result.error).not.toBeNull();
+  });
+
+  it("allows valid client feedback but denies forged ownership and owner-only writes", async () => {
+    const assigned = users.get("assigned")!;
+    const { data: userData } = await assigned.auth.getUser();
+
+    const validFeedback = await assigned.from("feedback").insert({
+      id: ids.clientFeedback,
+      workspace_id: ids.workspaceA,
+      project_id: ids.projectA,
+      client_id: ids.assignedClient,
+      created_by: userData.user!.id,
+      message: "Valid assigned-client feedback",
+    });
+    expect(validFeedback.error).toBeNull();
+
+    const forgedClient = await assigned.from("feedback").insert({
+      workspace_id: ids.workspaceA,
+      project_id: ids.projectA,
+      client_id: ids.peerClient,
+      created_by: userData.user!.id,
+      message: "Forged peer feedback",
+    });
+    expect(forgedClient.error).not.toBeNull();
+
+    const forgedProject = await assigned.from("feedback").insert({
+      workspace_id: ids.workspaceA,
+      project_id: ids.projectB,
+      client_id: ids.assignedClient,
+      created_by: userData.user!.id,
+      message: "Forged project feedback",
+    });
+    expect(forgedProject.error).not.toBeNull();
+
+    const ownerOnlyWrite = await assigned.from("admin_notes").insert({
+      workspace_id: ids.workspaceA,
+      created_by: userData.user!.id,
+      content: "Forged owner note",
+    });
+    expect(ownerOnlyWrite.error).not.toBeNull();
+
+    const clientMutation = await assigned
+      .from("clients")
+      .update({ status: "archived" })
+      .eq("id", ids.assignedClient)
+      .select("id");
+    expect(clientMutation.error).toBeNull();
+    expect(clientMutation.data).toEqual([]);
   });
 });
 
