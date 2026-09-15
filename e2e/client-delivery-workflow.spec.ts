@@ -5,6 +5,7 @@ import {
   getSeededClientOptionName,
   hasCredentials,
   signIn,
+  signOut,
 } from "./support/auth";
 
 test.describe("client delivery workflow", () => {
@@ -55,7 +56,7 @@ test.describe("client delivery workflow", () => {
     await page.getByRole("button", { name: "Request approval" }).click();
     await expect(page.getByText("Approval requested.")).toBeVisible();
 
-    await page.getByRole("button", { name: "Log out" }).click();
+    await signOut(page);
     await signIn(page, e2eAuth.client);
 
     await expect(page.getByText(projectName)).toBeVisible();
@@ -79,7 +80,7 @@ test.describe("client delivery workflow", () => {
     await page.getByRole("button", { name: "Approve" }).click();
     await expect(page.getByText("Approved")).toBeVisible();
 
-    await page.getByRole("button", { name: "Log out" }).click();
+    await signOut(page);
     await signIn(page, e2eAuth.owner);
     const ownerNotificationsButton = page.getByRole("button", {
       name: /notifications/i,
