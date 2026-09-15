@@ -9,6 +9,8 @@ import {
 } from "./support/auth";
 
 test.describe("client delivery workflow", () => {
+  test.describe.configure({ timeout: 90_000 });
+
   test.skip(
     !hasCredentials(e2eAuth.owner) || !hasCredentials(e2eAuth.client),
     "Set E2E_ADMIN_EMAIL, E2E_ADMIN_PASSWORD, E2E_CLIENT_EMAIL, and E2E_CLIENT_PASSWORD to run the delivery workflow e2e test.",
@@ -59,7 +61,9 @@ test.describe("client delivery workflow", () => {
     await signOut(page);
     await signIn(page, e2eAuth.client);
 
-    await expect(page.getByText(projectName)).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: projectName, exact: true }),
+    ).toBeVisible();
     const clientNotificationsButton = page.getByRole("button", {
       name: /notifications/i,
     });

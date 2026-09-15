@@ -9,6 +9,8 @@ import {
 } from "./support/auth";
 
 test.describe("project file security workflow", () => {
+  test.describe.configure({ timeout: 120_000 });
+
   test.skip(
     !hasCredentials(e2eAuth.owner) ||
       !hasCredentials(e2eAuth.client) ||
@@ -66,12 +68,19 @@ test.describe("project file security workflow", () => {
       name: `initial-${unique}.pdf`,
     });
     await page.getByRole("button", { name: "Upload file" }).click();
-    await expect(page.getByText(initialFileName)).toBeVisible();
+    await expect(
+      page.getByText("File uploaded.", { exact: true }),
+    ).toBeVisible({ timeout: 15_000 });
+    await expect(
+      page.getByText(initialFileName, { exact: true }),
+    ).toBeVisible();
 
     await signOut(page);
     await signIn(page, e2eAuth.client);
     await page.goto("/client/files");
-    await expect(page.getByText(initialFileName)).toBeVisible();
+    await expect(
+      page.getByText(initialFileName, { exact: true }),
+    ).toBeVisible();
 
     const downloadHref =
       (await page
@@ -92,8 +101,10 @@ test.describe("project file security workflow", () => {
     await page.goto("/admin/files");
 
     const initialFileCard = page
-      .locator("div", { hasText: initialFileName })
-      .first();
+      .getByText(initialFileName, { exact: true })
+      .locator(
+        "xpath=ancestor::*[.//button[@aria-label='File actions']][1]",
+      );
     await initialFileCard.getByLabel("File actions").click();
     await page.getByRole("menuitem", { name: "Replace file" }).click();
     await page
@@ -109,30 +120,44 @@ test.describe("project file security workflow", () => {
         name: `replacement-${unique}.pdf`,
       });
     await page.getByRole("button", { name: "Replace file" }).click();
-    await expect(page.getByText(replacementFileName)).toBeVisible();
-    await expect(page.getByText(initialFileName)).toHaveCount(0);
+    await expect(
+      page.getByText(replacementFileName, { exact: true }),
+    ).toBeVisible({ timeout: 15_000 });
+    await expect(
+      page.getByText(initialFileName, { exact: true }),
+    ).toHaveCount(0);
 
     await signOut(page);
     await signIn(page, e2eAuth.client);
     await page.goto("/client/files");
-    await expect(page.getByText(replacementFileName)).toBeVisible();
-    await expect(page.getByText(initialFileName)).toHaveCount(0);
+    await expect(
+      page.getByText(replacementFileName, { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByText(initialFileName, { exact: true }),
+    ).toHaveCount(0);
 
     await signOut(page);
     await signIn(page, e2eAuth.owner);
     await page.goto("/admin/files");
 
     const replacementFileCard = page
-      .locator("div", { hasText: replacementFileName })
-      .first();
+      .getByText(replacementFileName, { exact: true })
+      .locator(
+        "xpath=ancestor::*[.//button[@aria-label='File actions']][1]",
+      );
     await replacementFileCard.getByLabel("File actions").click();
     await page.getByRole("menuitem", { name: "Delete file" }).click();
     await page.getByRole("button", { name: "Delete file" }).click();
-    await expect(page.getByText(replacementFileName)).toHaveCount(0);
+    await expect(
+      page.getByText(replacementFileName, { exact: true }),
+    ).toHaveCount(0, { timeout: 15_000 });
 
     await signOut(page);
     await signIn(page, e2eAuth.client);
     await page.goto("/client/files");
-    await expect(page.getByText(replacementFileName)).toHaveCount(0);
+    await expect(
+      page.getByText(replacementFileName, { exact: true }),
+    ).toHaveCount(0);
   });
 });
