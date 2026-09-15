@@ -105,4 +105,16 @@ describe("current Supabase RLS baseline", () => {
       /delete\s+from\s+"?project_files"?|storage\.objects/i,
     );
   });
+
+  it("removes the legacy scan policy before dropping its referenced column", () => {
+    const legacyPolicyDrop = fileStateCleanup.indexOf(
+      'DROP POLICY IF EXISTS "Clients can read assigned visible clean project files"',
+    );
+    const scanStatusDrop = fileStateCleanup.indexOf(
+      'ALTER TABLE "project_files" DROP COLUMN "scan_status"',
+    );
+
+    expect(legacyPolicyDrop).toBeGreaterThanOrEqual(0);
+    expect(scanStatusDrop).toBeGreaterThan(legacyPolicyDrop);
+  });
 });

@@ -9,6 +9,10 @@ UPDATE "project_file_cleanup_jobs"
 SET "reason" = 'legacy_blocked_file',
     "updated_at" = now()
 WHERE "reason" = 'infected_file';--> statement-breakpoint
+-- Supabase's legacy client-read policy references scan_status, so PostgreSQL
+-- requires it to be removed before the column can be dropped. The replacement
+-- policy is installed by 0008_rls_file_access_cleanup.sql after this migration.
+DROP POLICY IF EXISTS "Clients can read assigned visible clean project files" ON "public"."project_files";--> statement-breakpoint
 DROP INDEX "project_files_scan_status_idx";--> statement-breakpoint
 DROP INDEX "project_files_workspace_scan_status_idx";--> statement-breakpoint
 ALTER TABLE "project_files" DROP COLUMN "scan_status";--> statement-breakpoint
